@@ -173,6 +173,32 @@ export async function createRemoteExpense(session: LocalSession, input: ExpenseI
   return loadRemoteHousehold(session);
 }
 
+export async function updateRemoteExpense(session: LocalSession, expenseId: string, input: ExpenseInput) {
+  const supabase = await ensureAuthenticated();
+  const { error: expenseError } = await supabase.from("expenses").update({
+    payer_member_id: input.payerId,
+    amount_cents: input.amountCents,
+    description: input.description,
+    category: input.category,
+    expense_date: input.expenseDate,
+  }).eq("id", expenseId).eq("household_id", session.householdId);
+  if (expenseError) throw expenseError;
+
+  const { error: removeParticipantsError } = await supabase.from("expense_participants").delete().eq("expense_id", expenseId);
+  if (removeParticipantsError) throw removeParticipantsError;
+  const shares = splitAmount(input.amountCents, input.participantIds);
+  const { error: participantError } = await supabase.from("expense_participants").insert([...shares].map(([memberId, shareCents]) => ({ expense_id: expenseId, member_id: memberId, share_cents: shareCents })));
+  if (participantError) throw participantError;
+  return loadRemoteHousehold(session);
+}
+
+export async function deleteRemoteExpense(session: LocalSession, expenseId: string) {
+  const supabase = await ensureAuthenticated();
+  const { error } = await supabase.from("expenses").delete().eq("id", expenseId).eq("household_id", session.householdId);
+  if (error) throw error;
+  return loadRemoteHousehold(session);
+}
+
 export async function loadRemoteSettlementRuns(session: LocalSession) {
   const supabase = await ensureAuthenticated();
   const { data: runs, error: runsError } = await supabase.from("settlement_runs").select("id, household_id, created_by_user_id, created_at").eq("household_id", session.householdId).order("created_at", { ascending: false });
