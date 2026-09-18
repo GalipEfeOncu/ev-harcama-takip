@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { calculateBalances, formatCurrency, parseAmountToCents } from "@/lib/calculations";
+import { createRemoteExpense, loadRemoteHousehold } from "@/lib/data-service";
 import {
   readLocalExpenses,
   readLocalMembers,
@@ -23,6 +24,7 @@ import {
   saveLocalExpenses,
   type LocalSession,
 } from "@/lib/local-store";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import type { Expense, Member } from "@/lib/types";
 
 type DashboardData = {
@@ -48,6 +50,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const [isExpenseFormOpen, setExpenseFormOpen] = useState(false);
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
@@ -56,21 +59,30 @@ export default function DashboardPage() {
   const [payerId, setPayerId] = useState("");
   const [participantIds, setParticipantIds] = useState<string[]>([]);
   const [formError, setFormError] = useState("");
+  const [savingExpense, setSavingExpense] = useState(false);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      const session = readLocalSession();
-      if (!session) {
-        setLoading(false);
-        return;
-      }
+      void (async () => {
+        const session = readLocalSession();
+        if (!session) {
+          setLoading(false);
+          return;
+        }
 
-      const members = readLocalMembers(session);
-      const expenses = readLocalExpenses(session);
-      setPayerId(session.memberId);
-      setParticipantIds(members.filter((member) => member.active).map((member) => member.id));
-      setData({ session, members, expenses });
-      setLoading(false);
+        try {
+          const remoteData = isSupabaseConfigured()
+            ? await loadRemoteHousehold(session)
+            : { members: readLocalMembers(session), expenses: readLocalExpenses(session) };
+          setPayerId(session.memberId);
+          setParticipantIds(remoteData.members.filter((member) => member.active).map((member) => member.id));
+          setData({ session, ...remoteData });
+        } catch (loadFailure) {
+          setLoadError(loadFailure instanceof Error ? loadFailure.message : "Ev verileri yüklenemedi.");
+        } finally {
+          setLoading(false);
+        }
+      })();
     }, 0);
 
     return () => window.clearTimeout(timer);
@@ -103,7 +115,7 @@ export default function DashboardPage() {
     setParticipantIds((current) => current.includes(memberId) ? current.filter((id) => id !== memberId) : [...current, memberId]);
   }
 
-  function handleExpenseSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleExpenseSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!data) return;
 
@@ -121,30 +133,32 @@ export default function DashboardPage() {
       return;
     }
 
-    const now = new Date().toISOString();
-    const expense: Expense = {
-      id: createId("expense"),
-      householdId: data.session.householdId,
-      payerId,
-      amountCents,
-      description: description.trim(),
-      category,
-      expenseDate,
-      participantIds,
-      createdAt: now,
-      updatedAt: now,
-    };
-    const expenses = [expense, ...data.expenses];
-    saveLocalExpenses(data.session, expenses);
-    setData({ ...data, expenses });
-    setAmount("");
-    setDescription("");
-    setCategory("Genel");
-    setExpenseDate(new Date().toISOString().slice(0, 10));
-    closeExpenseForm();
+    setSavingExpense(true);
+    try {
+      const nextData = isSupabaseConfigured()
+        ? await createRemoteExpense(data.session, { payerId, amountCents, description: description.trim(), category, expenseDate, participantIds })
+        : (() => {
+            const now = new Date().toISOString();
+            const expense: Expense = { id: createId("expense"), householdId: data.session.householdId, payerId, amountCents, description: description.trim(), category, expenseDate, participantIds, createdAt: now, updatedAt: now };
+            const expenses = [expense, ...data.expenses];
+            saveLocalExpenses(data.session, expenses);
+            return { members: data.members, expenses };
+          })();
+      setData({ session: data.session, ...nextData });
+      setAmount("");
+      setDescription("");
+      setCategory("Genel");
+      setExpenseDate(new Date().toISOString().slice(0, 10));
+      closeExpenseForm();
+    } catch (saveFailure) {
+      setFormError(saveFailure instanceof Error ? saveFailure.message : "Harcama kaydedilemedi.");
+    } finally {
+      setSavingExpense(false);
+    }
   }
 
-  function leaveHousehold() {
+  async function leaveHousehold() {
+    if (isSupabaseConfigured()) await createClient().auth.signOut();
     window.localStorage.removeItem("ev-hesap-session");
     router.push("/start");
   }
@@ -154,6 +168,9 @@ export default function DashboardPage() {
   }
 
   if (!data) {
+    if (loadError) {
+      return <main className="dashboard-shell"><div className="empty-dashboard"><span className="empty-dashboard-icon"><Home size={25} /></span><p className="eyebrow">bağlantı hatası</p><h1>Ev verisi yüklenemedi.</h1><p>{loadError}</p><button className="button button-primary" onClick={() => window.location.reload()} type="button">Tekrar dene <ArrowRight size={17} /></button></div></main>;
+    }
     return (
       <main className="dashboard-shell">
         <div className="empty-dashboard">
@@ -181,7 +198,7 @@ export default function DashboardPage() {
         </div>
         <div className="dashboard-user">
           <span>{data.session.memberName.slice(0, 1).toUpperCase()}</span>
-          <button aria-label="Hesaptan çık" onClick={leaveHousehold} type="button"><LogOut size={15} /></button>
+          <button aria-label="Hesaptan çık" onClick={() => void leaveHousehold()} type="button"><LogOut size={15} /></button>
         </div>
       </header>
 
@@ -224,7 +241,7 @@ export default function DashboardPage() {
         </section>
       </section>
 
-      {isExpenseFormOpen && <div className="modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) closeExpenseForm(); }}><section className="expense-modal" role="dialog" aria-modal="true" aria-labelledby="expense-modal-title"><div className="modal-header"><div><p className="eyebrow">yeni kayıt</p><h2 id="expense-modal-title">Harcama ekle</h2></div><button className="icon-button" aria-label="Formu kapat" onClick={closeExpenseForm} type="button"><X size={19} /></button></div><form onSubmit={handleExpenseSubmit}><label className="field-label">Tutar<input inputMode="decimal" onChange={(event) => setAmount(event.target.value)} placeholder="850,00" value={amount} /></label><label className="field-label">Açıklama<input onChange={(event) => setDescription(event.target.value)} placeholder="Örn. Market alışverişi" value={description} /></label><div className="form-two-col"><label className="field-label">Kategori<select onChange={(event) => setCategory(event.target.value)} value={category}><option>Genel</option><option>Market</option><option>Fatura</option><option>Ev</option><option>Ulaşım</option><option>Dışarıda yemek</option></select></label><label className="field-label">Tarih<input onChange={(event) => setExpenseDate(event.target.value)} type="date" value={expenseDate} /></label></div><label className="field-label">Kim ödedi?<select onChange={(event) => setPayerId(event.target.value)} value={payerId}>{activeMembers.map((member) => <option key={member.id} value={member.id}>{member.name}</option>)}</select></label><fieldset className="participants-field"><legend>Kimler için?</legend>{activeMembers.map((member) => <label className="participant-option" key={member.id}><input checked={participantIds.includes(member.id)} onChange={() => toggleParticipant(member.id)} type="checkbox" /><span>{member.name}</span><small>{participantIds.includes(member.id) ? "dahil" : "hariç"}</small></label>)}</fieldset>{formError && <p className="form-error" role="alert">{formError}</p>}<button className="button button-primary form-submit" type="submit">Harcamayı kaydet <ArrowRight size={17} /></button></form></section></div>}
+      {isExpenseFormOpen && <div className="modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) closeExpenseForm(); }}><section className="expense-modal" role="dialog" aria-modal="true" aria-labelledby="expense-modal-title"><div className="modal-header"><div><p className="eyebrow">yeni kayıt</p><h2 id="expense-modal-title">Harcama ekle</h2></div><button className="icon-button" aria-label="Formu kapat" onClick={closeExpenseForm} type="button"><X size={19} /></button></div><form onSubmit={handleExpenseSubmit}><label className="field-label">Tutar<input inputMode="decimal" onChange={(event) => setAmount(event.target.value)} placeholder="850,00" value={amount} /></label><label className="field-label">Açıklama<input onChange={(event) => setDescription(event.target.value)} placeholder="Örn. Market alışverişi" value={description} /></label><div className="form-two-col"><label className="field-label">Kategori<select onChange={(event) => setCategory(event.target.value)} value={category}><option>Genel</option><option>Market</option><option>Fatura</option><option>Ev</option><option>Ulaşım</option><option>Dışarıda yemek</option></select></label><label className="field-label">Tarih<input onChange={(event) => setExpenseDate(event.target.value)} type="date" value={expenseDate} /></label></div><label className="field-label">Kim ödedi?<select onChange={(event) => setPayerId(event.target.value)} value={payerId}>{activeMembers.map((member) => <option key={member.id} value={member.id}>{member.name}</option>)}</select></label><fieldset className="participants-field"><legend>Kimler için?</legend>{activeMembers.map((member) => <label className="participant-option" key={member.id}><input checked={participantIds.includes(member.id)} onChange={() => toggleParticipant(member.id)} type="checkbox" /><span>{member.name}</span><small>{participantIds.includes(member.id) ? "dahil" : "hariç"}</small></label>)}</fieldset>{formError && <p className="form-error" role="alert">{formError}</p>}<button className="button button-primary form-submit" disabled={savingExpense} type="submit">{savingExpense ? "Kaydediliyor…" : "Harcamayı kaydet"} <ArrowRight size={17} /></button></form></section></div>}
     </main>
   );
 }

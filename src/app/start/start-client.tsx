@@ -14,19 +14,11 @@ import {
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
+import { createRemoteHousehold, joinRemoteHousehold } from "@/lib/data-service";
+import { isSupabaseConfigured } from "@/lib/supabase/client";
+import { SESSION_KEY, type LocalSession } from "@/lib/local-store";
 
 type Mode = "create" | "join";
-
-type LocalSession = {
-  householdId: string;
-  householdName: string;
-  memberId: string;
-  memberName: string;
-  joinCode: string;
-  role: "owner" | "member";
-};
-
-const SESSION_KEY = "ev-hesap-session";
 
 function createId(prefix: string) {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
@@ -53,6 +45,7 @@ export default function StartPage() {
   const [error, setError] = useState("");
   const [session, setSession] = useState<LocalSession | null>(null);
   const [copied, setCopied] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   function switchMode(nextMode: Mode) {
     setMode(nextMode);
@@ -60,7 +53,7 @@ export default function StartPage() {
     setSession(null);
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
 
@@ -79,18 +72,31 @@ export default function StartPage() {
       return;
     }
 
-    const code = mode === "create" ? createJoinCode() : joinCode.trim().toUpperCase();
-    const nextSession: LocalSession = {
-      householdId: mode === "create" ? createId("household") : `household-${code}`,
-      householdName: mode === "create" ? householdName.trim() : "Katıldığın ev",
-      memberId: createId("member"),
-      memberName: memberName.trim(),
-      joinCode: code,
-      role: mode === "create" ? "owner" : "member",
-    };
+    setSubmitting(true);
+    try {
+      const nextSession = isSupabaseConfigured()
+        ? mode === "create"
+          ? await createRemoteHousehold(householdName.trim(), memberName.trim())
+          : await joinRemoteHousehold(joinCode.trim().toUpperCase(), memberName.trim())
+        : (() => {
+            const code = mode === "create" ? createJoinCode() : joinCode.trim().toUpperCase();
+            return {
+              householdId: mode === "create" ? createId("household") : `household-${code}`,
+              householdName: mode === "create" ? householdName.trim() : "Katıldığın ev",
+              memberId: createId("member"),
+              memberName: memberName.trim(),
+              joinCode: code,
+              role: mode === "create" ? "owner" : "member",
+            } satisfies LocalSession;
+          })();
 
-    window.localStorage.setItem(SESSION_KEY, JSON.stringify(nextSession));
-    setSession(nextSession);
+      window.localStorage.setItem(SESSION_KEY, JSON.stringify(nextSession));
+      setSession(nextSession);
+    } catch (submissionError) {
+      setError(submissionError instanceof Error ? submissionError.message : "Ev işlemi tamamlanamadı.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   async function copyCode() {
@@ -163,12 +169,12 @@ export default function StartPage() {
                 </label>
 
                 {error && <p className="form-error" role="alert">{error}</p>}
-                <button className="button button-primary form-submit" type="submit">
-                  {mode === "create" ? "Ev kodumu oluştur" : "Eve katıl"}
+                <button className="button button-primary form-submit" disabled={submitting} type="submit">
+                  {submitting ? "Kontrol ediliyor…" : mode === "create" ? "Ev kodumu oluştur" : "Eve katıl"}
                   <ArrowRight size={17} />
                 </button>
               </form>
-              <p className="form-footnote"><LockKeyhole size={13} /> Bu cihazda geçici bir prototip oturumu açılır.</p>
+              <p className="form-footnote"><LockKeyhole size={13} /> {isSupabaseConfigured() ? "Oturumun Supabase Auth ile korunur." : "Bu cihazda geçici bir prototip oturumu açılır."}</p>
             </>
           ) : (
             <div className="success-state">
