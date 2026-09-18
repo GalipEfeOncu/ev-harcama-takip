@@ -340,6 +340,9 @@ Evi temsil eder.
 ```text
 id
 name
+owner_member_id
+join_code_hash
+join_code_created_at
 created_at
 ```
 
@@ -372,7 +375,7 @@ created_at
 4 | D
 ```
 
-İlk sürümde gerçek hesap sistemi olmadan 4 sabit kişi tutulabilir.
+Üyeler ilgili `household_id` altında tutulur. Bir evdeki üye sayısı sabit 4 kişiyle sınırlı olmamalıdır.
 
 ---
 
@@ -655,21 +658,34 @@ Veritabanında kaynak veri harcamalar olmalıdır.
 
 ## İlk sürüm
 
-Uygulama sadece 4 arkadaş tarafından kullanılacaksa karmaşık auth sistemi gereksiz olabilir.
-
-Basit seçenek:
+Site public olacağı için URL'ye sahip olan herkes uygulamaya girebilir; ancak ev verileri public olmamalıdır. Kullanıcı uygulamaya girdiğinde iki seçenek görmelidir:
 
 ```text
-Ev kodu / PIN
+[ Yeni Ev Oluştur ]
+[ Koda Sahip Bir Eve Katıl ]
 ```
 
-Örneğin:
+Ev oluşturma akışı:
+
+1. Kullanıcı ev adını ve kendi görünen adını girer.
+2. Sistem yeni bir `household` ve ilk üyeyi oluşturur.
+3. Sistem tahmin edilmesi zor, benzersiz bir davet kodu üretir.
+4. Kod kullanıcıya kopyalanabilir şekilde gösterilir.
+
+Eve katılma akışı:
+
+1. Kullanıcı davet kodunu girer.
+2. Kod geçerliyse ev adı gösterilir ve kullanıcıdan görünen adı istenir.
+3. Kullanıcı ilgili `household` içine yeni üye olarak eklenir.
+4. Kullanıcı yalnızca üyesi olduğu evin dashboard ve harcamalarını görebilir.
+
+Davet kodu basit ve kolay tahmin edilebilir bir PIN olmamalıdır. Örneğin:
 
 ```text
-bizimev-4821
+EV-7K4P2M9Q
 ```
 
-Kullanıcı siteye girer, ev kodunu yazar ve kendi ismini seçer.
+Kod veritabanında hash'lenmiş olarak saklanmalı, arayüzde yalnızca ev üyelerine gösterilmeli ve ev sahibi istediğinde yenileyebilmelidir. Kod yenilendiğinde eski kod geçersiz olmalıdır.
 
 ## Sonraki sürüm
 
@@ -693,7 +709,7 @@ Temel kural:
 Bir kullanıcı sadece üyesi olduğu household içindeki verileri okuyabilir/değiştirebilir.
 ```
 
-Uygulama sadece arkadaşlar arasında kullanılacak olsa bile database tablolarını public bırakmamak gerekir.
+Public siteye herkes girebilse de database tabloları public bırakılmamalıdır. Davet kodu denemelerine rate limit uygulanmalı, household verileri yalnızca üyelik kontrolü başarılı olan kullanıcılara açılmalıdır.
 
 ---
 
@@ -898,8 +914,8 @@ Amaç önce gerçek hayatta kullanılan küçük ve sağlam bir araç çıkarmak
 
 V1 için yeterli özellikler:
 
-1. Ev oluşturma veya tek sabit ev
-2. 4 üye
+1. Ev oluşturma veya mevcut eve davet koduyla katılma
+2. Ev üyeliği ve üye yönetimi
 3. Harcama ekleme
 4. Harcamaya dahil kişileri seçme
 5. Harcama geçmişi
@@ -938,8 +954,8 @@ Database
 Supabase PostgreSQL
 
 Authentication
-İlk sürüm: basit PIN / sabit üyeler
-Sonrasında: Supabase Auth
+İlk sürüm: Supabase Auth oturumu + ev davet kodu
+Sonrasında: Google login / magic link / e-mail login
 
 Hosting
 Vercel
@@ -1496,9 +1512,7 @@ Source control:
 GitHub
 ```
 
-İlk sürümde yalnızca dört sabit kullanıcı ve eve özel bir giriş kodu/PIN kullanılabilir.
-
-Daha sonra gerçek kullanıcı sistemi istenirse Supabase Auth eklenebilir.
+İlk sürümde kullanıcılar public siteye Supabase Auth oturumu ile girer; bir eve katılmak için ayrıca o evin davet kodunu kullanır.
 
 ---
 
@@ -1525,3 +1539,65 @@ Her kişi toplamda ne kadar ödeme yaptı?
 ```
 
 Bu yapı ileride grafik, kategori analizi ve aylık karşılaştırma gibi özelliklerin eklenmesini de kolaylaştırır.
+
+---
+
+# Public Site ve Ev Katılım Modeli
+
+Uygulama public bir web sitesi olarak yayınlanacaktır. Bu nedenle siteye herkes girebilir; fakat bir evin harcamaları yalnızca o evin üyelerine açık olmalıdır.
+
+## Ana akış
+
+İlk ekranda iki temel aksiyon bulunur:
+
+```text
+[ Yeni Ev Oluştur ]
+[ Ev Koduyla Katıl ]
+```
+
+### Yeni ev oluşturma
+
+- Kullanıcı ev/oda adını girer.
+- Kendi adını girer ve ilk üye olarak eklenir.
+- Sistem benzersiz bir davet kodu üretir.
+- Ev sahibi bu kodu diğer kişilerle paylaşır.
+
+### Mevcut eve katılma
+
+- Kullanıcı kendisine gönderilen ev kodunu girer.
+- Kod doğrulanır.
+- Kullanıcı görünen adını belirleyerek eve katılır.
+- Bundan sonra eklediği ve görüntülediği bütün veriler ilgili `household_id` ile sınırlandırılır.
+
+## Güvenlik kuralları
+
+- Public site, public veritabanı anlamına gelmez.
+- `household_id` olmadan dashboard, üye, harcama veya settlement verisi gösterilmemelidir.
+- Supabase Row Level Security ile yalnızca household üyesi olan kullanıcıların verilere erişmesine izin verilmelidir.
+- Davet kodları sıralı ID, kısa PIN veya tahmin edilebilir metin olmamalıdır.
+- Kod denemelerine rate limit uygulanmalıdır.
+- Ev sahibi kodu yenileyebilmeli ve gerektiğinde üyeyi pasif duruma alabilmelidir.
+- Harcama ekleme, düzenleme ve silme işlemleri yalnızca ilgili ev üyelerine açık olmalıdır.
+
+## Veri modeli ekleri
+
+```text
+households
+  id
+  name
+  owner_member_id
+  join_code_hash
+  join_code_created_at
+  created_at
+
+members
+  id
+  household_id
+  user_id
+  name
+  role            // owner | member
+  active
+  joined_at
+```
+
+İlk sürümde Supabase Auth oturumu, ev davet kodu ve görünen ad birlikte kullanılmalıdır. Böylece herkes siteye girebilir; ancak rastgele kullanıcılar kodunu bilmedikleri evlerin verilerine ulaşamaz.
