@@ -7,6 +7,10 @@ export const metadata: Metadata = {
   title: "Ev Hesap — Ortak ev harcamaları",
   description:
     "Ev arkadaşlarıyla ortak harcamaları takip edin, borçları sadeleştirin.",
+  icons: {
+    icon: "/icon.svg",
+    apple: "/icon.svg",
+  },
 };
 
 export const viewport: Viewport = {
