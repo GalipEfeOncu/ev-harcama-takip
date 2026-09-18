@@ -32,7 +32,7 @@ export default function HomePage() {
           <a href="#güvenli">Güvenli ve özel</a>
         </div>
 
-        <a className="nav-action" href="#başla">
+        <a className="nav-action" href="/start">
           Başla <ArrowUpRight size={16} strokeWidth={2.2} />
         </a>
       </nav>
@@ -51,11 +51,11 @@ export default function HomePage() {
           </p>
 
           <div className="hero-actions" id="başla">
-            <a className="button button-primary" href="#nasıl-çalışır">
+            <a className="button button-primary" href="/start?mode=create">
               <Home size={18} /> Ev oluştur
               <ArrowRight size={17} />
             </a>
-            <a className="button button-quiet" href="#nasıl-çalışır">
+            <a className="button button-quiet" href="/start?mode=join">
               Koda katıl <ArrowRight size={17} />
             </a>
           </div>
