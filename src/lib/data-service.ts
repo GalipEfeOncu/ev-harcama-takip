@@ -209,11 +209,14 @@ export async function loadRemoteSettlementRuns(session: LocalSession) {
   const { data: settlements, error: settlementsError } = await supabase.from("settlements").select("settlement_run_id, from_member_id, to_member_id, amount_cents").in("settlement_run_id", runRows.map((run) => run.id));
   if (settlementsError) throw settlementsError;
   const settlementRows = (settlements ?? []) as Array<{ settlement_run_id: string; from_member_id: string; to_member_id: string; amount_cents: number }>;
+  const { data: settledExpenses, error: settledExpensesError } = await supabase.from("expenses").select("id, settlement_run_id").in("settlement_run_id", runRows.map((run) => run.id));
+  if (settledExpensesError) throw settledExpensesError;
+  const settledExpenseRows = (settledExpenses ?? []) as Array<{ id: string; settlement_run_id: string | null }>;
   return runRows.map((run) => ({
     id: run.id,
     householdId: run.household_id,
     createdAt: run.created_at,
-    expenseIds: [],
+    expenseIds: settledExpenseRows.filter((expense) => expense.settlement_run_id === run.id).map((expense) => expense.id),
     transfers: settlementRows.filter((settlement) => settlement.settlement_run_id === run.id).map((settlement): Transfer => ({ fromMemberId: settlement.from_member_id, toMemberId: settlement.to_member_id, amountCents: settlement.amount_cents })),
   } satisfies SettlementRun));
 }
