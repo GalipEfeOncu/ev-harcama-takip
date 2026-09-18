@@ -81,9 +81,10 @@ export default function DashboardPage() {
     () => data?.expenses.filter((expense) => expense.expenseDate.startsWith(currentMonthKey())) ?? [],
     [data],
   );
+  const openExpenses = data?.expenses.filter((expense) => !expense.settlementRunId) ?? [];
   const monthTotal = monthExpenses.reduce((sum, expense) => sum + expense.amountCents, 0);
   const allTimeTotal = (data?.expenses ?? []).reduce((sum, expense) => sum + expense.amountCents, 0);
-  const balances = data ? calculateBalances(activeMembers, data.expenses) : [];
+  const balances = data ? calculateBalances(activeMembers, openExpenses) : [];
   const memberById = new Map((data?.members ?? []).map((member) => [member.id, member]));
   const recentExpenses = [...(data?.expenses ?? [])].sort((a, b) => b.expenseDate.localeCompare(a.expenseDate)).slice(0, 6);
   const netBalance = balances.find((balance) => balance.memberId === data?.session.memberId)?.amountCents ?? 0;
@@ -191,7 +192,7 @@ export default function DashboardPage() {
             <h1>Günün hesabı, <em>yerli yerinde.</em></h1>
             <p>Merhaba {data.session.memberName}. Ortak evin bugün nasıl gidiyor?</p>
           </div>
-          <button className="button button-primary" onClick={openExpenseForm} type="button"><CirclePlus size={18} /> Harcama ekle</button>
+          <div className="dashboard-actions"><Link className="button button-quiet" href="/settle">Borçları hesapla <ArrowRight size={17} /></Link><button className="button button-primary" onClick={openExpenseForm} type="button"><CirclePlus size={18} /> Harcama ekle</button></div>
         </div>
 
         <div className="stats-grid">

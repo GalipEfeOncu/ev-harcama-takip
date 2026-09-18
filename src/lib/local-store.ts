@@ -1,4 +1,4 @@
-import type { Expense, Member } from "@/lib/types";
+import type { Expense, Member, SettlementRun } from "@/lib/types";
 
 export const SESSION_KEY = "ev-hesap-session";
 
@@ -64,4 +64,19 @@ export function readLocalExpenses(session: LocalSession): Expense[] {
 
 export function saveLocalExpenses(session: LocalSession, expenses: Expense[]) {
   window.localStorage.setItem(keyFor(session.householdId, "expenses"), JSON.stringify(expenses));
+}
+
+export function readLocalSettlementRuns(session: LocalSession): SettlementRun[] {
+  const raw = window.localStorage.getItem(keyFor(session.householdId, "settlements"));
+  if (!raw) return [];
+
+  try {
+    return JSON.parse(raw) as SettlementRun[];
+  } catch {
+    return [];
+  }
+}
+
+export function saveLocalSettlementRuns(session: LocalSession, runs: SettlementRun[]) {
+  window.localStorage.setItem(keyFor(session.householdId, "settlements"), JSON.stringify(runs));
 }
