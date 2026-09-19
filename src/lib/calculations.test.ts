@@ -82,9 +82,17 @@ describe("simplifyDebts", () => {
 });
 
 describe("money helpers", () => {
-  it("parses Turkish amounts and formats cents", () => {
+  it("parses Turkish and dot-decimal amounts without changing their value", () => {
     expect(parseAmountToCents("1.250,50")).toBe(125050);
+    expect(parseAmountToCents("1,250.50")).toBe(125050);
+    expect(parseAmountToCents("12.50")).toBe(1250);
+    expect(parseAmountToCents("12,50")).toBe(1250);
+    expect(parseAmountToCents("1.250")).toBe(125000);
+    expect(parseAmountToCents("1.234,567")).toBeNull();
+    expect(parseAmountToCents("12.3456")).toBeNull();
+    expect(parseAmountToCents("12,345")).toBeNull();
     expect(parseAmountToCents("0")).toBeNull();
+    expect(parseAmountToCents("not an amount")).toBeNull();
     expect(formatCurrency(125050)).toContain("1.250,50");
   });
 });

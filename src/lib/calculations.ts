@@ -101,18 +101,58 @@ export function formatCurrency(amountCents: number) {
     style: "currency",
     currency: "TRY",
     minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   }).format(amountCents / 100);
 }
 
 export function parseAmountToCents(value: string) {
-  const normalized = value.trim().replace(/₺/g, "").replace(/\s/g, "");
-  if (!normalized) return null;
+  const normalized = value.trim().replace(/[₺\s]/g, "");
+  if (!normalized || !/^\d+(?:[.,]\d+)*$/.test(normalized)) return null;
 
-  const withoutThousands = normalized.replace(/\./g, "").replace(",", ".");
-  const amount = Number(withoutThousands);
+  const hasComma = normalized.includes(",");
+  const hasDot = normalized.includes(".");
+  let decimalSeparator: "," | "." | null = null;
+  let groupingSeparator: "," | "." | null = null;
 
-  if (!Number.isFinite(amount) || amount <= 0) return null;
+  if (hasComma && hasDot) {
+    decimalSeparator = normalized.lastIndexOf(",") > normalized.lastIndexOf(".") ? "," : ".";
+    groupingSeparator = decimalSeparator === "," ? "." : ",";
+  } else if (hasComma) {
+    decimalSeparator = ",";
+  } else if (hasDot) {
+    const dotCount = normalized.length - normalized.replace(/\./g, "").length;
+    if (dotCount > 1) {
+      groupingSeparator = ".";
+    } else {
+      const [whole, fraction = ""] = normalized.split(".");
+      const looksLikeTurkishThousands = fraction.length === 3 && /^[1-9]\d{0,2}$/.test(whole);
+      if (looksLikeTurkishThousands) groupingSeparator = ".";
+      else if (fraction.length <= 2) decimalSeparator = ".";
+      else return null;
+    }
+  }
 
-  const cents = Math.round(amount * 100);
-  return cents > 0 ? cents : null;
+  let whole = normalized;
+  let fraction = "";
+
+  if (decimalSeparator) {
+    const decimalParts = normalized.split(decimalSeparator);
+    if (decimalParts.length !== 2) return null;
+    [whole, fraction] = decimalParts;
+    if (fraction.length < 1 || fraction.length > 2) return null;
+  }
+
+  if (groupingSeparator) {
+    const groups = whole.split(groupingSeparator);
+    if (groups.length < 2 || !/^\d{1,3}$/.test(groups[0]) || groups.slice(1).some((group) => !/^\d{3}$/.test(group))) {
+      return null;
+    }
+    whole = groups.join("");
+  } else if (!/^\d+$/.test(whole)) {
+    return null;
+  }
+
+  const cents = Number(whole) * 100 + Number(fraction.padEnd(2, "0"));
+  if (!Number.isSafeInteger(cents) || cents <= 0) return null;
+  return cents;
 }
