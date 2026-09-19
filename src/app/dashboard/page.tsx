@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
+  ArrowRightLeft,
   Copy,
   Edit2,
   Home,
@@ -12,22 +13,29 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import GoogleMark from "@/components/google-mark";
+import { beginGoogleSignIn } from "@/lib/auth";
 import { calculateBalances, formatCurrency, parseAmountToCents } from "@/lib/calculations";
-import { createRemoteExpense, deleteRemoteExpense, loadRemoteHousehold, updateRemoteExpense } from "@/lib/data-service";
+import { createRemoteDebtPayment, createRemoteExpense, deleteRemoteExpense, loadRemoteHousehold, loadRemoteHouseholdSession, rotateRemoteHouseholdJoinCode, updateRemoteExpense } from "@/lib/data-service";
 import {
   readLocalExpenses,
+  readLocalDebtPayments,
   readLocalMembers,
   readLocalSession,
+  saveLocalSession,
   saveLocalExpenses,
+  saveLocalDebtPayments,
   type LocalSession,
 } from "@/lib/local-store";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
-import type { Expense, Member } from "@/lib/types";
+import type { DebtPayment, Expense, Member } from "@/lib/types";
 
 type DashboardData = {
   session: LocalSession;
+  account: { isAnonymous: boolean; hasGoogleIdentity: boolean; email: string | null };
   members: Member[];
   expenses: Expense[];
+  debtPayments: DebtPayment[];
 };
 
 function createId(prefix: string) {
@@ -100,26 +108,40 @@ export default function DashboardPage() {
   const [participantIds, setParticipantIds] = useState<string[]>([]);
   const [formError, setFormError] = useState("");
   const [savingExpense, setSavingExpense] = useState(false);
+  const [paymentFromId, setPaymentFromId] = useState("");
+  const [paymentToId, setPaymentToId] = useState("");
+  const [paymentAmount, setPaymentAmount] = useState("");
+  const [paymentDate, setPaymentDate] = useState(new Date().toISOString().slice(0, 10));
+  const [paymentNote, setPaymentNote] = useState("");
+  const [paymentError, setPaymentError] = useState("");
+  const [savingPayment, setSavingPayment] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState("month");
   const [copyStatus, setCopyStatus] = useState("");
+  const [rotatingCode, setRotatingCode] = useState(false);
+  const [linkingGoogle, setLinkingGoogle] = useState(false);
   const dialogReturnFocusRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
       void (async () => {
-        const session = readLocalSession();
-        if (!session) {
-          setLoading(false);
-          return;
-        }
-
         try {
-          const remoteData = isSupabaseConfigured()
-            ? await loadRemoteHousehold(session)
-            : { members: readLocalMembers(session), expenses: readLocalExpenses(session) };
-          setPayerId(session.memberId);
-          setParticipantIds(remoteData.members.filter((member) => member.active).map((member) => member.id));
-          setData({ session, ...remoteData });
+          const storedSession = readLocalSession();
+          if (isSupabaseConfigured()) {
+            const requestedHousehold = new URLSearchParams(window.location.search).get("household");
+            const resolved = await loadRemoteHouseholdSession(requestedHousehold || storedSession?.householdId, storedSession);
+            saveLocalSession(resolved.session);
+            const remoteData = await loadRemoteHousehold(resolved.session);
+            setPayerId(resolved.session.memberId);
+            setParticipantIds(remoteData.members.filter((member) => member.active).map((member) => member.id));
+            setPaymentFromId(resolved.session.memberId);
+            setData({ session: resolved.session, account: resolved.account, ...remoteData });
+          } else if (storedSession) {
+            const localData = { members: readLocalMembers(storedSession), expenses: readLocalExpenses(storedSession), debtPayments: readLocalDebtPayments(storedSession) };
+            setPayerId(storedSession.memberId);
+            setParticipantIds(localData.members.filter((member) => member.active).map((member) => member.id));
+            setPaymentFromId(storedSession.memberId);
+            setData({ session: storedSession, account: { isAnonymous: false, hasGoogleIdentity: false, email: null }, ...localData });
+          }
         } catch (loadFailure) {
           setLoadError(loadFailure instanceof Error ? loadFailure.message : "Ev verileri yüklenemedi.");
         } finally {
@@ -172,9 +194,27 @@ export default function DashboardPage() {
   );
   const openExpenses = (data?.expenses.filter((expense) => !expense.settlementRunId) ?? [])
     .sort((a, b) => b.expenseDate.localeCompare(a.expenseDate));
+  const openPayments = (data?.debtPayments.filter((payment) => !payment.settlementRunId) ?? [])
+    .sort((a, b) => b.paidAt.localeCompare(a.paidAt) || b.createdAt.localeCompare(a.createdAt));
+  const archivedPayments = (data?.debtPayments.filter((payment) => payment.settlementRunId) ?? [])
+    .sort((a, b) => b.paidAt.localeCompare(a.paidAt) || b.createdAt.localeCompare(a.createdAt));
   const openTotal = openExpenses.reduce((sum, expense) => sum + expense.amountCents, 0);
   const allTimeTotal = (data?.expenses ?? []).reduce((sum, expense) => sum + expense.amountCents, 0);
-  const balances = data ? calculateBalances(activeMembers, openExpenses) : [];
+  const balances = data ? calculateBalances(activeMembers, openExpenses, openPayments) : [];
+  const debtors = balances.filter((balance) => balance.amountCents < 0);
+  const creditors = balances.filter((balance) => balance.amountCents > 0);
+  const selectedPaymentFromId = debtors.some((balance) => balance.memberId === paymentFromId)
+    ? paymentFromId
+    : debtors[0]?.memberId ?? "";
+  const availablePaymentRecipients = creditors.filter((balance) => balance.memberId !== selectedPaymentFromId);
+  const selectedPaymentToId = availablePaymentRecipients.some((balance) => balance.memberId === paymentToId)
+    ? paymentToId
+    : availablePaymentRecipients[0]?.memberId ?? "";
+  const maxPaymentCents = Math.min(
+    Math.abs(balances.find((balance) => balance.memberId === selectedPaymentFromId)?.amountCents ?? 0),
+    balances.find((balance) => balance.memberId === selectedPaymentToId)?.amountCents ?? 0,
+  );
+  const canWrite = Boolean(data && (!isSupabaseConfigured() || data.account.hasGoogleIdentity));
   const memberById = new Map((data?.members ?? []).map((member) => [member.id, member]));
   const balanceByMemberId = new Map(balances.map((balance) => [balance.memberId, balance.amountCents]));
   const topMembers = activeMembers.slice(0, 3);
@@ -257,9 +297,9 @@ export default function DashboardPage() {
               ? data.expenses.map((expense) => expense.id === editingExpenseId ? { ...expense, ...input, updatedAt: now } : expense)
               : [{ id: createId("expense"), householdId: data.session.householdId, ...input, createdAt: now, updatedAt: now }, ...data.expenses];
             saveLocalExpenses(data.session, expenses);
-            return { members: data.members, expenses };
+            return { members: data.members, expenses, debtPayments: data.debtPayments };
           })();
-      setData({ session: data.session, ...nextData });
+      setData({ session: data.session, account: data.account, ...nextData });
       setAmount("");
       setDescription("");
       setCategory("Genel");
@@ -272,14 +312,14 @@ export default function DashboardPage() {
     }
   }
 
-  async function leaveHousehold() {
+  async function signOut() {
     if (isSupabaseConfigured()) await createClient().auth.signOut();
     window.localStorage.removeItem("ev-hesap-session");
-    router.push("/start");
+    router.replace("/");
   }
 
   async function copyJoinCode() {
-    if (!data) return;
+    if (!data?.session.joinCode) return;
     try {
       await navigator.clipboard.writeText(data.session.joinCode);
       setCopyStatus("Ev kodu kopyalandı.");
@@ -287,6 +327,34 @@ export default function DashboardPage() {
       setCopyStatus("Kod kopyalanamadı. Kodu seçip kopyala.");
     }
     window.setTimeout(() => setCopyStatus(""), 1800);
+  }
+
+  async function rotateJoinCode() {
+    if (!data || data.session.role !== "owner") return;
+    setRotatingCode(true);
+    setLoadError("");
+    try {
+      const joinCode = await rotateRemoteHouseholdJoinCode(data.session);
+      const session = { ...data.session, joinCode };
+      saveLocalSession(session);
+      setData({ ...data, session });
+    } catch (rotateFailure) {
+      setLoadError(rotateFailure instanceof Error ? rotateFailure.message : "Yeni davet kodu oluşturulamadı.");
+    } finally {
+      setRotatingCode(false);
+    }
+  }
+
+  async function linkGoogleAccount() {
+    if (!data || data.account.hasGoogleIdentity) return;
+    setLinkingGoogle(true);
+    setLoadError("");
+    try {
+      await beginGoogleSignIn(`/dashboard?household=${encodeURIComponent(data.session.householdId)}`, true);
+    } catch (linkFailure) {
+      setLoadError(linkFailure instanceof Error ? linkFailure.message : "Google hesabı bağlanamadı.");
+      setLinkingGoogle(false);
+    }
   }
 
   async function deleteExpense(expense: Expense) {
@@ -298,11 +366,61 @@ export default function DashboardPage() {
         : (() => {
             const expenses = data.expenses.filter((item) => item.id !== expense.id);
             saveLocalExpenses(data.session, expenses);
-            return { members: data.members, expenses };
+            return { members: data.members, expenses, debtPayments: data.debtPayments };
           })();
-      setData({ session: data.session, ...nextData });
+      setData({ session: data.session, account: data.account, ...nextData });
     } catch (deleteFailure) {
       setLoadError(deleteFailure instanceof Error ? deleteFailure.message : "Harcama silinemedi.");
+    }
+  }
+
+  async function handleDebtPaymentSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!data) return;
+    const amountCents = parseAmountToCents(paymentAmount);
+    if (!amountCents) {
+      setPaymentError("Geçerli bir tutar gir.");
+      return;
+    }
+    if (!selectedPaymentFromId || !selectedPaymentToId || maxPaymentCents <= 0) {
+      setPaymentError("Bu açık hesapta kaydedilebilecek bir borç ödemesi yok.");
+      return;
+    }
+    if (amountCents > maxPaymentCents) {
+      setPaymentError(`Bu kişiler arasında en fazla ${formatCurrency(maxPaymentCents)} kaydedebilirsin.`);
+      return;
+    }
+
+    setSavingPayment(true);
+    setPaymentError("");
+    try {
+      const input = {
+        fromMemberId: selectedPaymentFromId,
+        toMemberId: selectedPaymentToId,
+        amountCents,
+        paidAt: paymentDate,
+        note: paymentNote.trim(),
+      };
+      const nextData = isSupabaseConfigured()
+        ? await createRemoteDebtPayment(data.session, input)
+        : (() => {
+            const payment: DebtPayment = {
+              id: createId("payment"),
+              householdId: data.session.householdId,
+              ...input,
+              createdAt: new Date().toISOString(),
+            };
+            const debtPayments = [payment, ...data.debtPayments];
+            saveLocalDebtPayments(data.session, debtPayments);
+            return { members: data.members, expenses: data.expenses, debtPayments };
+          })();
+      setData({ session: data.session, account: data.account, ...nextData });
+      setPaymentAmount("");
+      setPaymentNote("");
+    } catch (saveFailure) {
+      setPaymentError(saveFailure instanceof Error ? saveFailure.message : "Borç ödemesi kaydedilemedi.");
+    } finally {
+      setSavingPayment(false);
     }
   }
 
@@ -312,15 +430,18 @@ export default function DashboardPage() {
 
   if (!data) {
     if (loadError) {
-      return <main className="dashboard-shell"><div className="empty-dashboard"><span className="empty-dashboard-icon"><Home size={25} /></span><h1>Ev verisi yüklenemedi.</h1><p>{loadError}</p><button className="primary-action" onClick={() => window.location.reload()} type="button">Tekrar dene</button></div></main>;
+      const message = loadError === "Auth session missing!"
+        ? "Bu cihazda açık bir oturum bulunamadı. Google hesabınla giriş yapıp üyesi olduğun eve dönebilirsin."
+        : loadError;
+      return <main className="dashboard-shell"><div className="empty-dashboard"><span className="empty-dashboard-icon"><Home size={25} /></span><h1>Ev hesabı açılamadı.</h1><p>{message}</p><Link className="primary-action" href="/start">Google ile devam et</Link><button className="secondary-action" onClick={() => window.location.reload()} type="button">Tekrar dene</button></div></main>;
     }
     return (
       <main className="dashboard-shell">
         <div className="empty-dashboard">
           <span className="empty-dashboard-icon"><Home size={25} /></span>
-          <h1>Önce kendi evini seç.</h1>
-          <p>Dashboard&apos;a ulaşmak için yeni bir ev oluştur veya davet koduyla katıl.</p>
-          <Link className="primary-action" href="/start">Ev hesabına git</Link>
+          <h1>Ev hesabına giriş yap.</h1>
+          <p>Google hesabınla giriş yapınca üyesi olduğun ev doğrudan açılır. Henüz bir evin yoksa oluşturabilir veya kodla katılabilirsin.</p>
+          <Link className="primary-action" href="/start">Google ile devam et</Link>
         </div>
       </main>
     );
@@ -333,18 +454,35 @@ export default function DashboardPage() {
         <div className="account-household">
           <span className="account-household__name" title={data.session.householdName}>{data.session.householdName}</span>
           <span className="account-household__divider" aria-hidden="true" />
-          <button className="account-household__code" onClick={() => void copyJoinCode()} type="button" aria-label={`Ev kodunu kopyala: ${data.session.joinCode}`} title="Ev kodunu kopyala">
-            {data.session.joinCode}<Copy aria-hidden="true" size={13} />
-          </button>
+          {data.session.joinCode ? (
+            <button className="account-household__code" onClick={() => void copyJoinCode()} type="button" aria-label={`Ev kodunu kopyala: ${data.session.joinCode}`} title="Ev kodunu kopyala">
+              {data.session.joinCode}<Copy aria-hidden="true" size={13} />
+            </button>
+          ) : data.session.role === "owner" ? (
+            <button className="account-household__code" disabled={rotatingCode} onClick={() => void rotateJoinCode()} type="button">
+              {rotatingCode ? "Hazırlanıyor…" : "Kod oluştur"}
+            </button>
+          ) : (
+            <span className="account-household__code" title="Davet kodunu ev sahibinden iste">Kod ev sahibinde</span>
+          )}
         </div>
         <span className="visually-hidden" aria-live="polite">{copyStatus}</span>
       </header>
+
+      {isSupabaseConfigured() && !data.account.hasGoogleIdentity && (
+        <aside className="account-upgrade" aria-label="Google hesabını bağla">
+          <p>{data.account.isAnonymous ? "Bu ev anonim oturumda açık." : "Bu hesap Google kimliğine bağlı değil."} Kayıtları ve üyeliği korumak için Google hesabını bağla.</p>
+          <button className="secondary-action google-action" disabled={linkingGoogle} onClick={() => void linkGoogleAccount()} type="button">
+            <GoogleMark />{linkingGoogle ? "Google açılıyor…" : "Google hesabını bağla"}
+          </button>
+        </aside>
+      )}
 
       <section className="dashboard-main">
         <section className="account-overview" aria-labelledby="account-title">
           <div className="account-heading">
             <h1 id="account-title">Açık hesap</h1>
-            <p className="account-period">Açık dönem · {openExpenses.length} harcama</p>
+            <p className="account-period">Açık dönem · {openExpenses.length} harcama · {openPayments.length} doğrudan ödeme</p>
           </div>
           <div className="account-total">
             <span>Açık gider toplamı</span>
@@ -391,29 +529,34 @@ export default function DashboardPage() {
         </section>
 
         <div className="dashboard-actions">
-          <button className="primary-action" onClick={openExpenseForm} type="button">Harcama ekle</button>
+          {canWrite ? (
+            <button className="primary-action" onClick={openExpenseForm} type="button">Harcama ekle</button>
+          ) : (
+            <Link className="primary-action" href="/start?mode=create">Google hesabını bağla</Link>
+          )}
           <Link className="secondary-action" href="/settle">Borçları hesapla</Link>
         </div>
 
         <section className="open-ledger" aria-labelledby="open-ledger-title">
           <div className="ledger-heading">
-            <h2 id="open-ledger-title">Açık harcamalar</h2>
+            <h2 id="open-ledger-title">Açık hesap kayıtları</h2>
           </div>
-          {openExpenses.length === 0 ? (
+          {openExpenses.length === 0 && openPayments.length === 0 ? (
             <div className="ledger-empty">
               <ReceiptText aria-hidden="true" size={19} />
               <p>Açık harcama yok. Yeni bir kayıt eklediğinde bakiye burada görünür.</p>
             </div>
-          ) : (
+          ) : openExpenses.length > 0 ? (
             <div className="open-expense-list">
               {openExpenses.slice(0, 3).map((expense) => (
                 <button
                   className="open-expense-row"
                   key={expense.id}
-                  onClick={() => openEditExpense(expense)}
+                  onClick={canWrite ? () => openEditExpense(expense) : undefined}
+                  disabled={!canWrite}
                   type="button"
-                  aria-label={`${expense.description}, ${formatCurrency(expense.amountCents)}. Düzenlemek için aç.`}
-                  title="Harcamayı düzenle"
+                  aria-label={`${expense.description}, ${formatCurrency(expense.amountCents)}${canWrite ? ". Düzenlemek için aç." : ". Görüntüleniyor; düzenlemek için Google hesabını bağla."}`}
+                  title={canWrite ? "Harcamayı düzenle" : "Düzenlemek için Google hesabını bağla"}
                 >
                   <span className="open-expense-primary">
                     <span className="open-expense-title">{expense.description}</span>
@@ -425,6 +568,72 @@ export default function DashboardPage() {
                   </span>
                 </button>
               ))}
+            </div>
+          ) : <p className="ledger-empty ledger-empty--text">Açık harcama yok. Kaydedilen doğrudan ödemeler aşağıda.</p>}
+
+          <section className="debt-payment-ledger" aria-labelledby="debt-payment-title">
+            <div className="debt-payment-heading">
+              <h3 id="debt-payment-title">Doğrudan ödemeler</h3>
+              <span>{openPayments.length} kayıt</span>
+            </div>
+            {openPayments.length === 0 ? (
+              <p className="debt-payment-empty">Borç kapatmak için yapılan ödemeler burada görünür.</p>
+            ) : (
+              <div className="debt-payment-list">
+                {openPayments.map((payment) => (
+                  <div className="debt-payment-row" key={payment.id}>
+                    <span className="debt-payment-icon" aria-hidden="true"><ArrowRightLeft size={17} /></span>
+                    <div className="debt-payment-copy">
+                      <strong>{memberById.get(payment.fromMemberId)?.name ?? "Bilinmeyen"} ödedi</strong>
+                      <small>{memberById.get(payment.toMemberId)?.name ?? "Bilinmeyen"} aldı · {dateLabel(payment.paidAt)}{payment.note ? ` · ${payment.note}` : " · Borç ödemesi"}</small>
+                    </div>
+                    <b>{formatCurrency(payment.amountCents)}</b>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+
+          {canWrite ? (
+            <details className="debt-payment-composer">
+              <summary><ArrowRightLeft aria-hidden="true" size={17} /> Borç ödemesi kaydet</summary>
+              <p className="debt-payment-hint">Bir kişi borcunun bir kısmını ödeyebilir; diğer ödemeler bekleyebilir. Bu kayıt yalnızca açık bakiyeyi azaltır.</p>
+              {debtors.length === 0 || creditors.length === 0 ? (
+                <p className="debt-payment-empty">Şu anda kaydedilebilecek açık bir borç ve alacak eşleşmesi yok.</p>
+              ) : (
+                <form className="debt-payment-form" onSubmit={handleDebtPaymentSubmit}>
+                  <div className="form-two-col">
+                    <label className="field-label">Kim ödedi?
+                      <select onChange={(event) => { setPaymentFromId(event.target.value); setPaymentToId(""); setPaymentError(""); }} value={selectedPaymentFromId}>
+                        {debtors.map((balance) => <option key={balance.memberId} value={balance.memberId}>{memberById.get(balance.memberId)?.name} · borçlu</option>)}
+                      </select>
+                    </label>
+                    <label className="field-label">Kime ödedi?
+                      <select onChange={(event) => setPaymentToId(event.target.value)} value={selectedPaymentToId}>
+                        {availablePaymentRecipients.map((balance) => <option key={balance.memberId} value={balance.memberId}>{memberById.get(balance.memberId)?.name} · alacaklı</option>)}
+                      </select>
+                    </label>
+                  </div>
+                  <div className="form-two-col">
+                    <label className="field-label">Tutar
+                      <input inputMode="decimal" onChange={(event) => setPaymentAmount(event.target.value)} placeholder="100,00" required value={paymentAmount} />
+                    </label>
+                    <label className="field-label">Tarih
+                      <input onChange={(event) => setPaymentDate(event.target.value)} required type="date" value={paymentDate} />
+                    </label>
+                  </div>
+                  <label className="field-label">Not <span>(isteğe bağlı)</span>
+                    <input maxLength={160} onChange={(event) => setPaymentNote(event.target.value)} placeholder="Örn. Borcun bir kısmını ödedi" value={paymentNote} />
+                  </label>
+                  <p className="debt-payment-hint">Bu ödeme için en fazla {formatCurrency(maxPaymentCents)} kaydedebilirsin.</p>
+                  {paymentError && <p className="form-error" role="alert">{paymentError}</p>}
+                  <button className="primary-action form-submit" disabled={savingPayment || maxPaymentCents <= 0} type="submit">{savingPayment ? "Kaydediliyor…" : "Ödemeyi kaydet"}</button>
+                </form>
+              )}
+            </details>
+          ) : (
+            <div className="debt-payment-composer debt-payment-composer--locked">
+              <Link href="/start?mode=create">Borç ödemesi kaydetmek için Google hesabını bağla</Link>
             </div>
           )}
         </section>
@@ -452,20 +661,38 @@ export default function DashboardPage() {
                     <small>{dateLabel(expense.expenseDate)} · {expense.category} · {memberById.get(expense.payerId)?.name ?? "Bilinmeyen"} ödedi · {expense.participantIds.length} kişi</small>
                   </div>
                   <b>{formatCurrency(expense.amountCents)}</b>
-                  <div className="history-actions">
+                  {canWrite && <div className="history-actions">
                     <button aria-label={`${expense.description} harcamasını düzenle`} onClick={() => openEditExpense(expense)} type="button"><Edit2 aria-hidden="true" size={15} /></button>
                     <button aria-label={`${expense.description} harcamasını sil`} onClick={() => void deleteExpense(expense)} type="button"><Trash2 aria-hidden="true" size={15} /></button>
-                  </div>
+                  </div>}
                 </div>
               ))}
             </div>
           )}
         </section>
 
+        {archivedPayments.length > 0 && (
+          <details className="closed-payment-history">
+            <summary>Önceki dönem doğrudan ödemeleri <span>{archivedPayments.length} kayıt</span></summary>
+            <div className="debt-payment-list">
+              {archivedPayments.map((payment) => (
+                <div className="debt-payment-row" key={payment.id}>
+                  <span className="debt-payment-icon" aria-hidden="true"><ArrowRightLeft size={17} /></span>
+                  <div className="debt-payment-copy">
+                    <strong>{memberById.get(payment.fromMemberId)?.name ?? "Bilinmeyen"} ödedi</strong>
+                    <small>{memberById.get(payment.toMemberId)?.name ?? "Bilinmeyen"} aldı · {dateLabel(payment.paidAt)}{payment.note ? ` · ${payment.note}` : " · Borç ödemesi"}</small>
+                  </div>
+                  <b>{formatCurrency(payment.amountCents)}</b>
+                </div>
+              ))}
+            </div>
+          </details>
+        )}
+
         <footer className="dashboard-footer">
-          <button className="dashboard-exit" onClick={() => void leaveHousehold()} type="button">
+          <button className="dashboard-exit" onClick={() => void signOut()} type="button">
             <LogOut aria-hidden="true" size={15} />
-            <span>Ev hesabından ayrıl</span>
+            <span>Oturumu kapat</span>
           </button>
         </footer>
       </section>

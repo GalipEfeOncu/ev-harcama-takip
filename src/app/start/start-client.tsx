@@ -12,51 +12,77 @@ import {
   Users,
 } from "lucide-react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState, type FormEvent } from "react";
+import { beginGoogleSignIn, getAccountSnapshot } from "@/lib/auth";
+import GoogleMark from "@/components/google-mark";
 import { createRemoteHousehold, joinRemoteHousehold } from "@/lib/data-service";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
-import { SESSION_KEY, type LocalSession } from "@/lib/local-store";
+import { saveLocalSession, type LocalSession } from "@/lib/local-store";
 
 type Mode = "create" | "join";
-
-function createId(prefix: string) {
-  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
-    return `${prefix}-${crypto.randomUUID()}`;
-  }
-
-  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-}
-
-function createJoinCode() {
-  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  const bytes = new Uint8Array(8);
-  crypto.getRandomValues(bytes);
-  return `EV-${Array.from(bytes, (byte) => alphabet[byte % alphabet.length]).join("")}`;
-}
+type AuthState = "checking" | "unavailable" | "signed-out" | "anonymous" | "unlinked" | "account";
 
 export default function StartPage() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const supabaseConfigured = isSupabaseConfigured();
+  const authFailed = searchParams.get("auth") === "failed";
   const requestedMode = searchParams.get("mode");
   const [mode, setMode] = useState<Mode>(requestedMode === "join" ? "join" : "create");
   const [householdName, setHouseholdName] = useState("");
   const [memberName, setMemberName] = useState("");
   const [joinCode, setJoinCode] = useState("");
   const [error, setError] = useState("");
+  const [authState, setAuthState] = useState<AuthState>(supabaseConfigured ? "checking" : "unavailable");
+  const [authBusy, setAuthBusy] = useState(false);
   const [session, setSession] = useState<LocalSession | null>(null);
   const [copied, setCopied] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!supabaseConfigured) return;
+
+    let active = true;
+    void getAccountSnapshot().then((account) => {
+      if (!active) return;
+      setAuthState(!account ? "signed-out" : account.hasGoogleIdentity ? "account" : account.isAnonymous ? "anonymous" : "unlinked");
+      if (account?.displayName) setMemberName((current) => current || account.displayName);
+    }).catch(() => {
+      if (active) setAuthState("signed-out");
+    });
+
+    return () => { active = false; };
+  }, [supabaseConfigured]);
 
   function switchMode(nextMode: Mode) {
     setMode(nextMode);
     setError("");
     setSession(null);
+    router.replace(`/start?mode=${nextMode}`, { scroll: false });
+  }
+
+  async function continueWithGoogle() {
+    setError("");
+    setAuthBusy(true);
+    try {
+      const linkCurrentAccount = authState === "anonymous" || authState === "unlinked";
+      const nextPath = linkCurrentAccount ? "/" : `/start?mode=${mode}`;
+      await beginGoogleSignIn(nextPath, linkCurrentAccount);
+    } catch (signInFailure) {
+      setError(signInFailure instanceof Error ? signInFailure.message : "Google girişi başlatılamadı.");
+      setAuthBusy(false);
+    }
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
+
+    if (authState !== "account") {
+      setError("Ev oluşturmak veya katılmak için önce Google hesabıyla giriş yap.");
+      return;
+    }
 
     if (memberName.trim().length < 2) {
       setError("Görünen adın en az 2 karakter olmalı.");
@@ -73,30 +99,17 @@ export default function StartPage() {
       return;
     }
 
-    if (mode === "join" && !supabaseConfigured) {
-      setError("Ev koduyla katılmak için Supabase bağlantısı gerekir. Yerel mod yalnızca bu cihazda ev oluşturabilir.");
-      return;
-    }
-
     setSubmitting(true);
     try {
-      const nextSession = supabaseConfigured
-        ? mode === "create"
-          ? await createRemoteHousehold(householdName.trim(), memberName.trim())
-          : await joinRemoteHousehold(joinCode.trim().toUpperCase(), memberName.trim())
-        : (() => {
-            const code = mode === "create" ? createJoinCode() : joinCode.trim().toUpperCase();
-            return {
-              householdId: mode === "create" ? createId("household") : `household-${code}`,
-              householdName: mode === "create" ? householdName.trim() : "Katıldığın ev",
-              memberId: createId("member"),
-              memberName: memberName.trim(),
-              joinCode: code,
-              role: mode === "create" ? "owner" : "member",
-            } satisfies LocalSession;
-          })();
+      const nextSession = mode === "create"
+        ? await createRemoteHousehold(householdName.trim(), memberName.trim())
+        : await joinRemoteHousehold(joinCode.trim().toUpperCase(), memberName.trim());
 
-      window.localStorage.setItem(SESSION_KEY, JSON.stringify(nextSession));
+      saveLocalSession(nextSession);
+      if (mode === "join") {
+        router.replace(`/dashboard?household=${encodeURIComponent(nextSession.householdId)}`);
+        return;
+      }
       setSession(nextSession);
     } catch (submissionError) {
       setError(submissionError instanceof Error ? submissionError.message : "Ev işlemi tamamlanamadı.");
@@ -126,13 +139,13 @@ export default function StartPage() {
         <div className="onboarding-intro">
           <h1>Önce aynı evde buluşun.</h1>
           <p className="onboarding-lede">
-            Bir ev oluşturup kodunu paylaşabilir ya da ev arkadaşından aldığın
-            kodla katılabilirsin. Harcamalar, o evin açık hesabında toplanır.
+            Google hesabınla giriş yap, bir ev oluştur ya da ev arkadaşından aldığın
+            kodla katıl. Harcamalar yalnızca o evin üyelerine görünür.
           </p>
           <ul className="onboarding-points">
             <li><KeyRound aria-hidden="true" size={18} /><span><strong>Ev kodu</strong><small>Katılmak için ev sahibinin kodunu kullan.</small></span></li>
             <li><Users aria-hidden="true" size={18} /><span><strong>Kişi ve pay</strong><small>Harcamanın kimleri ilgilendirdiğini seç.</small></span></li>
-            <li><LockKeyhole aria-hidden="true" size={18} /><span><strong>Birlikte görün</strong><small>Özet ve geçmişi ev arkadaşlarınla takip et.</small></span></li>
+            <li><LockKeyhole aria-hidden="true" size={18} /><span><strong>Hesabına geri dön</strong><small>Google hesabınla evini farklı cihazlardan aç.</small></span></li>
           </ul>
         </div>
 
@@ -144,13 +157,37 @@ export default function StartPage() {
                 <button id="join-mode" aria-controls="setup-panel" className={mode === "join" ? "active" : ""} onClick={() => switchMode("join")} role="tab" aria-selected={mode === "join"} type="button">Ev koduyla katıl</button>
               </div>
 
-              <div className="form-heading">
-                <span className="form-heading__icon" aria-hidden="true">{mode === "create" ? <Home size={20} /> : <KeyRound size={20} />}</span>
-                <h2 id="setup-title">{mode === "create" ? "Yeni bir ev hesabı aç." : "Arkadaşının evine katıl."}</h2>
-              </div>
+              {authState === "checking" ? (
+                <p className="form-footnote" id="setup-panel" role="tabpanel" aria-labelledby={mode === "create" ? "create-mode" : "join-mode"}>Hesap kontrol ediliyor…</p>
+              ) : authState !== "account" ? (
+                <div className="google-sign-in" id="setup-panel" role="tabpanel" aria-labelledby={mode === "create" ? "create-mode" : "join-mode"}>
+                  <div className="form-heading">
+                    <span className="form-heading__icon" aria-hidden="true"><LockKeyhole size={20} /></span>
+                    <h2>{authState === "anonymous" || authState === "unlinked" ? "Mevcut evini koru." : "Google hesabınla devam et."}</h2>
+                  </div>
+                  {authState === "anonymous" || authState === "unlinked" ? (
+                    <p className="google-sign-in__copy">Bu cihazdaki mevcut ev üyeliğini ve kayıtlarını korumak için Google hesabını aynı oturuma bağla.</p>
+                  ) : authState === "unavailable" ? (
+                    <p className="google-sign-in__copy">Google girişi için Supabase bağlantısı yapılandırılmalı.</p>
+                  ) : (
+                    <p className="google-sign-in__copy">Ev oluşturmak, davet koduyla katılmak ve hesabına yeniden dönmek için Google ile giriş yap.</p>
+                  )}
+                  {(error || authFailed) && <p className="form-error" role="alert">{error || "Google girişi tamamlanmadı. Yeniden deneyebilirsin."}</p>}
+                  <button className="secondary-action google-action" disabled={authBusy || authState === "unavailable"} onClick={() => void continueWithGoogle()} type="button">
+                    <GoogleMark />
+                    {authBusy ? "Google açılıyor…" : authState === "anonymous" || authState === "unlinked" ? "Google hesabını bağla" : "Google ile devam et"}
+                  </button>
+                  <p className="form-footnote"><LockKeyhole aria-hidden="true" size={14} /> Yalnızca Google hesabı kullanılır; ev verilerin üyeliğinle korunur.</p>
+                </div>
+              ) : (
+                <>
+                  <div className="form-heading">
+                    <span className="form-heading__icon" aria-hidden="true">{mode === "create" ? <Home size={20} /> : <KeyRound size={20} />}</span>
+                    <h2 id="setup-title">{mode === "create" ? "Yeni bir ev hesabı aç." : "Arkadaşının evine katıl."}</h2>
+                  </div>
 
-              <div id="setup-panel" role="tabpanel" aria-labelledby={mode === "create" ? "create-mode" : "join-mode"}>
-                <form onSubmit={handleSubmit} noValidate>
+                  <div id="setup-panel" role="tabpanel" aria-labelledby={mode === "create" ? "create-mode" : "join-mode"}>
+                    <form onSubmit={handleSubmit} noValidate>
                   {mode === "create" && (
                     <label className="field-label">
                       Ev adı
@@ -170,14 +207,16 @@ export default function StartPage() {
                     <small>Ev arkadaşların harcama kayıtlarında bu adı görür.</small>
                   </label>
 
-                  {error && <p className="form-error" role="alert">{error}</p>}
-                  <button className="primary-action form-submit" disabled={submitting} type="submit">
-                    {submitting ? "Hazırlanıyor…" : mode === "create" ? "Ev kodumu oluştur" : "Eve katıl"}
-                    <ArrowRight aria-hidden="true" size={17} />
-                  </button>
-                </form>
-                <p className="form-footnote"><LockKeyhole aria-hidden="true" size={14} /> {supabaseConfigured ? "Oturumun Supabase Auth ile korunur." : mode === "join" ? "Supabase bağlantısı olmadan ev kodu doğrulanamaz." : "Supabase ayarlanana kadar bu cihazda yerel oturum açılır."}</p>
-              </div>
+                      {error && <p className="form-error" role="alert">{error}</p>}
+                      <button className="primary-action form-submit" disabled={submitting} type="submit">
+                        {submitting ? "Hazırlanıyor…" : mode === "create" ? "Ev kodumu oluştur" : "Eve katıl"}
+                        <ArrowRight aria-hidden="true" size={17} />
+                      </button>
+                    </form>
+                    <p className="form-footnote"><LockKeyhole aria-hidden="true" size={14} /> Google hesabınla giriş yaptın; ev bilgileri üyeliğine bağlı.</p>
+                  </div>
+                </>
+              )}
             </>
           ) : (
             <div className="success-state" aria-live="polite">

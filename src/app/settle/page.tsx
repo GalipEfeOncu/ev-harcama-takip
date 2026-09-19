@@ -4,23 +4,28 @@ import Link from "next/link";
 import { ArrowLeft, ArrowRight, CheckCircle2, Home, LockKeyhole } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { calculateBalances, formatCurrency, simplifyDebts } from "@/lib/calculations";
-import { closeRemoteSettlement, loadRemoteHousehold, loadRemoteSettlementRuns } from "@/lib/data-service";
+import { closeRemoteSettlement, loadRemoteHousehold, loadRemoteHouseholdSession, loadRemoteSettlementRuns } from "@/lib/data-service";
 import {
   readLocalExpenses,
+  readLocalDebtPayments,
   readLocalMembers,
   readLocalSettlementRuns,
   readLocalSession,
+  saveLocalSession,
   saveLocalExpenses,
+  saveLocalDebtPayments,
   saveLocalSettlementRuns,
   type LocalSession,
 } from "@/lib/local-store";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
-import type { Expense, Member, SettlementRun } from "@/lib/types";
+import type { DebtPayment, Expense, Member, SettlementRun } from "@/lib/types";
 
 type SettlementData = {
   session: LocalSession;
+  account: { isAnonymous: boolean; hasGoogleIdentity: boolean; email: string | null };
   members: Member[];
   expenses: Expense[];
+  debtPayments: DebtPayment[];
   runs: SettlementRun[];
 };
 
@@ -35,18 +40,16 @@ export default function SettlePage() {
   useEffect(() => {
     const timer = window.setTimeout(() => {
       void (async () => {
-        const session = readLocalSession();
-        if (!session) {
-          setLoading(false);
-          return;
-        }
-
         try {
+          const storedSession = readLocalSession();
           if (isSupabaseConfigured()) {
-            const [remoteData, runs] = await Promise.all([loadRemoteHousehold(session), loadRemoteSettlementRuns(session)]);
-            setData({ session, ...remoteData, runs });
-          } else {
-            setData({ session, members: readLocalMembers(session), expenses: readLocalExpenses(session), runs: readLocalSettlementRuns(session) });
+            const requestedHousehold = new URLSearchParams(window.location.search).get("household");
+            const resolved = await loadRemoteHouseholdSession(requestedHousehold || storedSession?.householdId, storedSession);
+            saveLocalSession(resolved.session);
+            const [remoteData, runs] = await Promise.all([loadRemoteHousehold(resolved.session), loadRemoteSettlementRuns(resolved.session)]);
+            setData({ session: resolved.session, account: resolved.account, ...remoteData, runs });
+          } else if (storedSession) {
+            setData({ session: storedSession, account: { isAnonymous: false, hasGoogleIdentity: false, email: null }, members: readLocalMembers(storedSession), expenses: readLocalExpenses(storedSession), debtPayments: readLocalDebtPayments(storedSession), runs: readLocalSettlementRuns(storedSession) });
           }
         } catch (loadFailure) {
           setLoadError(loadFailure instanceof Error ? loadFailure.message : "Açık hesap yüklenemedi.");
@@ -60,17 +63,21 @@ export default function SettlePage() {
   }, []);
 
   const openExpenses = data?.expenses.filter((expense) => !expense.settlementRunId) ?? [];
+  const openPayments = data?.debtPayments.filter((payment) => !payment.settlementRunId) ?? [];
   const balances = useMemo(() => {
     if (!data) return [];
     const active = data.members.filter((member) => member.active);
     const open = data.expenses.filter((expense) => !expense.settlementRunId);
-    return calculateBalances(active, open);
+    const payments = data.debtPayments.filter((payment) => !payment.settlementRunId);
+    return calculateBalances(active, open, payments);
   }, [data]);
   const transfers = useMemo(() => simplifyDebts(balances), [balances]);
   const memberById = new Map((data?.members ?? []).map((member) => [member.id, member]));
+  const canWrite = Boolean(data && (!isSupabaseConfigured() || data.account.hasGoogleIdentity));
+  const hasOpenItems = openExpenses.length > 0 || openPayments.length > 0;
 
   async function closeCurrentPeriod() {
-    if (!data || openExpenses.length === 0) return;
+    if (!data || !canWrite || !hasOpenItems) return;
     setClosing(true);
     try {
       if (isSupabaseConfigured()) {
@@ -78,12 +85,14 @@ export default function SettlePage() {
         const runs = await loadRemoteSettlementRuns(data.session);
         setData({ ...data, ...remoteData, runs });
       } else {
-        const run: SettlementRun = { id: `settlement-${crypto.randomUUID()}`, householdId: data.session.householdId, createdAt: new Date().toISOString(), expenseIds: openExpenses.map((expense) => expense.id), transfers };
+        const run: SettlementRun = { id: `settlement-${crypto.randomUUID()}`, householdId: data.session.householdId, createdAt: new Date().toISOString(), expenseIds: openExpenses.map((expense) => expense.id), paymentIds: openPayments.map((payment) => payment.id), transfers };
         const expenses = data.expenses.map((expense) => openExpenses.some((openExpense) => openExpense.id === expense.id) ? { ...expense, settlementRunId: run.id } : expense);
+        const debtPayments = data.debtPayments.map((payment) => openPayments.some((openPayment) => openPayment.id === payment.id) ? { ...payment, settlementRunId: run.id } : payment);
         const runs = [run, ...data.runs];
         saveLocalExpenses(data.session, expenses);
+        saveLocalDebtPayments(data.session, debtPayments);
         saveLocalSettlementRuns(data.session, runs);
-        setData({ ...data, expenses, runs });
+        setData({ ...data, expenses, debtPayments, runs });
       }
       setClosed(true);
     } catch (closeFailure) {
@@ -97,8 +106,8 @@ export default function SettlePage() {
   if (loading) return <main className="dashboard-shell"><div className="dashboard-loading">Açık hesap hazırlanıyor…</div></main>;
 
   if (!data) {
-    if (loadError) return <main className="dashboard-shell"><div className="empty-dashboard"><span className="empty-dashboard-icon"><Home size={25} /></span><h1>Açık hesap yüklenemedi.</h1><p>{loadError}</p><button className="primary-action" onClick={() => window.location.reload()} type="button">Tekrar dene <ArrowRight size={17} /></button></div></main>;
-    return <main className="dashboard-shell"><div className="empty-dashboard"><span className="empty-dashboard-icon"><Home size={25} /></span><h1>Önce kendi evini seç.</h1><p>Borç hesabını görmek için bir ev oluştur veya davet koduyla katıl.</p><Link className="primary-action" href="/start">Ev hesabına git <ArrowRight size={17} /></Link></div></main>;
+    if (loadError) return <main className="dashboard-shell"><div className="empty-dashboard"><span className="empty-dashboard-icon"><Home size={25} /></span><h1>Açık hesap yüklenemedi.</h1><p>{loadError}</p><Link className="primary-action" href="/start">Google ile devam et <ArrowRight size={17} /></Link><button className="secondary-action" onClick={() => window.location.reload()} type="button">Tekrar dene</button></div></main>;
+    return <main className="dashboard-shell"><div className="empty-dashboard"><span className="empty-dashboard-icon"><Home size={25} /></span><h1>Önce evini aç.</h1><p>Google hesabınla giriş yapınca üyesi olduğun evin açık hesabı görünür.</p><Link className="primary-action" href="/start">Google ile devam et <ArrowRight size={17} /></Link></div></main>;
   }
 
   return (
@@ -108,10 +117,17 @@ export default function SettlePage() {
         <div className="account-household">
           <span className="account-household__name" title={data.session.householdName}>{data.session.householdName}</span>
           <span className="account-household__divider" aria-hidden="true" />
-          <span className="account-household__code">{data.session.joinCode}</span>
+          <span className="account-household__code">{data.session.joinCode || (data.session.role === "owner" ? "Kod pano üzerinden" : "Ev sahibi")}</span>
         </div>
         <Link className="header-back" href="/dashboard"><ArrowLeft aria-hidden="true" size={16} /> Pano</Link>
       </header>
+
+      {isSupabaseConfigured() && !data.account.hasGoogleIdentity && (
+        <aside className="account-upgrade">
+          <p>{data.account.isAnonymous ? "Bu ev anonim oturumda açık." : "Bu hesap Google kimliğine bağlı değil."} Dönemi kapatmak için Google hesabını bağla.</p>
+          <Link className="secondary-action google-action" href="/start?mode=create">Google hesabını bağla</Link>
+        </aside>
+      )}
 
       <section className="settle-main" aria-labelledby="settle-title">
         <div className="settle-heading">
@@ -128,22 +144,22 @@ export default function SettlePage() {
           <section className="settle-success" aria-labelledby="settle-success-title" aria-live="polite">
             <span className="success-icon"><CheckCircle2 aria-hidden="true" size={25} /></span>
             <h2 id="settle-success-title">Dönem kapandı.</h2>
-            <p>{data.runs[0]?.expenseIds.length ?? 0} harcama hesap geçmişine taşındı. Bundan sonra eklenen harcamalar açık hesapta görünür.</p>
+            <p>{data.runs[0]?.expenseIds.length ?? 0} harcama ve {data.runs[0]?.paymentIds?.length ?? 0} doğrudan ödeme hesap geçmişine taşındı. Yeni kayıtlar açık hesapta görünür.</p>
             <Link className="primary-action" href="/dashboard">Panoya dön <ArrowRight aria-hidden="true" size={17} /></Link>
           </section>
         ) : (
           <>
             <section className="transfer-card" aria-labelledby="transfer-title">
               <div className="transfer-card-head">
-                <div><h2 id="transfer-title">Kim kime ne kadar ödeyecek?</h2><p>{openExpenses.length} açık harcama · ödeme önizlemesi</p></div>
+                <div><h2 id="transfer-title">Kim kime ne kadar ödeyecek?</h2><p>{openExpenses.length} açık harcama · {openPayments.length} doğrudan ödeme · güncel bakiye</p></div>
                 <span className="transfer-count">{transfers.length} öneri</span>
               </div>
-              {openExpenses.length === 0 ? (
+              {!hasOpenItems ? (
                 <div className="settle-empty">
                   <CheckCircle2 aria-hidden="true" size={24} />
-                  <h3>Açık harcama yok.</h3>
-                  <p>Yeni gider eklendiğinde onun bakiyesi burada görünür.</p>
-                  <Link className="text-action" href="/dashboard">Panoda harcama ekle <ArrowRight aria-hidden="true" size={15} /></Link>
+                  <h3>Açık hesap yok.</h3>
+                  <p>Yeni harcama veya borç ödemesi eklendiğinde bakiye burada görünür.</p>
+                  <Link className="text-action" href="/dashboard">Panoya dön <ArrowRight aria-hidden="true" size={15} /></Link>
                 </div>
               ) : transfers.length === 0 ? (
                 <div className="settle-empty">
@@ -164,14 +180,16 @@ export default function SettlePage() {
                 </div>
               )}
 
-              {openExpenses.length > 0 && (
+              {hasOpenItems && (
                 <div className="settle-card-foot">
-                  <p>Ödeme listesini gözden geçirdikten sonra dönemi kapat. Bu işlem para transferi yapmaz.</p>
-                  {!closeArmed ? (
+                  <p>Bu işlem {openExpenses.length} harcama ve {openPayments.length} doğrudan ödemeyi geçmişe taşır; para transferi yapmaz.</p>
+                  {!canWrite ? (
+                    <Link className="primary-action" href="/start?mode=create">Google hesabını bağla <ArrowRight aria-hidden="true" size={17} /></Link>
+                  ) : !closeArmed ? (
                     <button className="primary-action" disabled={closing} onClick={() => setCloseArmed(true)} type="button">Dönemi kapat <CheckCircle2 aria-hidden="true" size={17} /></button>
                   ) : (
                     <div className="settle-confirm" role="group" aria-label="Dönemi kapatma onayı">
-                      <p>{openExpenses.length} açık harcama hesap geçmişine taşınacak.</p>
+                      <p>{openExpenses.length} harcama ve {openPayments.length} doğrudan ödeme hesap geçmişine taşınacak.</p>
                       <div>
                         <button className="primary-action" disabled={closing} onClick={() => void closeCurrentPeriod()} type="button">{closing ? "Kapatılıyor…" : "Evet, dönemi kapat"}</button>
                         <button className="secondary-action" disabled={closing} onClick={() => setCloseArmed(false)} type="button">Geri dön</button>
@@ -190,8 +208,8 @@ export default function SettlePage() {
                 data.runs.map((run) => (
                   <div className="settlement-history-row" key={run.id}>
                     <span><CheckCircle2 aria-hidden="true" size={15} /> {new Intl.DateTimeFormat("tr-TR", { day: "numeric", month: "long", year: "numeric" }).format(new Date(run.createdAt))}</span>
-                    <b>{run.expenseIds.length} harcama</b>
-                    <strong>{run.transfers.length} ödeme</strong>
+                    <b>{run.expenseIds.length} harcama · {run.paymentIds?.length ?? 0} doğrudan ödeme</b>
+                    <strong>{run.transfers.length} bakiye önerisi</strong>
                   </div>
                 ))
               )}

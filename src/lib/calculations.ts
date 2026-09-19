@@ -1,4 +1,4 @@
-import type { Balance, Expense, Member, Transfer } from "@/lib/types";
+import type { Balance, DebtPayment, Expense, Member, Transfer } from "@/lib/types";
 
 export function splitAmount(amountCents: number, participantIds: string[]) {
   if (!Number.isInteger(amountCents) || amountCents < 0) {
@@ -28,6 +28,7 @@ export function splitAmount(amountCents: number, participantIds: string[]) {
 export function calculateBalances(
   members: Member[],
   expenses: Expense[],
+  payments: DebtPayment[] = [],
 ): Balance[] {
   const balances = new Map(members.map((member) => [member.id, 0]));
 
@@ -51,6 +52,18 @@ export function calculateBalances(
 
       balances.set(memberId, (balances.get(memberId) ?? 0) - shareCents);
     }
+  }
+
+  for (const payment of payments) {
+    if (!balances.has(payment.fromMemberId)) {
+      throw new Error(`Unknown payment sender: ${payment.fromMemberId}`);
+    }
+    if (!balances.has(payment.toMemberId)) {
+      throw new Error(`Unknown payment recipient: ${payment.toMemberId}`);
+    }
+
+    balances.set(payment.fromMemberId, (balances.get(payment.fromMemberId) ?? 0) + payment.amountCents);
+    balances.set(payment.toMemberId, (balances.get(payment.toMemberId) ?? 0) - payment.amountCents);
   }
 
   return members.map((member) => ({

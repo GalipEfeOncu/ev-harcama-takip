@@ -322,6 +322,10 @@ svg { flex: 0 0 auto; }
 .form-submit { width: 100%; min-height: 48px; margin-top: 5px; }
 .form-footnote { margin: 17px 0 0; display: flex; align-items: flex-start; gap: 8px; color: var(--muted); font-size: 13px; line-height: 1.4; }
 .form-footnote svg { margin-top: 2px; }
+.google-sign-in__copy { margin: 0 0 18px; color: var(--muted); font-size: 15px; line-height: 1.5; }
+.google-action { width: 100%; justify-content: center; gap: 11px; }
+.google-action:disabled { cursor: not-allowed; opacity: 0.62; }
+.google-mark { width: 20px; height: 20px; flex: 0 0 20px; }
 .form-error, .inline-error { padding: 10px 12px; border-top: 1px solid var(--danger); border-bottom: 1px solid var(--danger); background: #f2dfd8; color: var(--danger); font-size: 14px; line-height: 1.4; }
 .success-state { padding: 30px 0 10px; }
 .success-icon { width: 42px; height: 42px; margin-bottom: 18px; border: 1px solid var(--line); display: grid; place-items: center; color: var(--orange-deep); }
@@ -352,6 +356,10 @@ svg { flex: 0 0 auto; }
 .account-household__divider { width: 1px; height: 19px; background: var(--line); }
 .account-household__code { min-width: 44px; min-height: 44px; padding: 0 8px; border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; gap: 5px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; font-variant-numeric: tabular-nums; letter-spacing: 0.015em; white-space: nowrap; }
 button.account-household__code { cursor: pointer; }
+.account-household__code:disabled { cursor: progress; opacity: 0.7; }
+.account-upgrade { max-width: 1240px; margin: 0 auto; padding: 12px clamp(18px, 4vw, 48px); border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.account-upgrade p { max-width: 68ch; margin: 0; color: var(--muted); font-size: 14px; line-height: 1.4; }
+.account-upgrade .google-action { width: min(100%, 250px); min-height: 42px; flex: 0 0 auto; }
 .account-header .header-back { flex: 0 0 auto; }
 .dashboard-main { max-width: 1360px; margin: 0 auto; padding: 27px clamp(19px, 4.8vw, 54px) 92px; }
 .account-heading h1 { margin: 0; font-size: clamp(40px, 6vw, 60px); font-weight: 700; letter-spacing: -0.03em; line-height: 0.98; }
@@ -401,6 +409,41 @@ button.account-household__code { cursor: pointer; }
 .ledger-empty { min-height: 76px; padding: 17px 0; border-bottom: 1px solid var(--line); display: flex; align-items: flex-start; gap: 12px; color: var(--muted); }
 .ledger-empty svg { color: var(--orange-deep); }
 .ledger-empty p { max-width: 60ch; margin: 0; font-size: 14px; line-height: 1.45; }
+.ledger-empty--text { min-height: auto; display: block; }
+.debt-payment-ledger { margin-top: 25px; border-top: 1px solid var(--line); }
+.debt-payment-heading { min-height: 43px; display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.debt-payment-heading h3 { margin: 0; font-size: 18px; font-weight: 700; letter-spacing: -0.01em; }
+.debt-payment-heading > span { color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+.debt-payment-empty { margin: 0; padding: 7px 0 15px; color: var(--muted); font-size: 14px; }
+.debt-payment-list { border-top: 1px solid var(--line); }
+.debt-payment-row { min-height: 66px; padding: 9px 0; border-bottom: 1px solid var(--line); display: grid; grid-template-columns: 30px minmax(0, 1fr) auto; align-items: center; gap: 10px; }
+.debt-payment-icon { width: 28px; height: 28px; display: grid; place-items: center; color: var(--orange-deep); }
+.debt-payment-copy { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.debt-payment-copy strong { font-size: 15px; font-weight: 650; overflow-wrap: anywhere; }
+.debt-payment-copy strong span { color: var(--muted); }
+.debt-payment-copy small { color: var(--muted); font-size: 13px; line-height: 1.3; overflow-wrap: anywhere; }
+.debt-payment-row > b { font-family: var(--font-head); font-size: 17px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.debt-payment-composer { margin-top: 15px; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--line); }
+.debt-payment-composer > summary { min-height: 50px; display: flex; align-items: center; gap: 9px; font-weight: 700; cursor: pointer; list-style: none; }
+.debt-payment-composer > summary:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+.debt-payment-composer > summary::-webkit-details-marker { display: none; }
+.debt-payment-composer > summary::after { width: 8px; height: 8px; margin-left: auto; border-right: 1px solid currentColor; border-bottom: 1px solid currentColor; content: ""; transform: rotate(45deg) translateY(-2px); transition: transform 180ms ease-out; }
+.debt-payment-composer[open] > summary::after { transform: rotate(225deg) translate(-2px, -1px); }
+.debt-payment-hint { max-width: 65ch; margin: 0 0 13px; color: var(--muted); font-size: 13px; line-height: 1.45; }
+.debt-payment-form { display: grid; gap: 12px; padding: 1px 0 18px; }
+.debt-payment-form .field-label { gap: 5px; }
+.debt-payment-form .field-label > span { color: var(--muted); font-weight: 400; }
+.debt-payment-form .form-two-col { gap: 12px; }
+.debt-payment-form .form-submit { width: min(100%, 390px); }
+.debt-payment-composer--locked { min-height: 54px; display: flex; align-items: center; font-size: 14px; font-weight: 650; text-underline-offset: 4px; }
+.closed-payment-history { margin-top: 28px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.closed-payment-history > summary { min-height: 52px; display: flex; align-items: center; justify-content: space-between; gap: 12px; font-weight: 700; cursor: pointer; list-style: none; }
+.closed-payment-history > summary:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+.closed-payment-history > summary::-webkit-details-marker { display: none; }
+.closed-payment-history > summary::after { width: 8px; height: 8px; margin-left: 2px; border-right: 1px solid currentColor; border-bottom: 1px solid currentColor; content: ""; transform: rotate(45deg) translateY(-2px); }
+.closed-payment-history[open] > summary::after { transform: rotate(225deg) translate(-2px, -1px); }
+.closed-payment-history > summary > span { margin-left: auto; color: var(--muted); font-size: 13px; font-weight: 500; }
+.closed-payment-history .debt-payment-list { margin-bottom: 8px; }
 
 .history-section { margin-top: 48px; padding-top: 21px; border-top: 1px solid var(--ink); }
 .dashboard-footer { margin-top: 42px; padding-top: 13px; border-top: 1px solid var(--line); display: flex; justify-content: flex-end; }
@@ -645,8 +688,17 @@ button.account-household__code { cursor: pointer; }
   .open-expense-title, .open-expense-primary strong { font-size: 17.5px; line-height: 1.12; }
   .open-expense-primary strong { font-family: var(--font-head); }
   .open-expense-meta { font-size: 14px; line-height: 1.2; }
+  .debt-payment-heading h3 { font-size: 18px; }
+  .debt-payment-row { grid-template-columns: 25px minmax(0, 1fr) auto; gap: 7px; }
+  .debt-payment-copy strong { font-size: 14px; }
+  .debt-payment-copy small { font-size: 12px; }
+  .debt-payment-row > b { font-size: 16px; }
+  .debt-payment-form .form-two-col { grid-template-columns: 1fr; }
+  .debt-payment-form .form-submit { width: 100%; }
   .history-heading { align-items: flex-start; flex-direction: column; gap: 4px; }
   .history-heading span { text-align: left; }
+  .account-upgrade { align-items: stretch; flex-direction: column; gap: 10px; padding-block: 14px; }
+  .account-upgrade .google-action { width: 100%; }
   .history-row { grid-template-columns: minmax(0, 1fr) auto; row-gap: 7px; }
   .history-actions { grid-column: 1 / -1; justify-content: flex-start; }
 }

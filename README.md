@@ -18,9 +18,11 @@ npm install
 npm run dev
 ```
 
-Supabase bağlantısı eklemek için `.env.example` dosyasını `.env.local` olarak kopyalayın ve proje URL’si ile publishable key değerlerini doldurun. Ardından `supabase/migrations/20260918180000_initial_schema.sql` dosyasını Supabase SQL Editor üzerinden çalıştırın ve Anonymous Auth’u etkinleştirin.
+Supabase bağlantısı eklemek için `.env.example` dosyasını `.env.local` olarak kopyalayıp proje URL’si ile publishable key değerlerini doldurun. `supabase/migrations` altındaki migration dosyalarını sırayla Supabase’e uygulayın.
 
-Supabase değişkenleri yokken uygulama localStorage tabanlı prototip fallback’iyle çalışır; değişkenler tanımlandığında onboarding, dashboard ve settlement akışları Supabase Auth/RLS üzerinden gerçek veriye geçer.
+Hesap açma ve ev oluşturma/katılma için Google ile giriş gerekir. Supabase Auth > Providers bölümünde Google’ı etkinleştirin, diğer giriş sağlayıcılarını ve Anonymous Sign-Ins’i kapatın. Google Cloud OAuth istemcisinde yetkili yönlendirme URI’si olarak `https://ovszyjdpmxkmgujrayvl.supabase.co/auth/v1/callback` adresini ekleyin. Supabase’in URL Configuration > Redirect URLs listesine `http://localhost:3000/auth/callback` ve `https://ev-harcama-takip.vercel.app/auth/callback` adreslerini ekleyin. Google Client ID ve Secret yalnızca Supabase paneline girilmeli; repoya veya sohbete yazılmamalıdır. Google sağlayıcısını etkinleştirip bu adresleri ekledikten sonra yeni auth ve borç ödemesi migration’larını sırayla uygulayın; auth migration’ı anonim oturumların veri değiştirmesini veritabanında da engeller.
+
+Supabase değişkenleri yokken Google girişi ve yeni ev işlemleri kullanılamaz. Daha önce bu cihazda açılmış yerel oturumlar prototip amaçlı okunabilir; evler arası paylaşım Supabase Auth/RLS gerektirir. Doğrudan borç ödemeleri açık bakiyeye eklenir; dönem kapatma harcamalarla ödemeleri birlikte arşivler.
 
 ```bash
 npm run test

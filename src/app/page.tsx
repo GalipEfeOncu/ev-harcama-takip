@@ -8,6 +8,8 @@ import {
   Users,
 } from "lucide-react";
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { createClient as createServerClient, hasSupabaseConfiguration } from "@/lib/supabase/server";
 
 const sampleMembers = [
   { name: "Ece", amount: "+₺1.100", state: "alacaklı" },
@@ -34,7 +36,27 @@ function SampleMember({ member }: { member: (typeof sampleMembers)[number] }) {
   );
 }
 
-export default function HomePage() {
+export default async function HomePage() {
+  if (hasSupabaseConfiguration()) {
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (user) {
+      const { data: membership, error } = await supabase
+        .from("members")
+        .select("household_id")
+        .eq("user_id", user.id)
+        .eq("active", true)
+        .order("joined_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (membership) redirect(`/dashboard?household=${encodeURIComponent(membership.household_id)}`);
+      if (error) redirect("/dashboard");
+      redirect("/start");
+    }
+  }
+
   return (
     <main className="marketing-shell" id="top">
       <header className="public-header">

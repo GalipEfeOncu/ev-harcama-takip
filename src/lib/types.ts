@@ -23,6 +23,18 @@ export type Expense = {
   settlementRunId?: string;
 };
 
+export type DebtPayment = {
+  id: string;
+  householdId: string;
+  fromMemberId: string;
+  toMemberId: string;
+  amountCents: number;
+  paidAt: string;
+  note: string;
+  createdAt: string;
+  settlementRunId?: string;
+};
+
 export type Household = {
   id: string;
   name: string;
@@ -46,5 +58,6 @@ export type SettlementRun = {
   householdId: string;
   createdAt: string;
   expenseIds: string[];
+  paymentIds?: string[];
   transfers: Transfer[];
 };

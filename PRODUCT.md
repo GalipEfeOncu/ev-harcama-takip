@@ -24,14 +24,16 @@ A lightweight shared-expense tool focused on housemates. It calculates balances 
 - A user creates a household or joins one with its household code.
 - Expenses record the payer, amount, date, description, category, and participating members. Not every expense must include every housemate.
 - Users decide when to calculate and close a settlement period; settlement is not automatic or tied to month end.
-- A settlement uses only expenses that have not already been settled.
+- A settlement uses only expenses and direct debt payments that have not already been settled.
 
 ## Capabilities and Constraints
 
 - The existing create-household, join-household, dashboard, expense, and settlement flows are to remain intact during the UI/UX refactor.
 - The dashboard should stay legible for the user's usual four-person household and fit five household members without clipping or hiding balances. This is a layout target, not a new backend membership limit.
-- Expenses can be added, edited, and deleted; balances and a simplified transfer list are derived from expense records.
-- The app uses local storage as a prototype fallback when Supabase is not configured and Supabase when it is configured.
+- Expenses can be added, edited, and deleted; balances and a simplified transfer list are derived from open expense and direct-payment records.
+- A member can record a partial payment to a creditor without closing the whole settlement period; the payment is dated, attributed, and limited to the open balances.
+- New household creation, joining, and shared-data changes require a Google identity through Supabase Auth; existing anonymous sessions can link Google without changing their user ID.
+- Existing local-storage sessions may still be read as a prototype fallback when Supabase is not configured, but they cannot create shared households.
 - The refactor must preserve the current Next.js, React, and Tailwind CSS stack and all data semantics.
 
 ## Brand Commitments
@@ -49,7 +51,7 @@ A lightweight shared-expense tool focused on housemates. It calculates balances 
 
 - Make recording a shared expense straightforward on a phone.
 - Keep payer, participants, and amounts understandable to the whole household.
-- Show balances from recorded expenses, and show only open expenses in a settlement.
+- Show balances from recorded expenses and direct payments, and show only open records in a settlement.
 - Let the user choose when to calculate and close a period.
 - Preserve existing household data and core flows while the interface changes.
 - Keep member names and balances readable for households of up to five people.

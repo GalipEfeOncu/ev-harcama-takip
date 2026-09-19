@@ -29,6 +29,8 @@ Uygulandı: 192/512 ikonlar, maskable ikon, iOS ikonu, `offline.html` fallback'i
 - Ev oturumu bu cihazda yoksa üyelikten yeniden kurulur; davet kodu hash'ten geri alınmaz, gerekirse ev sahibi yeniler.
 - Kabul ölçütü: oturum yokken Google girişi istenir; üyeliği olan kullanıcı `/` üzerinden panoya, yeni kullanıcı ev kurulumuna gider; Supabase RLS üyelik sınırları korunur.
 
+Kodlandı: Google OAuth/PKCE callback, Google kimliği kontrolü, eski oturum için identity-link akışı, ana sayfadan son aktif eve yönlendirme ve kayıp davet kodunu ev sahibi için yenileme RPC'si. Veritabanı tetikleyicileri anonim değişiklikleri engelleyecek migration'da hazır; migration henüz uygulanmadı. Lint/build geçti. Canlı OAuth ve veritabanı geçişi Google sağlayıcı kimlik bilgileri girilene kadar bekliyor.
+
 ### 3. Doğrudan borç ödemesi
 
 - RLS korumalı ödeme tablosu ve tutarı açık net bakiyeye göre doğrulayan atomik kayıt RPC'si.
@@ -36,6 +38,8 @@ Uygulandı: 192/512 ikonlar, maskable ikon, iOS ikonu, `offline.html` fallback'i
 - Bakiyeler, sadeleştirilmiş ödeme önerileri ve dönem kapatma hesabı doğrudan ödemeleri hesaba katar.
 - Kabul ölçütü: örneğin X'in B'ye yaptığı kısmi ödeme kayda geçer, açık bakiye düşer ve dönemi kapatmadan da görülebilir; yeni dönemde eski ödeme tekrar hesaba katılmaz.
 
+Kodlandı: yerel ve Supabase veri akışında doğrudan ödeme modeli, bakiye hesabı, pano formu, ödeme listesi ve dönem arşivi eklendi. Atomik RPC ile RLS migration'ı hazır; Google Auth migration'ından sonra uygulanmalı. Lint/build geçti. Google sağlayıcısı kapalı olduğu için imzalı pano ve canlı RPC akışı henüz doğrulanamadı.
+
 ## Dış kurulum gereksinimi
 
-Google OAuth'un canlı çalışması için Supabase Auth'ta Google sağlayıcısının etkinleştirilmesi, Google OAuth Client ID/Secret girilmesi ve uygulama callback adreslerinin redirect allow-list'e eklenmesi gerekir. Bu sırlar repoya veya sohbete yazılmaz. Kod tarafı tamamlanınca gereken adresleri ayrıca belirt.
+Google OAuth'un canlı çalışması için Supabase Auth'ta Google sağlayıcısının etkinleştirilmesi, Google OAuth Client ID/Secret girilmesi ve uygulama callback adreslerinin redirect allow-list'e eklenmesi gerekir. Bu sırlar repoya veya sohbete yazılmaz. Sağlayıcı şu an kapalı olduğu için iki yeni auth/ödeme migration'ı canlı veritabanına uygulanmadı ve auth değişiklikleri henüz push edilmedi.
