@@ -12,11 +12,13 @@ Bu çalışma mevcut ev/davet kodu akışını ve ev başına veri erişimi kura
 
 ## Aşamalar
 
-### 1. Kurulabilir PWA
+### 1. Kurulabilir PWA — tamamlandı
 
 - Manifest için 192/512 piksel ve maskable ikonlar; iOS ana ekran ikonu ve uygulama metadata'sı.
 - Çevrimdışı durumda veri yazılabildiğini iddia etmeyen açık bir uygulama kabuğu/fallback.
 - Kabul ölçütü: ikonlar ve manifest üretim derlemesinde bulunur; service worker kurulumda eksik asset nedeniyle hata vermez.
+
+Uygulandı: 192/512 ikonlar, maskable ikon, iOS ikonu, `offline.html` fallback'i ve v2 service worker. Lint/build ve masaüstü/390 px ekran kontrolü geçti.
 
 ### 2. Google hesabı ve eve doğrudan dönüş
 

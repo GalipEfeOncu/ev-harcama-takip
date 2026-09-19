@@ -30,7 +30,12 @@ export const metadata: Metadata = {
     "Ev arkadaşlarıyla ortak harcamaları takip edin, borçları sadeleştirin.",
   icons: {
     icon: "/icon.svg",
-    apple: "/icon.svg",
+    apple: "/apple-icon.png",
+  },
+  appleWebApp: {
+    capable: true,
+    title: "Ev Hesap",
+    statusBarStyle: "default",
   },
 };
 
