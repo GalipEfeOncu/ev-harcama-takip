@@ -1,5 +1,4 @@
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
-import { splitAmount } from "@/lib/calculations";
 import type { Expense, Member, SettlementRun, Transfer } from "@/lib/types";
 import type { LocalSession } from "@/lib/local-store";
 
@@ -153,42 +152,32 @@ export async function loadRemoteHousehold(session: LocalSession) {
 
 export async function createRemoteExpense(session: LocalSession, input: ExpenseInput) {
   const supabase = await ensureAuthenticated();
-  const { data: userData } = await supabase.auth.getUser();
-  if (!userData.user) throw new Error("Oturum bulunamadı.");
-
-  const { data: expense, error: expenseError } = await supabase.from("expenses").insert({
-    household_id: session.householdId,
-    payer_member_id: input.payerId,
-    amount_cents: input.amountCents,
-    description: input.description,
-    category: input.category,
-    expense_date: input.expenseDate,
-    created_by_user_id: userData.user.id,
-  }).select("id").single();
-  if (expenseError) throw expenseError;
-
-  const shares = splitAmount(input.amountCents, input.participantIds);
-  const { error: participantError } = await supabase.from("expense_participants").insert([...shares].map(([memberId, shareCents]) => ({ expense_id: expense.id, member_id: memberId, share_cents: shareCents })));
-  if (participantError) throw participantError;
+  const { error } = await supabase.rpc("create_expense_atomic", {
+    p_household_id: session.householdId,
+    p_payer_member_id: input.payerId,
+    p_amount_cents: input.amountCents,
+    p_description: input.description,
+    p_category: input.category,
+    p_expense_date: input.expenseDate,
+    p_participant_member_ids: input.participantIds,
+  });
+  if (error) throw error;
   return loadRemoteHousehold(session);
 }
 
 export async function updateRemoteExpense(session: LocalSession, expenseId: string, input: ExpenseInput) {
   const supabase = await ensureAuthenticated();
-  const { error: expenseError } = await supabase.from("expenses").update({
-    payer_member_id: input.payerId,
-    amount_cents: input.amountCents,
-    description: input.description,
-    category: input.category,
-    expense_date: input.expenseDate,
-  }).eq("id", expenseId).eq("household_id", session.householdId);
-  if (expenseError) throw expenseError;
-
-  const { error: removeParticipantsError } = await supabase.from("expense_participants").delete().eq("expense_id", expenseId);
-  if (removeParticipantsError) throw removeParticipantsError;
-  const shares = splitAmount(input.amountCents, input.participantIds);
-  const { error: participantError } = await supabase.from("expense_participants").insert([...shares].map(([memberId, shareCents]) => ({ expense_id: expenseId, member_id: memberId, share_cents: shareCents })));
-  if (participantError) throw participantError;
+  const { error } = await supabase.rpc("update_expense_atomic", {
+    p_household_id: session.householdId,
+    p_expense_id: expenseId,
+    p_payer_member_id: input.payerId,
+    p_amount_cents: input.amountCents,
+    p_description: input.description,
+    p_category: input.category,
+    p_expense_date: input.expenseDate,
+    p_participant_member_ids: input.participantIds,
+  });
+  if (error) throw error;
   return loadRemoteHousehold(session);
 }
 
@@ -221,18 +210,12 @@ export async function loadRemoteSettlementRuns(session: LocalSession) {
   } satisfies SettlementRun));
 }
 
-export async function closeRemoteSettlement(session: LocalSession, expenseIds: string[], transfers: Transfer[]) {
+export async function closeRemoteSettlement(session: LocalSession, expenseIds: string[]) {
   const supabase = await ensureAuthenticated();
-  const { data: userData } = await supabase.auth.getUser();
-  if (!userData.user) throw new Error("Oturum bulunamadı.");
-
-  const { data: run, error: runError } = await supabase.from("settlement_runs").insert({ household_id: session.householdId, created_by_user_id: userData.user.id }).select("id, household_id, created_at").single();
-  if (runError) throw runError;
-  if (transfers.length > 0) {
-    const { error: transferError } = await supabase.from("settlements").insert(transfers.map((transfer) => ({ settlement_run_id: run.id, household_id: session.householdId, from_member_id: transfer.fromMemberId, to_member_id: transfer.toMemberId, amount_cents: transfer.amountCents })));
-    if (transferError) throw transferError;
-  }
-  const { error: expenseError } = await supabase.from("expenses").update({ settlement_run_id: run.id }).eq("household_id", session.householdId).in("id", expenseIds);
-  if (expenseError) throw expenseError;
+  const { error } = await supabase.rpc("close_settlement_atomic", {
+    p_household_id: session.householdId,
+    p_expense_ids: expenseIds,
+  });
+  if (error) throw error;
   return loadRemoteHousehold(session);
 }

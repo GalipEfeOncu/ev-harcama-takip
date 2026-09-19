@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, CheckCircle2, CircleDollarSign, Home, LockKeyhole } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle2, Home, LockKeyhole } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { calculateBalances, formatCurrency, simplifyDebts } from "@/lib/calculations";
 import { closeRemoteSettlement, loadRemoteHousehold, loadRemoteSettlementRuns } from "@/lib/data-service";
@@ -28,6 +28,7 @@ export default function SettlePage() {
   const [data, setData] = useState<SettlementData | null>(null);
   const [loading, setLoading] = useState(true);
   const [closed, setClosed] = useState(false);
+  const [closeArmed, setCloseArmed] = useState(false);
   const [loadError, setLoadError] = useState("");
   const [closing, setClosing] = useState(false);
 
@@ -73,7 +74,7 @@ export default function SettlePage() {
     setClosing(true);
     try {
       if (isSupabaseConfigured()) {
-        const remoteData = await closeRemoteSettlement(data.session, openExpenses.map((expense) => expense.id), transfers);
+        const remoteData = await closeRemoteSettlement(data.session, openExpenses.map((expense) => expense.id));
         const runs = await loadRemoteSettlementRuns(data.session);
         setData({ ...data, ...remoteData, runs });
       } else {
@@ -87,6 +88,7 @@ export default function SettlePage() {
       setClosed(true);
     } catch (closeFailure) {
       setLoadError(closeFailure instanceof Error ? closeFailure.message : "Hesap kapatılamadı.");
+      setCloseArmed(false);
     } finally {
       setClosing(false);
     }
@@ -95,32 +97,105 @@ export default function SettlePage() {
   if (loading) return <main className="dashboard-shell"><div className="dashboard-loading">Açık hesap hazırlanıyor…</div></main>;
 
   if (!data) {
-    if (loadError) return <main className="dashboard-shell"><div className="empty-dashboard"><span className="empty-dashboard-icon"><Home size={25} /></span><p className="eyebrow">bağlantı hatası</p><h1>Açık hesap yüklenemedi.</h1><p>{loadError}</p><button className="button button-primary" onClick={() => window.location.reload()} type="button">Tekrar dene <ArrowRight size={17} /></button></div></main>;
-    return <main className="dashboard-shell"><div className="empty-dashboard"><span className="empty-dashboard-icon"><Home size={25} /></span><p className="eyebrow">henüz bir ev yok</p><h1>Önce kendi evini seç.</h1><p>Borç hesabını görmek için bir ev oluştur veya davet koduyla katıl.</p><Link className="button button-primary" href="/start">Ev hesabına git <ArrowRight size={17} /></Link></div></main>;
+    if (loadError) return <main className="dashboard-shell"><div className="empty-dashboard"><span className="empty-dashboard-icon"><Home size={25} /></span><h1>Açık hesap yüklenemedi.</h1><p>{loadError}</p><button className="primary-action" onClick={() => window.location.reload()} type="button">Tekrar dene <ArrowRight size={17} /></button></div></main>;
+    return <main className="dashboard-shell"><div className="empty-dashboard"><span className="empty-dashboard-icon"><Home size={25} /></span><h1>Önce kendi evini seç.</h1><p>Borç hesabını görmek için bir ev oluştur veya davet koduyla katıl.</p><Link className="primary-action" href="/start">Ev hesabına git <ArrowRight size={17} /></Link></div></main>;
   }
 
   return (
     <main className="settle-shell dashboard-shell">
-      <header className="dashboard-header">
-        <Link className="brand" href="/dashboard"><span className="brand-mark">eh</span><span>ev hesap</span></Link>
-        <div className="household-header"><span className="household-avatar"><Home size={15} /></span><div><strong>{data.session.householdName}</strong><small>{data.session.joinCode}</small></div></div>
-        <Link className="back-link" href="/dashboard"><ArrowLeft size={15} /> Dashboard</Link>
+      <header className="account-header">
+        <Link className="dashboard-wordmark" href="/" aria-label="Ev Hesap ana sayfa">EV HESAP</Link>
+        <div className="account-household">
+          <span className="account-household__name" title={data.session.householdName}>{data.session.householdName}</span>
+          <span className="account-household__divider" aria-hidden="true" />
+          <span className="account-household__code">{data.session.joinCode}</span>
+        </div>
+        <Link className="header-back" href="/dashboard"><ArrowLeft aria-hidden="true" size={16} /> Pano</Link>
       </header>
 
-      <section className="settle-main">
-        <div className="settle-heading"><div><p className="eyebrow"><CircleDollarSign size={15} /> açık hesap · {openExpenses.length} harcama</p><h1>Borçlar <em>net olsun.</em></h1><p>Son hesap kapatıldıktan sonra eklenen açık harcamaları kullanarak sade bir ödeme listesi çıkarıyoruz.</p></div><div className="settle-rule"><LockKeyhole size={16} /><span>Hesabı kapatınca bu dönem tekrar hesaba girmez.</span></div></div>
+      <section className="settle-main" aria-labelledby="settle-title">
+        <div className="settle-heading">
+          <div>
+            <h1 id="settle-title">Ödeme listesi</h1>
+            <p>Açık giderlerin bakiyesinden çıkan öneriyi incele. Dönemi kapatma kararını ev arkadaşlarınla birlikte ver.</p>
+          </div>
+          <p className="settle-rule"><LockKeyhole aria-hidden="true" size={17} /> Kapatınca bu harcamalar açık bakiyeden çıkar ve geçmişe eklenir.</p>
+        </div>
+
+        {loadError && <p className="inline-error" role="alert">{loadError}</p>}
 
         {closed ? (
-          <section className="settle-success"><span className="success-icon"><CheckCircle2 size={25} /></span><p className="eyebrow">dönem kapandı</p><h2>Hesap temiz.</h2><p>Bu döneme ait {data.runs[0]?.expenseIds.length ?? 0} harcama settlement geçmişine taşındı. Yeni harcamalar bir sonraki açık dönemde görünecek.</p><Link className="button button-primary" href="/dashboard">Dashboard&apos;a dön <ArrowRight size={17} /></Link></section>
+          <section className="settle-success" aria-labelledby="settle-success-title" aria-live="polite">
+            <span className="success-icon"><CheckCircle2 aria-hidden="true" size={25} /></span>
+            <h2 id="settle-success-title">Dönem kapandı.</h2>
+            <p>{data.runs[0]?.expenseIds.length ?? 0} harcama hesap geçmişine taşındı. Bundan sonra eklenen harcamalar açık hesapta görünür.</p>
+            <Link className="primary-action" href="/dashboard">Panoya dön <ArrowRight aria-hidden="true" size={17} /></Link>
+          </section>
         ) : (
           <>
-            <section className="transfer-card">
-              <div className="transfer-card-head"><div><p className="eyebrow">önerilen ödemeler</p><h2>Kim kime gönderecek?</h2></div><span className="date-chip">önizleme</span></div>
-              {openExpenses.length === 0 ? <div className="settle-empty"><CheckCircle2 size={27} /><h3>Açık harcama yok.</h3><p>Yeni bir harcama eklendiğinde burada sade bir ödeme listesi göreceksin.</p><Link className="text-action" href="/dashboard">Harcama ekle <ArrowRight size={15} /></Link></div> : transfers.length === 0 ? <div className="settle-empty"><CheckCircle2 size={27} /><h3>Herkes dengede.</h3><p>Bu açık dönemde kimsenin birbirine ödeme yapması gerekmiyor.</p></div> : <div className="transfer-list">{transfers.map((transfer) => <div className="transfer-row" key={`${transfer.fromMemberId}-${transfer.toMemberId}`}><div className="transfer-person"><span className="member-avatar">{memberById.get(transfer.fromMemberId)?.name.slice(0, 1).toUpperCase()}</span><strong>{memberById.get(transfer.fromMemberId)?.name}</strong></div><span className="transfer-arrow"><ArrowRight size={17} /></span><div className="transfer-person"><span className="member-avatar member-avatar-to">{memberById.get(transfer.toMemberId)?.name.slice(0, 1).toUpperCase()}</span><strong>{memberById.get(transfer.toMemberId)?.name}</strong></div><b>{formatCurrency(transfer.amountCents)}</b></div>)}</div>}
-              {openExpenses.length > 0 && <div className="settle-card-foot"><p>Bu işlem {openExpenses.length} açık harcamayı kapsıyor. Hesabı kapattığında bu harcamalar bir sonraki hesaplamadan çıkarılır.</p><button className="button button-primary" disabled={closing} onClick={() => void closeCurrentPeriod()} type="button">{closing ? "Kapatılıyor…" : "Hesabı kapat"} <CheckCircle2 size={17} /></button></div>}
+            <section className="transfer-card" aria-labelledby="transfer-title">
+              <div className="transfer-card-head">
+                <div><h2 id="transfer-title">Kim kime ne kadar ödeyecek?</h2><p>{openExpenses.length} açık harcama · ödeme önizlemesi</p></div>
+                <span className="transfer-count">{transfers.length} öneri</span>
+              </div>
+              {openExpenses.length === 0 ? (
+                <div className="settle-empty">
+                  <CheckCircle2 aria-hidden="true" size={24} />
+                  <h3>Açık harcama yok.</h3>
+                  <p>Yeni gider eklendiğinde onun bakiyesi burada görünür.</p>
+                  <Link className="text-action" href="/dashboard">Panoda harcama ekle <ArrowRight aria-hidden="true" size={15} /></Link>
+                </div>
+              ) : transfers.length === 0 ? (
+                <div className="settle-empty">
+                  <CheckCircle2 aria-hidden="true" size={24} />
+                  <h3>Herkes dengede.</h3>
+                  <p>Bu açık giderlerde kimsenin birbirine ödeme yapması gerekmiyor.</p>
+                </div>
+              ) : (
+                <div className="transfer-list">
+                  {transfers.map((transfer) => (
+                    <div className="transfer-row" key={`${transfer.fromMemberId}-${transfer.toMemberId}`}>
+                      <div className="transfer-person"><span>{memberById.get(transfer.fromMemberId)?.name}</span><small>ödeyecek</small></div>
+                      <span className="transfer-arrow" aria-hidden="true"><ArrowRight size={17} /></span>
+                      <div className="transfer-person transfer-person--receiver"><span>{memberById.get(transfer.toMemberId)?.name}</span><small>alacak</small></div>
+                      <b>{formatCurrency(transfer.amountCents)}</b>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {openExpenses.length > 0 && (
+                <div className="settle-card-foot">
+                  <p>Ödeme listesini gözden geçirdikten sonra dönemi kapat. Bu işlem para transferi yapmaz.</p>
+                  {!closeArmed ? (
+                    <button className="primary-action" disabled={closing} onClick={() => setCloseArmed(true)} type="button">Dönemi kapat <CheckCircle2 aria-hidden="true" size={17} /></button>
+                  ) : (
+                    <div className="settle-confirm" role="group" aria-label="Dönemi kapatma onayı">
+                      <p>{openExpenses.length} açık harcama hesap geçmişine taşınacak.</p>
+                      <div>
+                        <button className="primary-action" disabled={closing} onClick={() => void closeCurrentPeriod()} type="button">{closing ? "Kapatılıyor…" : "Evet, dönemi kapat"}</button>
+                        <button className="secondary-action" disabled={closing} onClick={() => setCloseArmed(false)} type="button">Geri dön</button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </section>
 
-            <section className="settlement-history"><div className="panel-heading"><div><p className="eyebrow">geçmiş dönemler</p><h2>Settlement geçmişi</h2></div></div>{data.runs.length === 0 ? <p className="panel-empty">Henüz kapatılmış bir dönem yok.</p> : data.runs.map((run) => <div className="settlement-history-row" key={run.id}><span><CheckCircle2 size={15} /> {new Intl.DateTimeFormat("tr-TR", { day: "numeric", month: "long", year: "numeric" }).format(new Date(run.createdAt))}</span><b>{run.expenseIds.length} harcama</b><strong>{run.transfers.length} ödeme</strong></div>)}</section>
+            <section className="settlement-history" aria-labelledby="history-title">
+              <div className="history-heading"><h2 id="history-title">Hesap geçmişi</h2><span>{data.runs.length} kapanış</span></div>
+              {data.runs.length === 0 ? (
+                <p className="history-empty">Kapatılan dönemler burada listelenir.</p>
+              ) : (
+                data.runs.map((run) => (
+                  <div className="settlement-history-row" key={run.id}>
+                    <span><CheckCircle2 aria-hidden="true" size={15} /> {new Intl.DateTimeFormat("tr-TR", { day: "numeric", month: "long", year: "numeric" }).format(new Date(run.createdAt))}</span>
+                    <b>{run.expenseIds.length} harcama</b>
+                    <strong>{run.transfers.length} ödeme</strong>
+                  </div>
+                ))
+              )}
+            </section>
           </>
         )}
       </section>
