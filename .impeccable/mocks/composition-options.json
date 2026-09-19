@@ -1,0 +1,78 @@
+{
+  "title": "Ev Hesap dashboard kompozisyonunu seç",
+  "question": "Günlük kullanımın dört kişi; üç taslak da beş kişiye kadar uyumlu. Beş kişilik yerleşimde hangisi en rahat okunuyor? Beğendiğin veya değiştirmek istediğin noktaları söyleyebilir, seçenekleri birleştirebilir ya da revizyon isteyebilirsin. Temel ev, harcama ve borç akışları korunacak.",
+  "options": [
+    {
+      "id": "comp-panel-01",
+      "label": "Bakiye önce",
+      "kicker": "KOMPOZİSYON 1",
+      "lineage": "Beş terminalli dikey dağıtım panosu",
+      "thesis": "Beş net bakiyeyi adları ve durumlarıyla dikey rayda okutur; dört üyede rahat kalır.",
+      "palette": [
+        "#EEF0EA",
+        "#172124",
+        "#5D6968",
+        "#E45A32",
+        "#D4AE43"
+      ],
+      "materials": [
+        "mat emaye",
+        "ortak dikey ray",
+        "bakiye terminalleri"
+      ],
+      "viewport": "Ev adı ve kodu, açık toplam, beş bakiye satırı, Harcama ekle ve Borçları hesapla. Açık harcamalar altta başlar.",
+      "risk": "Beş satırı iki eylemle birlikte dar ekranda dengede tutmalı.",
+      "comp": ".impeccable/mocks/comp-panel-01.png"
+    },
+    {
+      "id": "comp-panel-02",
+      "label": "Yatay dağıtım rayı",
+      "kicker": "KOMPOZİSYON 2",
+      "lineage": "Beş terminalli iki seviyeli ortak ray",
+      "thesis": "Üç terminali üst hatta, ikisini alt hatta bağlayarak beş bakiyeyi küçük ekranda karşılaştırır.",
+      "palette": [
+        "#EEF0EA",
+        "#172124",
+        "#5D6968",
+        "#E45A32",
+        "#D4AE43"
+      ],
+      "materials": [
+        "mat emaye",
+        "ortak yatay dağıtım rayı",
+        "ince bağlantı kolları"
+      ],
+      "viewport": "Ece, Mert ve Deniz üst hatta; Ayşe ve Can alt hatta. Beş ad, tutar ve borç/alacak durumu görünür.",
+      "risk": "İki seviyeli bağlantı, terminal ilişkilerini tek ortak dağıtım sistemi olarak açıkça göstermeli.",
+      "comp": ".impeccable/mocks/comp-panel-02.png"
+    },
+    {
+      "id": "comp-panel-03",
+      "label": "Harcama kaydı önce",
+      "kicker": "KOMPOZİSYON 3",
+      "lineage": "Beş kalem kayıt defteri ve bakiye sonucu",
+      "thesis": "Önce giderlerin kaynağını ve katılımcı sayısını, ardından beş kişinin net sonucunu gösterir.",
+      "palette": [
+        "#EEF0EA",
+        "#172124",
+        "#5D6968",
+        "#E45A32",
+        "#D4AE43"
+      ],
+      "materials": [
+        "mat emaye",
+        "numaralı gider satırları",
+        "ince ayırıcılar"
+      ],
+      "viewport": "Beş harcama kalemi ve beş net bakiye tek akışta okunur; eylemler en altta kalır.",
+      "risk": "İçerik daha yoğundur; dört kişilik kullanımda rahatlık hissini korumalı.",
+      "comp": ".impeccable/mocks/comp-panel-03.png"
+    }
+  ],
+  "buildPath": {
+    "value": "comp",
+    "toggle": false
+  },
+  "canon": false,
+  "steer": false
+}

@@ -1,0 +1,45 @@
+{
+  "title": "Ev Hesap dashboard kompozisyonunu seç",
+  "question": "Üç taslak da seçtiğin Daire Dağıtım Panosu görsel dilinde; farkları ilk ekrandaki bilgi sırası ve yerleşim. Hangisini uygulayayım? Beğendiğin veya yanlış hissettiren noktaları söyleyebilir; taslakları birleştirebilir ya da revizyon isteyebilirsin. Temel ev, harcama ve borç akışları korunacak.",
+  "options": [
+    {
+      "id": "comp-panel-01",
+      "label": "Bakiye önce",
+      "kicker": "KOMPOZİSYON 1",
+      "lineage": "Etiketli daire dağıtım panosu",
+      "thesis": "Açık toplam, kişi bakiyeleri ve gider geçmişi aynı sırada okunur.",
+      "palette": ["#EEF0EA", "#172124", "#5D6968", "#E45A32", "#D4AE43"],
+      "materials": ["mat emaye", "grafit kurallar", "bakiye terminalleri"],
+      "viewport": "Üst kimlik şeridi, açık dönem toplamı, üç net bakiye satırı, Harcama ekle ve Açık harcamalar.",
+      "risk": "Alt gezinme ile ana eylem aynı harcama yolunu iki kez sunabilir.",
+      "comp": ".impeccable/mocks/comp-panel-01.png"
+    },
+    {
+      "id": "comp-panel-02",
+      "label": "Yatay dağıtım rayı",
+      "kicker": "KOMPOZİSYON 2",
+      "lineage": "Üç terminalli ortak dağıtım hattı",
+      "thesis": "Üç kişinin net bakiyesi aynı hat üzerinde tek bakışta karşılaştırılır.",
+      "palette": ["#EEF0EA", "#172124", "#5D6968", "#E45A32", "#D4AE43"],
+      "materials": ["mat emaye", "tek ortak yatay ray", "tabular bakiye sütunları"],
+      "viewport": "Kimlik ve açık toplamın ardından Ece, Mert ve Deniz üç yatay terminalde görünür; gider geçmişi altta sürer.",
+      "risk": "Üç sütun dar ekranlarda sıkışabilir; daha dar ölçülerde dikey sıraya açılmalı.",
+      "comp": ".impeccable/mocks/comp-panel-02.png"
+    },
+    {
+      "id": "comp-panel-03",
+      "label": "Harcama kaydı önce",
+      "kicker": "KOMPOZİSYON 3",
+      "lineage": "Dağıtım panosunun numaralı kayıt sırası",
+      "thesis": "Açık giderler önce kaynağıyla görünür; kişi bakiyeleri ardından sonucu açıklar.",
+      "palette": ["#EEF0EA", "#172124", "#5D6968", "#E45A32", "#D4AE43"],
+      "materials": ["mat emaye", "numaralı kayıt terminalleri", "ince ayırıcılar"],
+      "viewport": "Üstte açık toplam, merkezde üç kaynak gideri, ardından üç net bakiye ve altta Harcama ekle.",
+      "risk": "Gider listesi uzadıkça kişi bakiyeleri ilk ekranda aşağı kayabilir.",
+      "comp": ".impeccable/mocks/comp-panel-03.png"
+    }
+  ],
+  "buildPath": {"value": "comp", "toggle": false},
+  "canon": false,
+  "steer": false
+}

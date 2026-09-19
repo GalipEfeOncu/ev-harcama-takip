@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Project guidance and generated design artifacts are not application source.
+    ".agents/**",
+    ".impeccable/**",
   ]),
 ]);
 

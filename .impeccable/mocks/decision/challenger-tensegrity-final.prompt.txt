@@ -1,0 +1,7 @@
+Edit the referenced portrait mobile PWA screen into a high-contrast version while keeping its composition and the exact Ev Hesap product data. Keep the 390 x 844 screen, Turkish headings, household name and code, 3 member nodes, red transfer network, expense rows, total ₺1.800, Ece +₺500 alacaklı, Mert −₺100 borçlu, Deniz −₺400 borçlu, and the two actual transfers Mert → Ece ₺100 and Deniz → Ece ₺400.
+
+Correct the accessibility flaw: replace the near-black page ground with light concrete #E7E5E1, and set every heading, body label, member name, and amount in dark graphite #172124 with strong readable contrast. Use saturated red #C62828 for the true transfer lines and minimal state emphasis. Do not use glowing, muted-gray, or low-contrast text. Keep the diagram as flat black rods and red directional cords on the pale background; no photograph, texture, perspective, force units, or decorative graph.
+
+Correct the navigation: the bottom bar has exactly three actions, Özet, Harcamalar, Hesap. Do not add Ayarlar or any unsupported destination. Keep each exact Turkish label legible. Preserve the visual grammar of tension and compression as actual data links, not decoration.
+
+Make the result a working app screenshot, not a poster. No invented copy, claims, or dates; no unrelated widgets, gradients, glow, or faux materials.

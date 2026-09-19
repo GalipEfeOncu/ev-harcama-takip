@@ -1,0 +1,2077 @@
+{
+  "tool": "comp-diff",
+  "version": 1,
+  "createdAt": "2026-09-19T15:58:51.580Z",
+  "label": "final matched 390x844 five-member proof",
+  "comp": ".impeccable/mocks/comp-panel-02.png",
+  "build": ".impeccable/review/hero-repro.png",
+  "spec": ".impeccable/build/spec.json",
+  "compSize": "853x1844",
+  "buildSize": "853x1844",
+  "align": "top",
+  "overall": 0.8187,
+  "verdict": "match",
+  "scores": {
+    "overall": 0.8187,
+    "structure": 0.8184,
+    "color": 0.7242,
+    "colorIntersection": 0.5542,
+    "paletteMatch": 0.8158,
+    "detail": 0.805,
+    "detailRaw": 0.8363,
+    "detailAdded": 0.0625,
+    "bands": 1
+  },
+  "palette": {
+    "comp": [
+      {
+        "hex": "#e8f1e8",
+        "coverage": 0.931
+      },
+      {
+        "hex": "#d86639",
+        "coverage": 0.0273
+      },
+      {
+        "hex": "#091016",
+        "coverage": 0.0217
+      },
+      {
+        "hex": "#757f7f",
+        "coverage": 0.0093
+      },
+      {
+        "hex": "#b4b9b8",
+        "coverage": 0.0072
+      },
+      {
+        "hex": "#233133",
+        "coverage": 0.0035
+      }
+    ],
+    "build": [
+      {
+        "hex": "#e8f8e8",
+        "coverage": 0.9274
+      },
+      {
+        "hex": "#081818",
+        "coverage": 0.0287
+      },
+      {
+        "hex": "#d86838",
+        "coverage": 0.0282
+      },
+      {
+        "hex": "#647272",
+        "coverage": 0.0074
+      },
+      {
+        "hex": "#adb9af",
+        "coverage": 0.0057
+      },
+      {
+        "hex": "#484c4c",
+        "coverage": 0.0025
+      }
+    ]
+  },
+  "regions": [
+    {
+      "id": "header-brand",
+      "x": 0.0469,
+      "y": 0.0342,
+      "w": 0.2462,
+      "h": 0.0298,
+      "kind": "text",
+      "score": {
+        "overall": 0.665,
+        "structure": 0.6098,
+        "color": 0.6502,
+        "colorIntersection": 0.3837,
+        "paletteMatch": 0.7938,
+        "detail": 0.6903,
+        "detailRaw": 0.7164,
+        "detailAdded": 0.0521,
+        "bands": 0.94
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 3,
+          "y": 10,
+          "w": 192,
+          "h": 33
+        },
+        "build": {
+          "x": 2,
+          "y": 11,
+          "w": 203,
+          "h": 29
+        }
+      }
+    },
+    {
+      "id": "header-household",
+      "x": 0.5451,
+      "y": 0.0391,
+      "w": 0.1594,
+      "h": 0.026,
+      "kind": "text",
+      "score": {
+        "overall": 0.7168,
+        "structure": 0.7188,
+        "color": 0.6613,
+        "colorIntersection": 0.4216,
+        "paletteMatch": 0.7904,
+        "detail": 0.7238,
+        "detailRaw": 0.8019,
+        "detailAdded": 0.1563,
+        "bands": 0.8356
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 2,
+          "y": 8,
+          "w": 116,
+          "h": 27
+        },
+        "build": {
+          "x": 2,
+          "y": 3,
+          "w": 118,
+          "h": 33
+        }
+      }
+    },
+    {
+      "id": "header-code",
+      "x": 0.7339,
+      "y": 0.0391,
+      "w": 0.2204,
+      "h": 0.026,
+      "kind": "text",
+      "score": {
+        "overall": 0.5031,
+        "structure": 0.4124,
+        "color": 0.6402,
+        "colorIntersection": 0.3985,
+        "paletteMatch": 0.7704,
+        "detail": 0.4679,
+        "detailRaw": 0.5408,
+        "detailAdded": 0.1458,
+        "bands": 0.6667
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 6,
+          "y": 13,
+          "w": 180,
+          "h": 22
+        },
+        "build": {
+          "x": 1,
+          "y": 6,
+          "w": 187,
+          "h": 25
+        }
+      }
+    },
+    {
+      "id": "header-divider",
+      "x": 0.7081,
+      "y": 0.0428,
+      "w": 0.0023,
+      "h": 0.032,
+      "kind": "chrome",
+      "score": {
+        "overall": 0.7183,
+        "structure": 0.912,
+        "color": 0.6731,
+        "colorIntersection": 0.4736,
+        "paletteMatch": 0.7806,
+        "detail": 0.3233,
+        "detailRaw": 0.3493,
+        "detailAdded": 0.0521,
+        "bands": 1
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 0,
+          "y": 0,
+          "w": 48,
+          "h": 59
+        },
+        "build": {
+          "x": 0,
+          "y": 0,
+          "w": 48,
+          "h": 59
+        }
+      }
+    },
+    {
+      "id": "header-rule",
+      "x": 0.0492,
+      "y": 0.0737,
+      "w": 0.9027,
+      "h": 0.0016,
+      "kind": "chrome",
+      "score": {
+        "overall": 0.6902,
+        "structure": 0.9697,
+        "color": 0.7576,
+        "colorIntersection": 0.5995,
+        "paletteMatch": 0.8427,
+        "detail": 0.3456,
+        "detailRaw": 0.3456,
+        "detailAdded": 0,
+        "bands": 0.5
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 0,
+          "y": 24,
+          "w": 770,
+          "h": 3
+        },
+        "build": {
+          "x": 0,
+          "y": 23,
+          "w": 770,
+          "h": 2
+        }
+      }
+    },
+    {
+      "id": "heading",
+      "x": 0.0492,
+      "y": 0.1112,
+      "w": 0.4572,
+      "h": 0.038,
+      "kind": "text",
+      "score": {
+        "overall": 0.5148,
+        "structure": 0.4013,
+        "color": 0.653,
+        "colorIntersection": 0.4274,
+        "paletteMatch": 0.7745,
+        "detail": 0.621,
+        "detailRaw": 0.6835,
+        "detailAdded": 0.125,
+        "bands": 0.5776
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 1,
+          "y": 4,
+          "w": 371,
+          "h": 66
+        },
+        "build": {
+          "x": 0,
+          "y": 0,
+          "w": 383,
+          "h": 70
+        }
+      }
+    },
+    {
+      "id": "open-period-label",
+      "x": 0.0504,
+      "y": 0.1632,
+      "w": 0.4455,
+      "h": 0.0195,
+      "kind": "text",
+      "score": {
+        "overall": 0.6827,
+        "structure": 0.7509,
+        "color": 0.6634,
+        "colorIntersection": 0.4226,
+        "paletteMatch": 0.793,
+        "detail": 0.7207,
+        "detailRaw": 0.7416,
+        "detailAdded": 0.0417,
+        "bands": 0.3333
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 1,
+          "y": 8,
+          "w": 334,
+          "h": 30
+        },
+        "build": {
+          "x": 0,
+          "y": 10,
+          "w": 322,
+          "h": 30
+        }
+      }
+    },
+    {
+      "id": "total-label",
+      "x": 0.0492,
+      "y": 0.212,
+      "w": 0.4338,
+      "h": 0.0228,
+      "kind": "text",
+      "score": {
+        "overall": 0.5987,
+        "structure": 0.6103,
+        "color": 0.6204,
+        "colorIntersection": 0.3703,
+        "paletteMatch": 0.7551,
+        "detail": 0.6563,
+        "detailRaw": 0.7188,
+        "detailAdded": 0.125,
+        "bands": 0.4
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 2,
+          "y": 7,
+          "w": 267,
+          "h": 34
+        },
+        "build": {
+          "x": 0,
+          "y": 4,
+          "w": 277,
+          "h": 35
+        }
+      }
+    },
+    {
+      "id": "total-amount",
+      "x": 0.7913,
+      "y": 0.2082,
+      "w": 0.17,
+      "h": 0.0282,
+      "kind": "text",
+      "score": {
+        "overall": 0.6263,
+        "structure": 0.6019,
+        "color": 0.6239,
+        "colorIntersection": 0.3456,
+        "paletteMatch": 0.7738,
+        "detail": 0.7164,
+        "detailRaw": 0.7372,
+        "detailAdded": 0.0417,
+        "bands": 0.619
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 2,
+          "y": 4,
+          "w": 134,
+          "h": 35
+        },
+        "build": {
+          "x": 2,
+          "y": 4,
+          "w": 136,
+          "h": 32
+        }
+      }
+    },
+    {
+      "id": "total-rule",
+      "x": 0.0492,
+      "y": 0.2495,
+      "w": 0.9027,
+      "h": 0.0016,
+      "kind": "chrome",
+      "score": {
+        "overall": 0.7051,
+        "structure": 0.9428,
+        "color": 0.6427,
+        "colorIntersection": 0.4834,
+        "paletteMatch": 0.7285,
+        "detail": 0.3779,
+        "detailRaw": 0.4404,
+        "detailAdded": 0.125,
+        "bands": 0.8
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 1,
+          "y": 23,
+          "w": 768,
+          "h": 2
+        },
+        "build": {
+          "x": 0,
+          "y": 24,
+          "w": 770,
+          "h": 2
+        }
+      }
+    },
+    {
+      "id": "rail-upper",
+      "x": 0.1583,
+      "y": 0.2853,
+      "w": 0.687,
+      "h": 0.0092,
+      "kind": "chrome",
+      "score": {
+        "overall": 0.6428,
+        "structure": 0.9239,
+        "color": 0.644,
+        "colorIntersection": 0.462,
+        "paletteMatch": 0.7419,
+        "detail": 0.1539,
+        "detailRaw": 0.2164,
+        "detailAdded": 0.125,
+        "bands": 0.8
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 0,
+          "y": 12,
+          "w": 586,
+          "h": 24
+        },
+        "build": {
+          "x": 1,
+          "y": 18,
+          "w": 585,
+          "h": 16
+        }
+      }
+    },
+    {
+      "id": "rail-lower-branch",
+      "x": 0.3025,
+      "y": 0.2896,
+      "w": 0.3951,
+      "h": 0.1578,
+      "kind": "chrome",
+      "score": {
+        "overall": 0.7658,
+        "structure": 0.8121,
+        "color": 0.7013,
+        "colorIntersection": 0.5147,
+        "paletteMatch": 0.8017,
+        "detail": 0.6701,
+        "detailRaw": 0.7274,
+        "detailAdded": 0.1146,
+        "bands": 0.925
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 0,
+          "y": 0,
+          "w": 337,
+          "h": 290
+        },
+        "build": {
+          "x": 0,
+          "y": 0,
+          "w": 337,
+          "h": 287
+        }
+      }
+    },
+    {
+      "id": "ece-name",
+      "x": 0.1254,
+      "y": 0.3118,
+      "w": 0.0938,
+      "h": 0.0244,
+      "kind": "text",
+      "score": {
+        "overall": 0.6606,
+        "structure": 0.7585,
+        "color": 0.6048,
+        "colorIntersection": 0.3406,
+        "paletteMatch": 0.7471,
+        "detail": 0.4694,
+        "detailRaw": 0.5371,
+        "detailAdded": 0.1354,
+        "bands": 0.5972
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 7,
+          "y": 7,
+          "w": 50,
+          "h": 26
+        },
+        "build": {
+          "x": 11,
+          "y": 11,
+          "w": 51,
+          "h": 25
+        }
+      }
+    },
+    {
+      "id": "ece-balance",
+      "x": 0.0692,
+      "y": 0.3378,
+      "w": 0.204,
+      "h": 0.0325,
+      "kind": "text",
+      "score": {
+        "overall": 0.5633,
+        "structure": 0.6272,
+        "color": 0.6046,
+        "colorIntersection": 0.3498,
+        "paletteMatch": 0.7418,
+        "detail": 0.5013,
+        "detailRaw": 0.5638,
+        "detailAdded": 0.125,
+        "bands": 0.2343
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 6,
+          "y": 6,
+          "w": 149,
+          "h": 32
+        },
+        "build": {
+          "x": 13,
+          "y": 12,
+          "w": 141,
+          "h": 32
+        }
+      }
+    },
+    {
+      "id": "ece-state",
+      "x": 0.0973,
+      "y": 0.3704,
+      "w": 0.1313,
+      "h": 0.0233,
+      "kind": "text",
+      "score": {
+        "overall": 0.655,
+        "structure": 0.7069,
+        "color": 0.6171,
+        "colorIntersection": 0.3542,
+        "paletteMatch": 0.7587,
+        "detail": 0.5414,
+        "detailRaw": 0.6143,
+        "detailAdded": 0.1458,
+        "bands": 0.66
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 5,
+          "y": 5,
+          "w": 101,
+          "h": 24
+        },
+        "build": {
+          "x": 6,
+          "y": 10,
+          "w": 106,
+          "h": 24
+        }
+      }
+    },
+    {
+      "id": "mert-name",
+      "x": 0.4502,
+      "y": 0.3118,
+      "w": 0.0985,
+      "h": 0.0244,
+      "kind": "text",
+      "score": {
+        "overall": 0.6294,
+        "structure": 0.7346,
+        "color": 0.6005,
+        "colorIntersection": 0.3165,
+        "paletteMatch": 0.7534,
+        "detail": 0.6129,
+        "detailRaw": 0.6598,
+        "detailAdded": 0.0938,
+        "bands": 0.2
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 11,
+          "y": 7,
+          "w": 66,
+          "h": 26
+        },
+        "build": {
+          "x": 10,
+          "y": 11,
+          "w": 70,
+          "h": 25
+        }
+      }
+    },
+    {
+      "id": "mert-balance",
+      "x": 0.4326,
+      "y": 0.3378,
+      "w": 0.1372,
+      "h": 0.0325,
+      "kind": "text",
+      "score": {
+        "overall": 0.6724,
+        "structure": 0.7364,
+        "color": 0.6483,
+        "colorIntersection": 0.4073,
+        "paletteMatch": 0.7781,
+        "detail": 0.5032,
+        "detailRaw": 0.5605,
+        "detailAdded": 0.1146,
+        "bands": 0.6667
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 10,
+          "y": 7,
+          "w": 95,
+          "h": 31
+        },
+        "build": {
+          "x": 16,
+          "y": 12,
+          "w": 87,
+          "h": 34
+        }
+      }
+    },
+    {
+      "id": "mert-state",
+      "x": 0.4455,
+      "y": 0.3704,
+      "w": 0.1125,
+      "h": 0.0233,
+      "kind": "text",
+      "score": {
+        "overall": 0.6287,
+        "structure": 0.7163,
+        "color": 0.6232,
+        "colorIntersection": 0.3446,
+        "paletteMatch": 0.7733,
+        "detail": 0.4756,
+        "detailRaw": 0.559,
+        "detailAdded": 0.1667,
+        "bands": 0.4333
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 5,
+          "y": 5,
+          "w": 83,
+          "h": 30
+        },
+        "build": {
+          "x": 5,
+          "y": 10,
+          "w": 86,
+          "h": 31
+        }
+      }
+    },
+    {
+      "id": "deniz-name",
+      "x": 0.7855,
+      "y": 0.3118,
+      "w": 0.1243,
+      "h": 0.0244,
+      "kind": "text",
+      "score": {
+        "overall": 0.6388,
+        "structure": 0.6859,
+        "color": 0.5935,
+        "colorIntersection": 0.3105,
+        "paletteMatch": 0.7459,
+        "detail": 0.5642,
+        "detailRaw": 0.6267,
+        "detailAdded": 0.125,
+        "bands": 0.6286
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 7,
+          "y": 6,
+          "w": 80,
+          "h": 27
+        },
+        "build": {
+          "x": 2,
+          "y": 9,
+          "w": 85,
+          "h": 27
+        }
+      }
+    },
+    {
+      "id": "deniz-balance",
+      "x": 0.7585,
+      "y": 0.3378,
+      "w": 0.1712,
+      "h": 0.0325,
+      "kind": "text",
+      "score": {
+        "overall": 0.6219,
+        "structure": 0.7029,
+        "color": 0.5659,
+        "colorIntersection": 0.2881,
+        "paletteMatch": 0.7154,
+        "detail": 0.4868,
+        "detailRaw": 0.5441,
+        "detailAdded": 0.1146,
+        "bands": 0.56
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 12,
+          "y": 7,
+          "w": 118,
+          "h": 31
+        },
+        "build": {
+          "x": 12,
+          "y": 12,
+          "w": 109,
+          "h": 34
+        }
+      }
+    },
+    {
+      "id": "deniz-state",
+      "x": 0.7878,
+      "y": 0.3704,
+      "w": 0.1149,
+      "h": 0.0233,
+      "kind": "text",
+      "score": {
+        "overall": 0.6024,
+        "structure": 0.7699,
+        "color": 0.5939,
+        "colorIntersection": 0.3163,
+        "paletteMatch": 0.7434,
+        "detail": 0.4598,
+        "detailRaw": 0.5328,
+        "detailAdded": 0.1458,
+        "bands": 0
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 4,
+          "y": 5,
+          "w": 83,
+          "h": 30
+        },
+        "build": {
+          "x": 0,
+          "y": 10,
+          "w": 84,
+          "h": 31
+        }
+      }
+    },
+    {
+      "id": "ayse-name",
+      "x": 0.2696,
+      "y": 0.4566,
+      "w": 0.1196,
+      "h": 0.0244,
+      "kind": "text",
+      "score": {
+        "overall": 0.5507,
+        "structure": 0.5508,
+        "color": 0.6158,
+        "colorIntersection": 0.3546,
+        "paletteMatch": 0.7565,
+        "detail": 0.4087,
+        "detailRaw": 0.5129,
+        "detailAdded": 0.2083,
+        "bands": 0.6
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 5,
+          "y": 6,
+          "w": 70,
+          "h": 33
+        },
+        "build": {
+          "x": 16,
+          "y": 12,
+          "w": 72,
+          "h": 34
+        }
+      }
+    },
+    {
+      "id": "ayse-balance",
+      "x": 0.2403,
+      "y": 0.4881,
+      "w": 0.1641,
+      "h": 0.0314,
+      "kind": "text",
+      "score": {
+        "overall": 0.4855,
+        "structure": 0.5132,
+        "color": 0.5977,
+        "colorIntersection": 0.3202,
+        "paletteMatch": 0.7471,
+        "detail": 0.1612,
+        "detailRaw": 0.2758,
+        "detailAdded": 0.2292,
+        "bands": 0.5528
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 6,
+          "y": 0,
+          "w": 118,
+          "h": 58
+        },
+        "build": {
+          "x": 29,
+          "y": 14,
+          "w": 97,
+          "h": 30
+        }
+      }
+    },
+    {
+      "id": "ayse-state",
+      "x": 0.2626,
+      "y": 0.5157,
+      "w": 0.1407,
+      "h": 0.0233,
+      "kind": "text",
+      "score": {
+        "overall": 0.4602,
+        "structure": 0.5422,
+        "color": 0.6493,
+        "colorIntersection": 0.4028,
+        "paletteMatch": 0.7821,
+        "detail": 0.1784,
+        "detailRaw": 0.293,
+        "detailAdded": 0.2292,
+        "bands": 0
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 4,
+          "y": 0,
+          "w": 83,
+          "h": 30
+        },
+        "build": {
+          "x": 18,
+          "y": 13,
+          "w": 81,
+          "h": 30
+        }
+      }
+    },
+    {
+      "id": "can-name",
+      "x": 0.6366,
+      "y": 0.4566,
+      "w": 0.1067,
+      "h": 0.0244,
+      "kind": "text",
+      "score": {
+        "overall": 0.5506,
+        "structure": 0.6382,
+        "color": 0.6466,
+        "colorIntersection": 0.4203,
+        "paletteMatch": 0.7685,
+        "detail": 0.2988,
+        "detailRaw": 0.4082,
+        "detailAdded": 0.2188,
+        "bands": 0.25
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 11,
+          "y": 6,
+          "w": 55,
+          "h": 26
+        },
+        "build": {
+          "x": 19,
+          "y": 12,
+          "w": 58,
+          "h": 25
+        }
+      }
+    },
+    {
+      "id": "can-balance",
+      "x": 0.5979,
+      "y": 0.4881,
+      "w": 0.1583,
+      "h": 0.0314,
+      "kind": "text",
+      "score": {
+        "overall": 0.4872,
+        "structure": 0.5029,
+        "color": 0.6481,
+        "colorIntersection": 0.4052,
+        "paletteMatch": 0.779,
+        "detail": 0.1579,
+        "detailRaw": 0.2724,
+        "detailAdded": 0.2292,
+        "bands": 0.5
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 13,
+          "y": 0,
+          "w": 119,
+          "h": 58
+        },
+        "build": {
+          "x": 33,
+          "y": 14,
+          "w": 97,
+          "h": 28
+        }
+      }
+    },
+    {
+      "id": "can-state",
+      "x": 0.6284,
+      "y": 0.5157,
+      "w": 0.1254,
+      "h": 0.0233,
+      "kind": "text",
+      "score": {
+        "overall": 0.4614,
+        "structure": 0.5452,
+        "color": 0.6417,
+        "colorIntersection": 0.3958,
+        "paletteMatch": 0.7741,
+        "detail": 0.1893,
+        "detailRaw": 0.2987,
+        "detailAdded": 0.2188,
+        "bands": 0
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 4,
+          "y": 0,
+          "w": 84,
+          "h": 30
+        },
+        "build": {
+          "x": 15,
+          "y": 13,
+          "w": 81,
+          "h": 30
+        }
+      }
+    },
+    {
+      "id": "primary-action",
+      "x": 0.0492,
+      "y": 0.5586,
+      "w": 0.5744,
+      "h": 0.051,
+      "kind": "control",
+      "score": {
+        "overall": 0.7693,
+        "structure": 0.7787,
+        "color": 0.8811,
+        "colorIntersection": 0.8016,
+        "paletteMatch": 0.924,
+        "detail": 0.5527,
+        "detailRaw": 0.6152,
+        "detailAdded": 0.125,
+        "bands": 0.6667
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 0,
+          "y": 0,
+          "w": 490,
+          "h": 94
+        },
+        "build": {
+          "x": 0,
+          "y": 0,
+          "w": 490,
+          "h": 94
+        }
+      }
+    },
+    {
+      "id": "primary-action-label",
+      "x": 0.2005,
+      "y": 0.5673,
+      "w": 0.2802,
+      "h": 0.0293,
+      "kind": "text",
+      "score": {
+        "overall": 0.7256,
+        "structure": 0.6305,
+        "color": 0.7804,
+        "colorIntersection": 0.6117,
+        "paletteMatch": 0.8712,
+        "detail": 0.7683,
+        "detailRaw": 0.7735,
+        "detailAdded": 0.0104,
+        "bands": 1
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 8,
+          "y": 16,
+          "w": 217,
+          "h": 28
+        },
+        "build": {
+          "x": 15,
+          "y": 18,
+          "w": 204,
+          "h": 26
+        }
+      }
+    },
+    {
+      "id": "secondary-action",
+      "x": 0.6659,
+      "y": 0.5586,
+      "w": 0.2861,
+      "h": 0.051,
+      "kind": "control",
+      "score": {
+        "overall": 0.6598,
+        "structure": 0.6692,
+        "color": 0.6387,
+        "colorIntersection": 0.3927,
+        "paletteMatch": 0.7711,
+        "detail": 0.6754,
+        "detailRaw": 0.6858,
+        "detailAdded": 0.0208,
+        "bands": 0.9667
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 14,
+          "y": 32,
+          "w": 227,
+          "h": 40
+        },
+        "build": {
+          "x": 5,
+          "y": 36,
+          "w": 228,
+          "h": 38
+        }
+      }
+    },
+    {
+      "id": "expenses-heading",
+      "x": 0.0492,
+      "y": 0.6459,
+      "w": 0.3927,
+      "h": 0.0374,
+      "kind": "text",
+      "score": {
+        "overall": 0.6444,
+        "structure": 0.5874,
+        "color": 0.628,
+        "colorIntersection": 0.3946,
+        "paletteMatch": 0.7537,
+        "detail": 0.7028,
+        "detailRaw": 0.7653,
+        "detailAdded": 0.125,
+        "bands": 0.8829
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 1,
+          "y": 4,
+          "w": 331,
+          "h": 48
+        },
+        "build": {
+          "x": 0,
+          "y": 8,
+          "w": 335,
+          "h": 51
+        }
+      }
+    },
+    {
+      "id": "expenses-heading-rule",
+      "x": 0.0492,
+      "y": 0.6871,
+      "w": 0.9027,
+      "h": 0.0016,
+      "kind": "chrome",
+      "score": {
+        "overall": 0.7933,
+        "structure": 0.9575,
+        "color": 0.7321,
+        "colorIntersection": 0.5695,
+        "paletteMatch": 0.8196,
+        "detail": 0.7406,
+        "detailRaw": 0.8239,
+        "detailAdded": 0.1667,
+        "bands": 0.6
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 4,
+          "y": 42,
+          "w": 762,
+          "h": 6
+        },
+        "build": {
+          "x": 0,
+          "y": 0,
+          "w": 770,
+          "h": 48
+        }
+      }
+    },
+    {
+      "id": "expense-1-title",
+      "x": 0.0504,
+      "y": 0.6931,
+      "w": 0.5275,
+      "h": 0.0271,
+      "kind": "text",
+      "score": {
+        "overall": 0.7096,
+        "structure": 0.7823,
+        "color": 0.6742,
+        "colorIntersection": 0.4498,
+        "paletteMatch": 0.795,
+        "detail": 0.7325,
+        "detailRaw": 0.769,
+        "detailAdded": 0.0729,
+        "bands": 0.4
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 3,
+          "y": 8,
+          "w": 222,
+          "h": 36
+        },
+        "build": {
+          "x": 1,
+          "y": 7,
+          "w": 239,
+          "h": 36
+        }
+      }
+    },
+    {
+      "id": "expense-1-meta",
+      "x": 0.0504,
+      "y": 0.7202,
+      "w": 0.3986,
+      "h": 0.0228,
+      "kind": "text",
+      "score": {
+        "overall": 0.6713,
+        "structure": 0.8727,
+        "color": 0.6851,
+        "colorIntersection": 0.4828,
+        "paletteMatch": 0.794,
+        "detail": 0.4246,
+        "detailRaw": 0.4819,
+        "detailAdded": 0.1146,
+        "bands": 0
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 3,
+          "y": 10,
+          "w": 128,
+          "h": 23
+        },
+        "build": {
+          "x": 1,
+          "y": 4,
+          "w": 119,
+          "h": 21
+        }
+      }
+    },
+    {
+      "id": "expense-1-amount",
+      "x": 0.8464,
+      "y": 0.6931,
+      "w": 0.1172,
+      "h": 0.0239,
+      "kind": "text",
+      "score": {
+        "overall": 0.6537,
+        "structure": 0.6749,
+        "color": 0.6291,
+        "colorIntersection": 0.375,
+        "paletteMatch": 0.7659,
+        "detail": 0.6201,
+        "detailRaw": 0.6357,
+        "detailAdded": 0.0313,
+        "bands": 0.66
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 6,
+          "y": 10,
+          "w": 82,
+          "h": 29
+        },
+        "build": {
+          "x": 13,
+          "y": 11,
+          "w": 78,
+          "h": 26
+        }
+      }
+    },
+    {
+      "id": "expense-1-participants",
+      "x": 0.8663,
+      "y": 0.7202,
+      "w": 0.1079,
+      "h": 0.0233,
+      "kind": "text",
+      "score": {
+        "overall": 0.4876,
+        "structure": 0.6094,
+        "color": 0.6008,
+        "colorIntersection": 0.3315,
+        "paletteMatch": 0.7458,
+        "detail": 0.2177,
+        "detailRaw": 0.3219,
+        "detailAdded": 0.2083,
+        "bands": 0
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 4,
+          "y": 12,
+          "w": 65,
+          "h": 29
+        },
+        "build": {
+          "x": 12,
+          "y": 3,
+          "w": 62,
+          "h": 28
+        }
+      }
+    },
+    {
+      "id": "expense-1-rule",
+      "x": 0.0492,
+      "y": 0.7771,
+      "w": 0.9027,
+      "h": 0.0027,
+      "kind": "chrome",
+      "score": {
+        "overall": 0.6699,
+        "structure": 0.8698,
+        "color": 0.7288,
+        "colorIntersection": 0.557,
+        "paletteMatch": 0.8212,
+        "detail": 0.733,
+        "detailRaw": 0.8112,
+        "detailAdded": 0.1563,
+        "bands": 0
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 3,
+          "y": 25,
+          "w": 765,
+          "h": 23
+        },
+        "build": {
+          "x": 0,
+          "y": 7,
+          "w": 770,
+          "h": 41
+        }
+      }
+    },
+    {
+      "id": "expense-2-title",
+      "x": 0.0504,
+      "y": 0.7739,
+      "w": 0.4689,
+      "h": 0.0249,
+      "kind": "text",
+      "score": {
+        "overall": 0.7059,
+        "structure": 0.7974,
+        "color": 0.6883,
+        "colorIntersection": 0.4902,
+        "paletteMatch": 0.7949,
+        "detail": 0.6565,
+        "detailRaw": 0.7034,
+        "detailAdded": 0.0938,
+        "bands": 0.3667
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 2,
+          "y": 10,
+          "w": 159,
+          "h": 29
+        },
+        "build": {
+          "x": 0,
+          "y": 8,
+          "w": 171,
+          "h": 27
+        }
+      }
+    },
+    {
+      "id": "expense-2-meta",
+      "x": 0.0504,
+      "y": 0.801,
+      "w": 0.3986,
+      "h": 0.0228,
+      "kind": "text",
+      "score": {
+        "overall": 0.6309,
+        "structure": 0.8196,
+        "color": 0.6843,
+        "colorIntersection": 0.4659,
+        "paletteMatch": 0.8019,
+        "detail": 0.3331,
+        "detailRaw": 0.3956,
+        "detailAdded": 0.125,
+        "bands": 0
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 3,
+          "y": 10,
+          "w": 142,
+          "h": 23
+        },
+        "build": {
+          "x": 1,
+          "y": 3,
+          "w": 133,
+          "h": 21
+        }
+      }
+    },
+    {
+      "id": "expense-2-amount",
+      "x": 0.8464,
+      "y": 0.7739,
+      "w": 0.1172,
+      "h": 0.0239,
+      "kind": "text",
+      "score": {
+        "overall": 0.6497,
+        "structure": 0.6744,
+        "color": 0.5954,
+        "colorIntersection": 0.3192,
+        "paletteMatch": 0.7441,
+        "detail": 0.5843,
+        "detailRaw": 0.6052,
+        "detailAdded": 0.0417,
+        "bands": 0.76
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 6,
+          "y": 11,
+          "w": 82,
+          "h": 30
+        },
+        "build": {
+          "x": 13,
+          "y": 11,
+          "w": 78,
+          "h": 26
+        }
+      }
+    },
+    {
+      "id": "expense-2-participants",
+      "x": 0.8663,
+      "y": 0.8015,
+      "w": 0.1079,
+      "h": 0.0228,
+      "kind": "text",
+      "score": {
+        "overall": 0.4652,
+        "structure": 0.5745,
+        "color": 0.6004,
+        "colorIntersection": 0.3279,
+        "paletteMatch": 0.7471,
+        "detail": 0.1856,
+        "detailRaw": 0.2898,
+        "detailAdded": 0.2083,
+        "bands": 0
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 4,
+          "y": 12,
+          "w": 65,
+          "h": 29
+        },
+        "build": {
+          "x": 12,
+          "y": 2,
+          "w": 62,
+          "h": 28
+        }
+      }
+    },
+    {
+      "id": "expense-2-rule",
+      "x": 0.0492,
+      "y": 0.859,
+      "w": 0.9027,
+      "h": 0.0032,
+      "kind": "chrome",
+      "score": {
+        "overall": 0.6018,
+        "structure": 0.7845,
+        "color": 0.6974,
+        "colorIntersection": 0.5026,
+        "paletteMatch": 0.8023,
+        "detail": 0.6117,
+        "detailRaw": 0.7992,
+        "detailAdded": 0.375,
+        "bands": 0
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 2,
+          "y": 23,
+          "w": 766,
+          "h": 25
+        },
+        "build": {
+          "x": 0,
+          "y": 4,
+          "w": 770,
+          "h": 43
+        }
+      }
+    },
+    {
+      "id": "expense-3-title",
+      "x": 0.0481,
+      "y": 0.8552,
+      "w": 0.5275,
+      "h": 0.0239,
+      "kind": "text",
+      "score": {
+        "overall": 0.6014,
+        "structure": 0.6189,
+        "color": 0.656,
+        "colorIntersection": 0.4246,
+        "paletteMatch": 0.7806,
+        "detail": 0.57,
+        "detailRaw": 0.6533,
+        "detailAdded": 0.1667,
+        "bands": 0.425
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 3,
+          "y": 11,
+          "w": 288,
+          "h": 29
+        },
+        "build": {
+          "x": 1,
+          "y": 7,
+          "w": 319,
+          "h": 27
+        }
+      }
+    },
+    {
+      "id": "expense-3-meta",
+      "x": 0.0504,
+      "y": 0.8829,
+      "w": 0.3986,
+      "h": 0.0228,
+      "kind": "text",
+      "score": {
+        "overall": 0.6132,
+        "structure": 0.7863,
+        "color": 0.698,
+        "colorIntersection": 0.4978,
+        "paletteMatch": 0.8057,
+        "detail": 0.3035,
+        "detailRaw": 0.366,
+        "detailAdded": 0.125,
+        "bands": 0
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 3,
+          "y": 10,
+          "w": 154,
+          "h": 23
+        },
+        "build": {
+          "x": 1,
+          "y": 1,
+          "w": 146,
+          "h": 21
+        }
+      }
+    },
+    {
+      "id": "expense-3-amount",
+      "x": 0.8464,
+      "y": 0.8552,
+      "w": 0.1172,
+      "h": 0.0239,
+      "kind": "text",
+      "score": {
+        "overall": 0.6089,
+        "structure": 0.6569,
+        "color": 0.6135,
+        "colorIntersection": 0.3233,
+        "paletteMatch": 0.7697,
+        "detail": 0.5137,
+        "detailRaw": 0.5502,
+        "detailAdded": 0.0729,
+        "bands": 0.5
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 6,
+          "y": 11,
+          "w": 82,
+          "h": 30
+        },
+        "build": {
+          "x": 13,
+          "y": 9,
+          "w": 78,
+          "h": 26
+        }
+      }
+    },
+    {
+      "id": "expense-3-participants",
+      "x": 0.8663,
+      "y": 0.884,
+      "w": 0.1079,
+      "h": 0.0228,
+      "kind": "text",
+      "score": {
+        "overall": 0.4724,
+        "structure": 0.5654,
+        "color": 0.6829,
+        "colorIntersection": 0.4529,
+        "paletteMatch": 0.8067,
+        "detail": 0.1266,
+        "detailRaw": 0.2359,
+        "detailAdded": 0.2188,
+        "bands": 0
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 4,
+          "y": 11,
+          "w": 65,
+          "h": 29
+        },
+        "build": {
+          "x": 12,
+          "y": 0,
+          "w": 62,
+          "h": 27
+        }
+      }
+    },
+    {
+      "id": "expense-3-rule",
+      "x": 0.0492,
+      "y": 0.9534,
+      "w": 0.9027,
+      "h": 0.0032,
+      "kind": "chrome",
+      "score": {
+        "overall": 0.8256,
+        "structure": 0.9401,
+        "color": 0.8136,
+        "colorIntersection": 0.6969,
+        "paletteMatch": 0.8765,
+        "detail": 0.8125,
+        "detailRaw": 1,
+        "detailAdded": 0.375,
+        "bands": 0.6
+      },
+      "verdict": "match",
+      "inkBox": {
+        "comp": null,
+        "build": {
+          "x": 0,
+          "y": 0,
+          "w": 770,
+          "h": 48
+        }
+      }
+    },
+    {
+      "id": "identity-band",
+      "x": 0.0492,
+      "y": 0.0342,
+      "w": 0.9027,
+      "h": 0.0428,
+      "kind": "chrome",
+      "score": {
+        "overall": 0.7102,
+        "structure": 0.7983,
+        "color": 0.7066,
+        "colorIntersection": 0.4965,
+        "paletteMatch": 0.8197,
+        "detail": 0.6264,
+        "detailRaw": 0.6681,
+        "detailAdded": 0.0833,
+        "bands": 0.65
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 0,
+          "y": 10,
+          "w": 770,
+          "h": 67
+        },
+        "build": {
+          "x": 0,
+          "y": 6,
+          "w": 770,
+          "h": 69
+        }
+      }
+    },
+    {
+      "id": "heading-band",
+      "x": 0.041,
+      "y": 0.1057,
+      "w": 0.4748,
+      "h": 0.0813,
+      "kind": "chrome",
+      "score": {
+        "overall": 0.6274,
+        "structure": 0.4973,
+        "color": 0.6663,
+        "colorIntersection": 0.4422,
+        "paletteMatch": 0.787,
+        "detail": 0.6161,
+        "detailRaw": 0.715,
+        "detailAdded": 0.1979,
+        "bands": 0.885
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 8,
+          "y": 14,
+          "w": 371,
+          "h": 124
+        },
+        "build": {
+          "x": 7,
+          "y": 0,
+          "w": 383,
+          "h": 140
+        }
+      }
+    },
+    {
+      "id": "total-band",
+      "x": 0.0492,
+      "y": 0.205,
+      "w": 0.9027,
+      "h": 0.0488,
+      "kind": "chrome",
+      "score": {
+        "overall": 0.7611,
+        "structure": 0.876,
+        "color": 0.665,
+        "colorIntersection": 0.4519,
+        "paletteMatch": 0.7798,
+        "detail": 0.649,
+        "detailRaw": 0.7376,
+        "detailAdded": 0.1771,
+        "bands": 0.84
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 1,
+          "y": 10,
+          "w": 768,
+          "h": 75
+        },
+        "build": {
+          "x": 0,
+          "y": 10,
+          "w": 770,
+          "h": 76
+        }
+      }
+    },
+    {
+      "id": "upper-terminal-band",
+      "x": 0.0492,
+      "y": 0.2853,
+      "w": 0.9027,
+      "h": 0.1139,
+      "kind": "chrome",
+      "score": {
+        "overall": 0.7641,
+        "structure": 0.8264,
+        "color": 0.6696,
+        "colorIntersection": 0.4666,
+        "paletteMatch": 0.7789,
+        "detail": 0.6658,
+        "detailRaw": 0.7647,
+        "detailAdded": 0.1979,
+        "bands": 0.94
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 23,
+          "y": 0,
+          "w": 712,
+          "h": 210
+        },
+        "build": {
+          "x": 30,
+          "y": 3,
+          "w": 696,
+          "h": 193
+        }
+      }
+    },
+    {
+      "id": "lower-terminal-band",
+      "x": 0.2368,
+      "y": 0.4149,
+      "w": 0.5334,
+      "h": 0.1323,
+      "kind": "chrome",
+      "score": {
+        "overall": 0.6482,
+        "structure": 0.7983,
+        "color": 0.6792,
+        "colorIntersection": 0.4704,
+        "paletteMatch": 0.7916,
+        "detail": 0.3887,
+        "detailRaw": 0.4668,
+        "detailAdded": 0.1563,
+        "bands": 0.6786
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 9,
+          "y": 0,
+          "w": 431,
+          "h": 213
+        },
+        "build": {
+          "x": 32,
+          "y": 0,
+          "w": 406,
+          "h": 226
+        }
+      }
+    },
+    {
+      "id": "action-band",
+      "x": 0.0399,
+      "y": 0.4897,
+      "w": 0.9203,
+      "h": 0.1399,
+      "kind": "chrome",
+      "score": {
+        "overall": 0.7446,
+        "structure": 0.8098,
+        "color": 0.7339,
+        "colorIntersection": 0.5558,
+        "paletteMatch": 0.8298,
+        "detail": 0.6561,
+        "detailRaw": 0.7238,
+        "detailAdded": 0.1354,
+        "bands": 0.7576
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 9,
+          "y": 0,
+          "w": 766,
+          "h": 220
+        },
+        "build": {
+          "x": 8,
+          "y": 11,
+          "w": 759,
+          "h": 213
+        }
+      }
+    },
+    {
+      "id": "expense-heading-band",
+      "x": 0.0492,
+      "y": 0.6448,
+      "w": 0.9027,
+      "h": 0.0456,
+      "kind": "chrome",
+      "score": {
+        "overall": 0.7046,
+        "structure": 0.8166,
+        "color": 0.7068,
+        "colorIntersection": 0.526,
+        "paletteMatch": 0.8041,
+        "detail": 0.6282,
+        "detailRaw": 0.7167,
+        "detailAdded": 0.1771,
+        "bands": 0.5667
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 1,
+          "y": 6,
+          "w": 351,
+          "h": 48
+        },
+        "build": {
+          "x": 0,
+          "y": 10,
+          "w": 770,
+          "h": 72
+        }
+      }
+    },
+    {
+      "id": "expense-row-one-band",
+      "x": 0.0492,
+      "y": 0.6931,
+      "w": 0.9027,
+      "h": 0.0868,
+      "kind": "control",
+      "score": {
+        "overall": 0.7384,
+        "structure": 0.8044,
+        "color": 0.7272,
+        "colorIntersection": 0.5454,
+        "paletteMatch": 0.825,
+        "detail": 0.6096,
+        "detailRaw": 0.6877,
+        "detailAdded": 0.1563,
+        "bands": 0.6
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 1,
+          "y": 8,
+          "w": 767,
+          "h": 152
+        },
+        "build": {
+          "x": 0,
+          "y": 7,
+          "w": 770,
+          "h": 153
+        }
+      }
+    },
+    {
+      "id": "expense-row-two-band",
+      "x": 0.0492,
+      "y": 0.7739,
+      "w": 0.9027,
+      "h": 0.09,
+      "kind": "control",
+      "score": {
+        "overall": 0.7104,
+        "structure": 0.7795,
+        "color": 0.7038,
+        "colorIntersection": 0.5256,
+        "paletteMatch": 0.7998,
+        "detail": 0.5664,
+        "detailRaw": 0.6237,
+        "detailAdded": 0.1146,
+        "bands": 0.7286
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 1,
+          "y": 9,
+          "w": 767,
+          "h": 157
+        },
+        "build": {
+          "x": 0,
+          "y": 7,
+          "w": 770,
+          "h": 159
+        }
+      }
+    },
+    {
+      "id": "expense-row-three-band",
+      "x": 0.0492,
+      "y": 0.8552,
+      "w": 0.9027,
+      "h": 0.1014,
+      "kind": "control",
+      "score": {
+        "overall": 0.7191,
+        "structure": 0.8331,
+        "color": 0.7322,
+        "colorIntersection": 0.5574,
+        "paletteMatch": 0.8263,
+        "detail": 0.4396,
+        "detailRaw": 0.5334,
+        "detailAdded": 0.1875,
+        "bands": 0.7167
+      },
+      "verdict": "drift",
+      "inkBox": {
+        "comp": {
+          "x": 1,
+          "y": 9,
+          "w": 767,
+          "h": 118
+        },
+        "build": {
+          "x": 0,
+          "y": 5,
+          "w": 770,
+          "h": 182
+        }
+      }
+    }
+  ],
+  "files": {
+    "sideBySide": "/home/knover/Documents/GitHub/ev-harcama-takip/.impeccable/review/diff/final/side-by-side.png",
+    "heatmap": "/home/knover/Documents/GitHub/ev-harcama-takip/.impeccable/review/diff/final/heatmap.png",
+    "regionFiles": [
+      "/home/knover/Documents/GitHub/ev-harcama-takip/.impeccable/review/diff/final/regions/header-brand.png",
+      "/home/knover/Documents/GitHub/ev-harcama-takip/.impeccable/review/diff/final/regions/header-household.png",
+      "/home/knover/Documents/GitHub/ev-harcama-takip/.impeccable/review/diff/final/regions/header-code.png",
+      "/home/knover/Documents/GitHub/ev-harcama-takip/.impeccable/review/diff/final/regions/header-divider.png",
+      "/home/knover/Documents/GitHub/ev-harcama-takip/.impeccable/review/diff/final/regions/header-rule.png",
+      "/home/knover/Documents/GitHub/ev-harcama-takip/.impeccable/review/diff/final/regions/heading.png",
+      "/home/knover/Documents/GitHub/ev-harcama-takip/.impeccable/review/diff/final/regions/open-period-label.png",
+      "/home/knover/Documents/GitHub/ev-harcama-takip/.impeccable/review/diff/final/regions/total-label.png",
+      "/home/knover/Documents/GitHub/ev-harcama-takip/.impeccable/review/diff/final/regions/total-amount.png",
+      "/home/knover/Documents/GitHub/ev-harcama-takip/.impeccable/review/diff/final/regions/total-rule.png",
+      "/home/knover/Documents/GitHub/ev-harcama-takip/.impeccable/review/diff/final/regions/rail-upper.png",
+      "/home/knover/Documents/GitHub/ev-harcama-takip/.impeccable/review/diff/final/regions/rail-lower-branch.png",
+      "/home/knover/Documents/GitHub/ev-harcama-takip/.impeccable/review/diff/final/regions/ece-name.png",
+      "/home/knover/Documents/GitHub/ev-harcama-takip/.impeccable/review/diff/final/regions/ece-balance.png",
+      "/home/knover/Documents/GitHub/ev-harcama-takip/.impeccable/review/diff/final/regions/ece-state.png",
+      "/home/knover/Documents/GitHub/ev-harcama-takip/.impeccable/review/diff/final/regions/mert-name.png",
+      "/home/knover/Documents/GitHub/ev-harcama-takip/.impeccable/review/diff/final/regions/mert-balance.png",
+      "/home/knover/Documents/GitHub/ev-harcama-takip/.impeccable/review/diff/final/regions/mert-state.png",
+      "/home/knover/Documents/GitHub/ev-harcama-takip/.impeccable/review/diff/final/regions/deniz-name.png",
+      "/home/knover/Documents/GitHub/ev-harcama-takip/.impeccable/review/diff/final/regions/deniz-balance.png",
+      "/home/knover/Documents/GitHub/ev-harcama-takip/.impeccable/review/diff/final/regions/deniz-state.png",
+      "/home/knover/Documents/GitHub/ev-harcama-takip/.impeccable/review/diff/final/regions/ayse-name.png",
+      "/home/knover/Documents/GitHub/ev-harcama-takip/.impeccable/review/diff/final/regions/ayse-balance.png",
+      "/home/knover/Documents/GitHub/ev-harcama-takip/.impeccable/review/diff/final/regions/ayse-state.png",
+      "/home/knover/Documents/GitHub/ev-harcama-takip/.impeccable/review/diff/final/regions/can-name.png",
+      "/home/knover/Documents/GitHub/ev-harcama-takip/.impeccable/review/diff/final/regions/can-balance.png",
+      "/home/knover/Documents/GitHub/ev-harcama-takip/.impeccable/review/diff/final/regions/can-state.png",
+      "/home/knover/Documents/GitHub/ev-harcama-takip/.impeccable/review/diff/final/regions/primary-action.png",
+      "/home/knover/Documents/GitHub/ev-harcama-takip/.impeccable/review/diff/final/regions/primary-action-label.png",
+      "/home/knover/Documents/GitHub/ev-harcama-takip/.impeccable/review/diff/final/regions/secondary-action.png",
+      "/home/knover/Documents/GitHub/ev-harcama-takip/.impeccable/review/diff/final/regions/expenses-heading.png",
+      "/home/knover/Documents/GitHub/ev-harcama-takip/.impeccable/review/diff/final/regions/expenses-heading-rule.png",
+      "/home/knover/Documents/GitHub/ev-harcama-takip/.impeccable/review/diff/final/regions/expense-1-title.png",
+      "/home/knover/Documents/GitHub/ev-harcama-takip/.impeccable/review/diff/final/regions/expense-1-meta.png",
+      "/home/knover/Documents/GitHub/ev-harcama-takip/.impeccable/review/diff/final/regions/expense-1-amount.png",
+      "/home/knover/Documents/GitHub/ev-harcama-takip/.impeccable/review/diff/final/regions/expense-1-participants.png",
+      "/home/knover/Documents/GitHub/ev-harcama-takip/.impeccable/review/diff/final/regions/expense-1-rule.png",
+      "/home/knover/Documents/GitHub/ev-harcama-takip/.impeccable/review/diff/final/regions/expense-2-title.png",
+      "/home/knover/Documents/GitHub/ev-harcama-takip/.impeccable/review/diff/final/regions/expense-2-meta.png",
+      "/home/knover/Documents/GitHub/ev-harcama-takip/.impeccable/review/diff/final/regions/expense-2-amount.png",
+      "/home/knover/Documents/GitHub/ev-harcama-takip/.impeccable/review/diff/final/regions/expense-2-participants.png",
+      "/home/knover/Documents/GitHub/ev-harcama-takip/.impeccable/review/diff/final/regions/expense-2-rule.png",
+      "/home/knover/Documents/GitHub/ev-harcama-takip/.impeccable/review/diff/final/regions/expense-3-title.png",
+      "/home/knover/Documents/GitHub/ev-harcama-takip/.impeccable/review/diff/final/regions/expense-3-meta.png",
+      "/home/knover/Documents/GitHub/ev-harcama-takip/.impeccable/review/diff/final/regions/expense-3-amount.png",
+      "/home/knover/Documents/GitHub/ev-harcama-takip/.impeccable/review/diff/final/regions/expense-3-participants.png",
+      "/home/knover/Documents/GitHub/ev-harcama-takip/.impeccable/review/diff/final/regions/expense-3-rule.png",
+      "/home/knover/Documents/GitHub/ev-harcama-takip/.impeccable/review/diff/final/regions/identity-band.png",
+      "/home/knover/Documents/GitHub/ev-harcama-takip/.impeccable/review/diff/final/regions/heading-band.png",
+      "/home/knover/Documents/GitHub/ev-harcama-takip/.impeccable/review/diff/final/regions/total-band.png",
+      "/home/knover/Documents/GitHub/ev-harcama-takip/.impeccable/review/diff/final/regions/upper-terminal-band.png",
+      "/home/knover/Documents/GitHub/ev-harcama-takip/.impeccable/review/diff/final/regions/lower-terminal-band.png",
+      "/home/knover/Documents/GitHub/ev-harcama-takip/.impeccable/review/diff/final/regions/action-band.png",
+      "/home/knover/Documents/GitHub/ev-harcama-takip/.impeccable/review/diff/final/regions/expense-heading-band.png",
+      "/home/knover/Documents/GitHub/ev-harcama-takip/.impeccable/review/diff/final/regions/expense-row-one-band.png",
+      "/home/knover/Documents/GitHub/ev-harcama-takip/.impeccable/review/diff/final/regions/expense-row-two-band.png",
+      "/home/knover/Documents/GitHub/ev-harcama-takip/.impeccable/review/diff/final/regions/expense-row-three-band.png"
+    ]
+  }
+}

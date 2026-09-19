@@ -37,6 +37,7 @@ function createJoinCode() {
 
 export default function StartPage() {
   const searchParams = useSearchParams();
+  const supabaseConfigured = isSupabaseConfigured();
   const requestedMode = searchParams.get("mode");
   const [mode, setMode] = useState<Mode>(requestedMode === "join" ? "join" : "create");
   const [householdName, setHouseholdName] = useState("");
@@ -72,9 +73,14 @@ export default function StartPage() {
       return;
     }
 
+    if (mode === "join" && !supabaseConfigured) {
+      setError("Ev koduyla katılmak için Supabase bağlantısı gerekir. Yerel mod yalnızca bu cihazda ev oluşturabilir.");
+      return;
+    }
+
     setSubmitting(true);
     try {
-      const nextSession = isSupabaseConfigured()
+      const nextSession = supabaseConfigured
         ? mode === "create"
           ? await createRemoteHousehold(householdName.trim(), memberName.trim())
           : await joinRemoteHousehold(joinCode.trim().toUpperCase(), memberName.trim())
@@ -108,93 +114,90 @@ export default function StartPage() {
 
   return (
     <main className="onboarding-shell">
-      <nav className="topbar onboarding-topbar" aria-label="Ana navigasyon">
-        <Link className="brand" href="/" aria-label="Ev Hesap ana sayfa">
-          <span className="brand-mark">eh</span>
-          <span>ev hesap</span>
+      <header className="public-header onboarding-header">
+        <Link className="public-wordmark" href="/" aria-label="Ev Hesap ana sayfa">
+          <span className="wordmark-symbol" aria-hidden="true">EH</span>
+          <span>EV HESAP</span>
         </Link>
-        <Link className="back-link" href="/"><ArrowLeft size={15} /> Ana sayfa</Link>
-      </nav>
+        <Link className="header-back" href="/"><ArrowLeft aria-hidden="true" size={16} /> Ana sayfa</Link>
+      </header>
 
-      <section className="onboarding-layout section-wrap">
+      <section className="onboarding-layout" aria-label="Ev hesabı kurulumu">
         <div className="onboarding-intro">
-          <p className="eyebrow"><Home size={15} /> evini seç, birlikte yaşa</p>
-          <h1>Ortak hesap için ilk adım, <em>kendi evin.</em></h1>
+          <h1>Önce aynı evde buluşun.</h1>
           <p className="onboarding-lede">
-            Yeni bir ev kurabilir veya arkadaşından aldığın kodla mevcut bir eve
-            katılabilirsin. Her evin harcamaları birbirinden ayrı tutulur.
+            Bir ev oluşturup kodunu paylaşabilir ya da ev arkadaşından aldığın
+            kodla katılabilirsin. Harcamalar, o evin açık hesabında toplanır.
           </p>
-
-          <div className="onboarding-points">
-            <div><span><KeyRound size={16} /></span><p><strong>Tek kod</strong><br />Arkadaşlarınla kolayca paylaş.</p></div>
-            <div><span><Users size={16} /></span><p><strong>Kişi bazlı</strong><br />Herkes kendi adını ve payını görür.</p></div>
-            <div><span><LockKeyhole size={16} /></span><p><strong>Evine özel</strong><br />Kodunu bilmeyen veriye ulaşamaz.</p></div>
-          </div>
+          <ul className="onboarding-points">
+            <li><KeyRound aria-hidden="true" size={18} /><span><strong>Ev kodu</strong><small>Katılmak için ev sahibinin kodunu kullan.</small></span></li>
+            <li><Users aria-hidden="true" size={18} /><span><strong>Kişi ve pay</strong><small>Harcamanın kimleri ilgilendirdiğini seç.</small></span></li>
+            <li><LockKeyhole aria-hidden="true" size={18} /><span><strong>Birlikte görün</strong><small>Özet ve geçmişi ev arkadaşlarınla takip et.</small></span></li>
+          </ul>
         </div>
 
-        <div className="onboarding-card">
+        <section className="onboarding-panel" aria-label="Ev oluştur veya katıl">
           {!session ? (
             <>
               <div className="mode-switch" role="tablist" aria-label="Ev işlemi">
-                <button className={mode === "create" ? "active" : ""} onClick={() => switchMode("create")} role="tab" aria-selected={mode === "create"} type="button">Yeni ev oluştur</button>
-                <button className={mode === "join" ? "active" : ""} onClick={() => switchMode("join")} role="tab" aria-selected={mode === "join"} type="button">Koda katıl</button>
+                <button id="create-mode" aria-controls="setup-panel" className={mode === "create" ? "active" : ""} onClick={() => switchMode("create")} role="tab" aria-selected={mode === "create"} type="button">Yeni ev oluştur</button>
+                <button id="join-mode" aria-controls="setup-panel" className={mode === "join" ? "active" : ""} onClick={() => switchMode("join")} role="tab" aria-selected={mode === "join"} type="button">Ev koduyla katıl</button>
               </div>
 
               <div className="form-heading">
-                <span className="form-icon">{mode === "create" ? <Home size={21} /> : <KeyRound size={21} />}</span>
-                <div>
-                  <p className="micro-label">{mode === "create" ? "YENİ EV" : "DAVETLİ ÜYE"}</p>
-                  <h2>{mode === "create" ? "Evinizi birlikte kurun." : "Ev kodunu gir."}</h2>
-                </div>
+                <span className="form-heading__icon" aria-hidden="true">{mode === "create" ? <Home size={20} /> : <KeyRound size={20} />}</span>
+                <h2 id="setup-title">{mode === "create" ? "Yeni bir ev hesabı aç." : "Arkadaşının evine katıl."}</h2>
               </div>
 
-              <form onSubmit={handleSubmit} noValidate>
-                {mode === "create" && (
+              <div id="setup-panel" role="tabpanel" aria-labelledby={mode === "create" ? "create-mode" : "join-mode"}>
+                <form onSubmit={handleSubmit} noValidate>
+                  {mode === "create" && (
+                    <label className="field-label">
+                      Ev adı
+                      <input autoComplete="organization" onChange={(event) => setHouseholdName(event.target.value)} placeholder="Örn. Çamlık Ev" value={householdName} />
+                    </label>
+                  )}
+                  {mode === "join" && (
+                    <label className="field-label">
+                      Ev kodu
+                      <input autoCapitalize="characters" autoComplete="off" maxLength={11} onChange={(event) => setJoinCode(event.target.value.toUpperCase())} placeholder="EV-7K4P2M9Q" spellCheck={false} value={joinCode} />
+                      <small>Ev sahibinin paylaştığı EV-XXXXXXXX kodunu gir.</small>
+                    </label>
+                  )}
                   <label className="field-label">
-                    Ev adı
-                    <input autoComplete="organization" onChange={(event) => setHouseholdName(event.target.value)} placeholder="Örn. Çamlık Ev" value={householdName} />
+                    Görünen adın
+                    <input autoComplete="name" onChange={(event) => setMemberName(event.target.value)} placeholder="Örn. Ece" value={memberName} />
+                    <small>Ev arkadaşların harcama kayıtlarında bu adı görür.</small>
                   </label>
-                )}
-                {mode === "join" && (
-                  <label className="field-label">
-                    Ev kodu
-                    <input autoCapitalize="characters" autoComplete="off" maxLength={11} onChange={(event) => setJoinCode(event.target.value.toUpperCase())} placeholder="EV-7K4P2M9Q" spellCheck={false} value={joinCode} />
-                    <small>Ev sahibinin paylaştığı 11 karakterli kodu gir.</small>
-                  </label>
-                )}
-                <label className="field-label">
-                  Görünen adın
-                  <input autoComplete="name" onChange={(event) => setMemberName(event.target.value)} placeholder="Örn. Ece" value={memberName} />
-                  <small>Evde harcamaları kimin eklediğini anlamak için kullanılır.</small>
-                </label>
 
-                {error && <p className="form-error" role="alert">{error}</p>}
-                <button className="button button-primary form-submit" disabled={submitting} type="submit">
-                  {submitting ? "Kontrol ediliyor…" : mode === "create" ? "Ev kodumu oluştur" : "Eve katıl"}
-                  <ArrowRight size={17} />
-                </button>
-              </form>
-              <p className="form-footnote"><LockKeyhole size={13} /> {isSupabaseConfigured() ? "Oturumun Supabase Auth ile korunur." : "Bu cihazda geçici bir prototip oturumu açılır."}</p>
+                  {error && <p className="form-error" role="alert">{error}</p>}
+                  <button className="primary-action form-submit" disabled={submitting} type="submit">
+                    {submitting ? "Hazırlanıyor…" : mode === "create" ? "Ev kodumu oluştur" : "Eve katıl"}
+                    <ArrowRight aria-hidden="true" size={17} />
+                  </button>
+                </form>
+                <p className="form-footnote"><LockKeyhole aria-hidden="true" size={14} /> {supabaseConfigured ? "Oturumun Supabase Auth ile korunur." : mode === "join" ? "Supabase bağlantısı olmadan ev kodu doğrulanamaz." : "Supabase ayarlanana kadar bu cihazda yerel oturum açılır."}</p>
+              </div>
             </>
           ) : (
-            <div className="success-state">
-              <div className="success-icon"><CheckCircle2 size={25} /></div>
-              <p className="eyebrow">hazırsın</p>
+            <div className="success-state" aria-live="polite">
+              <span className="success-icon"><CheckCircle2 aria-hidden="true" size={24} /></span>
               <h2>{session.role === "owner" ? "Evin hazır." : "Eve katıldın."}</h2>
               <p className="success-copy">
                 {session.role === "owner" ? "Bu kodu ev arkadaşlarınla paylaş:" : `${session.householdName} için oturumun hazır.`}
               </p>
               <div className="code-box">
                 <strong>{session.joinCode}</strong>
-                <button aria-label="Ev kodunu kopyala" onClick={copyCode} type="button">
-                  {copied ? <Check size={17} /> : <Clipboard size={17} />}
+                <button aria-label={copied ? "Ev kodu kopyalandı" : "Ev kodunu kopyala"} onClick={copyCode} type="button">
+                  {copied ? <Check aria-hidden="true" size={18} /> : <Clipboard aria-hidden="true" size={18} />}
                 </button>
               </div>
-              <p className="code-caption">Kodu bilen kişiler bu eve katılabilir. Bir sonraki adımda dashboard açılacak.</p>
-              <button className="text-action" onClick={() => setSession(null)} type="button">Başka bir ev seç <ArrowRight size={15} /></button>
+              <p className="code-caption">Bu evin açık harcamalarını ve bakiyelerini görmek için devam et.</p>
+              <Link className="primary-action form-submit" href="/dashboard">Dashboard&apos;a git <ArrowRight aria-hidden="true" size={17} /></Link>
+              <button className="text-action" onClick={() => setSession(null)} type="button">Başka bir ev seç</button>
             </div>
           )}
-        </div>
+        </section>
       </section>
     </main>
   );

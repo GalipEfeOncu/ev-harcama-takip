@@ -1,0 +1,328 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-19T16:11:55.090Z",
+  "title": "Design System: Ev Hesap",
+  "extensions": {
+    "colorMeta": {
+      "graphite-ink": {
+        "role": "neutral",
+        "displayName": "Graphite Ink",
+        "canonical": "#0a1117",
+        "tonalRamp": [
+          "#172735",
+          "#274259",
+          "#365c7c",
+          "#4676a0",
+          "#5f90b9",
+          "#83a8c9",
+          "#a6c1d8",
+          "#edf3f7"
+        ]
+      },
+      "mineral-paper": {
+        "role": "neutral",
+        "displayName": "Mineral Paper",
+        "canonical": "#e9f0e8",
+        "tonalRamp": [
+          "#202e1e",
+          "#364d32",
+          "#4b6c46",
+          "#618b5b",
+          "#7aa474",
+          "#98b993",
+          "#b5cdb2",
+          "#f0f5f0"
+        ]
+      },
+      "mineral-paper-raised": {
+        "role": "neutral",
+        "displayName": "Raised Mineral Paper",
+        "canonical": "#f2f6f0",
+        "tonalRamp": [
+          "#23301d",
+          "#3a5030",
+          "#527043",
+          "#698f56",
+          "#83a970",
+          "#9ebc8f",
+          "#bacfaf",
+          "#f1f5ef"
+        ]
+      },
+      "mineral-paper-shade": {
+        "role": "neutral",
+        "displayName": "Shaded Mineral Paper",
+        "canonical": "#dce8dc",
+        "tonalRamp": [
+          "#1e2e1e",
+          "#334d33",
+          "#476c47",
+          "#5b8a5b",
+          "#75a475",
+          "#93b893",
+          "#b2ccb2",
+          "#f0f5f0"
+        ]
+      },
+      "muted-copy": {
+        "role": "neutral",
+        "displayName": "Muted Copy",
+        "canonical": "#586866",
+        "tonalRamp": [
+          "#232929",
+          "#3a4544",
+          "#52615f",
+          "#697c7a",
+          "#839693",
+          "#9eadab",
+          "#bac5c3",
+          "#f1f3f3"
+        ]
+      },
+      "sage-rule": {
+        "role": "neutral",
+        "displayName": "Sage Rule",
+        "canonical": "#a6b5aa",
+        "tonalRamp": [
+          "#232a25",
+          "#3a463d",
+          "#516155",
+          "#687d6e",
+          "#829787",
+          "#9eaea2",
+          "#b9c5bd",
+          "#f1f3f2"
+        ]
+      },
+      "sage-accent": {
+        "role": "neutral",
+        "displayName": "Sage Accent",
+        "canonical": "#9eafa1",
+        "tonalRamp": [
+          "#232a24",
+          "#3a463c",
+          "#516254",
+          "#687e6c",
+          "#819785",
+          "#9daea0",
+          "#b9c5bb",
+          "#f1f3f1"
+        ]
+      },
+      "signal-orange": {
+        "role": "primary",
+        "displayName": "Signal Orange",
+        "canonical": "#d86436",
+        "tonalRamp": [
+          "#401b0c",
+          "#6b2d15",
+          "#953f1d",
+          "#c05125",
+          "#da6b3f",
+          "#e28c6a",
+          "#eaad94",
+          "#fbefea"
+        ]
+      },
+      "signal-orange-deep": {
+        "role": "secondary",
+        "displayName": "Deep Signal Orange",
+        "canonical": "#b94924",
+        "tonalRamp": [
+          "#40190c",
+          "#6b2a15",
+          "#953b1d",
+          "#c04c25",
+          "#da653f",
+          "#e2876a",
+          "#eaaa94",
+          "#fbeeea"
+        ]
+      },
+      "danger": {
+        "role": "semantic",
+        "displayName": "Danger",
+        "canonical": "#7b2b1d",
+        "tonalRamp": [
+          "#3e160f",
+          "#672418",
+          "#903222",
+          "#ba412c",
+          "#d35a45",
+          "#dd7f6f",
+          "#e7a498",
+          "#faedea"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Yantramanav Display",
+        "purpose": "Large public landing heading."
+      },
+      "heading": {
+        "displayName": "Yantramanav Heading",
+        "purpose": "Page and household section headings."
+      },
+      "body": {
+        "displayName": "Mada Reading",
+        "purpose": "Turkish interface copy and standard controls."
+      },
+      "action": {
+        "displayName": "Mada Action",
+        "purpose": "Standard action labels."
+      },
+      "amount": {
+        "displayName": "Yantramanav Amount",
+        "purpose": "Tabular financial amounts on wider layouts."
+      },
+      "phone-balance": {
+        "displayName": "Barrio Phone Balance",
+        "purpose": "Distinctive member amounts on phone-width dashboards."
+      },
+      "code": {
+        "displayName": "System Monospace Code",
+        "purpose": "Household invite codes only."
+      }
+    },
+    "shadows": [],
+    "motion": [
+      {
+        "name": "control-color",
+        "value": "150ms ease",
+        "purpose": "Button and link color transitions."
+      },
+      {
+        "name": "balance-rail-settle",
+        "value": "420ms cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "The upper member rail settles into place."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "0.01ms",
+        "purpose": "Honors prefers-reduced-motion for animations and transitions."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "compact",
+        "value": "350px"
+      },
+      {
+        "name": "phone",
+        "value": "480px"
+      },
+      {
+        "name": "tablet",
+        "value": "760px"
+      },
+      {
+        "name": "wide",
+        "value": "980px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Action",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The filled signal-orange action for the main step on a page.",
+      "html": "<button class=\"ds-btn-primary\" type=\"button\">Harcama ekle</button>",
+      "css": ".ds-btn-primary { min-height: 46px; padding: 0 15px; border: 1px solid var(--ink); border-radius: 4px; background: var(--orange); color: var(--ink); font: 700 15px/1.1 var(--font-body); cursor: pointer; transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease; } .ds-btn-primary:hover { border-color: #c8522a; background: #c8522a; } .ds-btn-primary:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; } .ds-btn-primary:active { background: var(--orange-deep); } .ds-btn-primary:disabled { border-color: #9a8a7e; background: #c7bdb1; color: #39413e; cursor: wait; }"
+    },
+    {
+      "name": "Quiet Text Action",
+      "kind": "nav",
+      "refersTo": "button-secondary",
+      "description": "An underlined text action beside the primary control.",
+      "html": "<a class=\"ds-text-action\" href=\"#settlement\">Borçları hesapla</a>",
+      "css": ".ds-text-action { color: var(--ink); font: 700 15px/1.1 var(--font-body); text-decoration: underline; text-decoration-color: var(--sage); text-underline-offset: 4px; } .ds-text-action:hover { text-decoration-color: var(--ink); } .ds-text-action:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input-field",
+      "description": "A compact field for household names, codes, and member names.",
+      "html": "<label class=\"ds-field\">Ev adı<input type=\"text\" placeholder=\"Örn. Çamlık Ev\"></label>",
+      "css": ".ds-field { display: grid; gap: 8px; color: var(--ink); font: 700 14px/1.2 var(--font-body); } .ds-field input { width: 100%; min-height: 48px; padding: 0 12px; border: 1px solid #87978c; border-radius: 3px; background: var(--paper-raised); color: var(--ink); font: 400 16px/1.45 var(--font-body); } .ds-field input::placeholder { color: #53645c; opacity: 1; } .ds-field input:focus-visible { border-color: var(--ink); outline: 2px solid var(--ink); outline-offset: 1px; }"
+    },
+    {
+      "name": "Household Header",
+      "kind": "nav",
+      "refersTo": "household-header",
+      "description": "Keeps the product wordmark, household name, and short invite code together.",
+      "html": "<nav class=\"ds-household-nav\"><a class=\"ds-wordmark\" href=\"#home\">EV HESAP</a><div class=\"ds-household\"><span>Örnek Ev</span><code>EV-4K6P2R9D</code></div></nav>",
+      "css": ".ds-household-nav { min-height: 64px; padding: 8px 20px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; gap: 16px; color: var(--ink); } .ds-wordmark { font: 700 19px/1.1 var(--font-head); letter-spacing: .04em; text-decoration: none; } .ds-household { min-width: 0; display: flex; align-items: center; gap: 12px; } .ds-household span { overflow: hidden; color: var(--muted); font: 300 18px/1.1 var(--font-head); text-overflow: ellipsis; white-space: nowrap; } .ds-household code { color: var(--ink); font: 400 12px/1 ui-monospace, SFMono-Regular, Menlo, monospace; white-space: nowrap; } .ds-household-nav a:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }"
+    },
+    {
+      "name": "Household Balance Rail",
+      "kind": "custom",
+      "refersTo": "balance-rail",
+      "description": "A connected, two-level ledger diagram for up to five members; names and amounts are illustrative.",
+      "html": "<div class=\"ds-rail\"><div class=\"ds-rail-upper\"><div class=\"ds-terminal\"><i></i><strong>Ece</strong><b>+₺1.100</b><small>alacaklı</small></div><div class=\"ds-terminal\"><i></i><strong>Mert</strong><b>−₺25</b><small>borçlu</small></div><div class=\"ds-terminal\"><i></i><strong>Deniz</strong><b>−₺150</b><small>borçlu</small></div></div><div class=\"ds-rail-lower\"><div class=\"ds-terminal\"><i></i><strong>Ayşe</strong><b>−₺525</b><small>borçlu</small></div><div class=\"ds-terminal\"><i></i><strong>Can</strong><b>−₺400</b><small>borçlu</small></div></div></div>",
+      "css": ".ds-rail { color: var(--ink); } .ds-rail-upper { position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); padding-top: 8px; text-align: center; } .ds-rail-upper::before { position: absolute; top: 4px; right: 12%; left: 12%; border-top: 1px solid var(--ink); content: \"\"; } .ds-terminal { position: relative; min-width: 0; display: grid; justify-items: center; } .ds-terminal i { width: 9px; height: 9px; border: 1px solid var(--paper); border-radius: 50%; background: var(--orange); } .ds-terminal strong { margin-top: 12px; font: 400 17px/1.2 var(--font-body); } .ds-terminal b { margin-top: 2px; font: 700 20px/1.1 var(--font-head); font-variant-numeric: tabular-nums; white-space: nowrap; } .ds-terminal small { color: var(--muted); font: 700 14px/1.3 var(--font-head); } .ds-rail-lower { position: relative; width: 76%; max-width: 580px; margin: 9px auto 0; padding-top: 21px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); text-align: center; } .ds-rail-lower::before { position: absolute; top: 0; right: 25%; left: 25%; border-top: 1px solid var(--ink); content: \"\"; } .ds-rail-lower::after { position: absolute; top: -18px; left: 50%; height: 18px; border-left: 1px solid var(--ink); content: \"\"; }"
+    },
+    {
+      "name": "Open Expense Row",
+      "kind": "custom",
+      "refersTo": "expense-row",
+      "description": "A full-width ledger line with description, payer context, and aligned amount.",
+      "html": "<div class=\"ds-expense-row\"><div><strong>Pazar alışverişi</strong><span>Ece ödedi · 3 kişi</span></div><b>₺900</b></div>",
+      "css": ".ds-expense-row { min-height: 68px; padding: 10px 0; border-bottom: 1px solid var(--line); display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 16px; color: var(--ink); } .ds-expense-row div { min-width: 0; display: grid; gap: 3px; } .ds-expense-row strong { font: 500 16px/1.2 var(--font-body); } .ds-expense-row span { color: var(--muted); font: 400 13px/1.25 var(--font-body); } .ds-expense-row > b { font: 700 18px/1.1 var(--font-head); font-variant-numeric: tabular-nums; white-space: nowrap; }"
+    },
+    {
+      "name": "Suggested Transfer Row",
+      "kind": "custom",
+      "refersTo": "transfer-row",
+      "description": "A proposed person-to-person transfer that remains a suggestion until the household closes the period.",
+      "html": "<div class=\"ds-transfer-row\"><div><strong>Ayşe</strong><small>ödeyecek</small></div><span aria-hidden=\"true\">→</span><div><strong>Ece</strong><small>alacak</small></div><b>₺525</b></div>",
+      "css": ".ds-transfer-row { min-height: 75px; padding: 11px 3px; border-bottom: 1px solid var(--line); display: grid; grid-template-columns: minmax(0, 1fr) 40px minmax(0, 1fr) minmax(90px, auto); align-items: center; gap: 13px; color: var(--ink); } .ds-transfer-row div { display: grid; gap: 2px; } .ds-transfer-row strong { font: 700 15px/1.2 var(--font-body); } .ds-transfer-row small { color: var(--muted); font: 400 12px/1.2 var(--font-body); } .ds-transfer-row > span { color: var(--orange-deep); text-align: center; } .ds-transfer-row > b { font: 700 20px/1.1 var(--font-head); font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Daire Dağıtım Panosu",
+    "overview": "Ev Hesap presents the household open account as a readable distribution panel. Matte mineral paper, graphite ink, sage rules, and a restrained signal-orange accent keep totals, people, and expenses connected without interchangeable dashboard cards.\n\nThe mobile dashboard is the signature surface: three upper balance terminals and up to two centered lower terminals, each with a name, signed amount, and written balance state. The four-person household keeps breathing room; five members fit without clipping. Expense rows remain a plain ledger and the period closes only by household choice.",
+    "keyCharacteristics": [
+      "Mineral green-gray surfaces, graphite ink, muted sage, and signal orange.",
+      "A connected two-level member rail with explicit names, signed balances, and text states.",
+      "Tabular financial figures and readable Turkish copy.",
+      "Flat, rule-led surfaces with compact rectangular controls."
+    ],
+    "rules": [
+      {
+        "name": "The One Signal Rule",
+        "body": "Orange marks the primary action or a meaningful balance node; deep orange stays a small supporting accent.",
+        "section": "colors"
+      },
+      {
+        "name": "The Readable Panel Rule",
+        "body": "A member name, signed amount, and alacaklı/borçlu state remain understandable without color.",
+        "section": "components"
+      },
+      {
+        "name": "The Flat-By-Default Rule",
+        "body": "Surfaces stay flat at rest; labels, borders, and fills show control state.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Aligned Amount Rule",
+        "body": "Amounts compared in a row share a right edge and use tabular numerals wherever established.",
+        "section": "typography"
+      }
+    ],
+    "dos": [
+      "Do preserve the household identity, total, connected balance rail, actions, and open ledger in that reading order.",
+      "Do keep each name, signed amount, and written balance state readable without color.",
+      "Do align comparable currency figures and use tabular numerals.",
+      "Do keep surfaces flat and let spacing, mineral tone, and rules establish their hierarchy."
+    ],
+    "donts": [
+      "Don’t turn the interface into interchangeable pastel cards, glass panels, gradient glow, or decorative blobs.",
+      "Don’t make the interface look like an electrical repair console or an error alarm.",
+      "Don’t encode owing, owed, selected, or error states with color alone.",
+      "Don’t promote amber into an active token without a shipped use.",
+      "Don’t decorate every section with switch labels, wiring, or equipment marks."
+    ]
+  }
+}
