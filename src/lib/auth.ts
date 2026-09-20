@@ -28,13 +28,16 @@ export async function getAccountSnapshot(): Promise<AccountSnapshot | null> {
 
 export async function beginGoogleSignIn(nextPath: string, linkCurrentAccount = false) {
   const supabase = createClient();
-  const { data: { user }, error: userError } = await supabase.auth.getUser();
-  if (userError) throw userError;
-
   const callback = new URL("/auth/callback", window.location.origin);
   callback.searchParams.set("next", nextPath);
 
-  if (linkCurrentAccount && user) {
+  if (linkCurrentAccount) {
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError) throw sessionError;
+    if (!session) {
+      throw new Error("Ev oturumun sona ermiş. Eski ev hesabını korumak için Google hesabını aynı oturum açıkken bağla.");
+    }
+
     const { error } = await supabase.auth.linkIdentity({
       provider: "google",
       options: { redirectTo: callback.toString() },
