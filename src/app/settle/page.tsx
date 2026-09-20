@@ -130,7 +130,7 @@ export default function SettlePage() {
           <details className="account-menu settle-theme-menu">
             <summary aria-label="Görünüm seçenekleri"><MoreHorizontal aria-hidden="true" size={21} /></summary>
             <div className="account-menu-popover">
-              <div className="account-menu-theme"><span>Görünüm teması</span><ThemeControl /></div>
+              <div className="account-menu-theme"><span>Görünüm teması</span><ThemeControl full /></div>
             </div>
           </details>
           <Link className="header-back" href="/dashboard" aria-label="Ev hesabına dön"><ArrowLeft aria-hidden="true" size={16} /> Ev hesabı</Link>

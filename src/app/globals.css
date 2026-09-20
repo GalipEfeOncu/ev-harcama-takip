@@ -99,7 +99,8 @@ a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 4px; 
 button, input, select, textarea { color: inherit; font: inherit; }
 button { cursor: pointer; touch-action: manipulation; }
 button:disabled { cursor: not-allowed; }
-button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus-visible {
+button:focus, a:focus, input:focus, select:focus, textarea:focus, summary:focus { outline: none; }
+html[data-input-modality="keyboard"] button:focus, html[data-input-modality="keyboard"] a:focus, html[data-input-modality="keyboard"] input:focus, html[data-input-modality="keyboard"] select:focus, html[data-input-modality="keyboard"] textarea:focus, html[data-input-modality="keyboard"] summary:focus {
   outline: 3px solid var(--focus);
   outline-offset: 3px;
 }
@@ -199,18 +200,20 @@ svg { flex: 0 0 auto; }
 .icon-button { width: 48px; padding: 0; border: 0; background: transparent; color: var(--text); }
 .icon-button:hover { background: var(--surface-soft); }
 .theme-control {
-  min-height: 44px;
-  padding: 0 10px;
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-control);
-  background: var(--surface);
-  color: var(--text-muted);
+  position: relative;
+  flex: 0 0 auto;
 }
-.theme-control select { width: auto; min-height: 42px; padding: 0 16px 0 0; border: 0; background: transparent; color: var(--text); font-size: 14px; cursor: pointer; }
-.theme-control:hover { border-color: var(--border-strong); background: var(--surface-soft); }
+.theme-control > summary { width: 44px; min-height: 44px; display: grid; place-items: center; border: 1px solid var(--border-subtle); border-radius: var(--radius-control); background: transparent; color: var(--text-muted); cursor: pointer; list-style: none; }
+.theme-control > summary::-webkit-details-marker { display: none; }
+.theme-control > summary:hover, .theme-control[open] > summary { border-color: var(--border-strong); background: var(--surface-soft); color: var(--text); }
+.theme-control__menu { position: absolute; z-index: 40; top: calc(100% + 8px); right: 0; width: 156px; padding: 4px; border: 1px solid var(--border-subtle); border-radius: 12px; background: var(--surface-raised); box-shadow: var(--shadow-sheet); }
+.theme-control__menu button { width: 100%; min-height: 40px; padding: 0 9px; display: flex; align-items: center; gap: 8px; border: 0; border-radius: 8px; background: transparent; color: var(--text-muted); font-size: 14px; font-weight: 650; text-align: left; }
+.theme-control__menu button:hover, .theme-control__menu button.is-selected { background: var(--surface-soft); color: var(--text); }
+.theme-control__check { margin-left: auto; color: var(--positive); }
+.theme-control--full { width: 100%; }
+.theme-control--full > summary { width: 100%; padding: 0 10px; display: flex; justify-content: flex-start; gap: 9px; }
+.theme-control--full > summary::after { width: 0; height: 0; margin-left: auto; border-top: 5px solid currentColor; border-right: 4px solid transparent; border-left: 4px solid transparent; content: ""; }
+.theme-control--full .theme-control__menu { right: 0; left: 0; width: auto; }
 
 .landing-hero {
   min-height: 600px;
@@ -375,8 +378,7 @@ svg { flex: 0 0 auto; }
   .header-tools { gap: 7px; }
   .header-action { width: 44px; min-width: 44px; padding: 0; overflow: hidden; font-size: 0; }
   .header-action svg { width: 20px; height: 20px; }
-  .theme-control { padding-inline: 6px; gap: 4px; }
-  .theme-control select { max-width: 72px; padding-right: 11px; font-size: 13px; }
+  .theme-control > summary { width: 42px; min-height: 44px; }
   .landing-hero { padding-top: 34px; }
   .landing-copy h1 { margin-bottom: 17px; font-size: clamp(2.4rem, 11vw, 3.35rem); }
   .landing-actions { align-items: stretch; gap: 8px; }

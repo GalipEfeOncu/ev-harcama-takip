@@ -88,15 +88,16 @@
 .activity-filters > button:not(.is-selected):hover { background: color-mix(in srgb, var(--surface-raised), transparent 45%); color: var(--text); }
 .activity-filters > button.is-selected { background: var(--surface-raised); color: var(--text); box-shadow: var(--shadow-selection); }
 .activity-year-filter { min-width: 0; margin-left: auto; }
-.activity-year-filter select { min-height: 42px; max-width: 108px; padding: 4px 8px; border: 0; border-radius: 8px; background: var(--surface-raised); font-size: 14px; }
-.activity-year-filter select:hover { background: var(--surface-soft); }
+.activity-year-filter select { min-height: 36px; max-width: 108px; padding: 4px 8px 4px 10px; border: 0; border-left: 1px solid var(--border-subtle); border-radius: 0; background: transparent; color: var(--text-muted); font-size: 14px; }
+.activity-year-filter select:hover { color: var(--text); }
 .activity-list { margin: 14px 0 0; padding: 0; list-style: none; }
 .activity-item { padding: 17px 0; }
 .activity-item + .activity-item { margin-top: 5px; border-top: 1px solid color-mix(in srgb, var(--border-subtle), transparent 35%); }
 .activity-item article { min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr) 108px; align-items: start; gap: 5px 14px; }
 .activity-item-main { min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 5px 9px; }
-.activity-kind, .activity-status { min-height: 26px; padding: 3px 8px; display: inline-flex; align-items: center; gap: 5px; border-radius: 99px; font-size: 13px; font-weight: 650; }
-.activity-kind { background: var(--surface-soft); color: var(--text-muted); }
+.activity-kind, .activity-status { min-height: 24px; display: inline-flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 650; }
+.activity-kind { color: var(--text-muted); }
+.activity-status { padding: 2px 8px; border-radius: 99px; }
 .activity-status.is-open { background: var(--success-surface); color: var(--positive); }
 .activity-status.is-settled { background: var(--surface-soft); color: var(--text-muted); }
 .activity-item h3 { grid-column: 1 / -1; max-width: 100%; margin: 2px 0 0; overflow-wrap: anywhere; font-size: 17px; font-weight: 700; line-height: 1.3; }
@@ -108,6 +109,7 @@
 .activity-action-edit:hover:not(:disabled) { background: var(--surface-soft); color: var(--text); }
 .activity-action-delete { color: var(--negative) !important; }
 .activity-action-delete:hover:not(:disabled) { background: var(--danger-surface); }
+.activity-item--settlement article { grid-template-columns: minmax(0, 1fr); }
 .activity-shares { grid-column: 1 / -1; margin-top: 1px; }
 .activity-shares summary { min-height: 44px; width: fit-content; display: flex; align-items: center; color: var(--text-muted); font-size: 14px; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
 .activity-shares summary:hover { color: var(--text); }
@@ -116,24 +118,17 @@
 .activity-shares li strong { white-space: nowrap; }
 .activity-empty { min-height: 190px; padding: 26px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: var(--text-muted); text-align: center; }
 .activity-empty p { max-width: 40ch; margin: 0; }
-.debt-payment-composer { padding: 0 20px 17px; border-radius: var(--radius-surface); background: var(--surface); }
-.debt-payment-composer > summary { min-height: 60px; display: flex; align-items: center; gap: 9px; font-size: 17px; font-weight: 700; cursor: pointer; list-style: none; }
-.debt-payment-composer > summary:hover { color: var(--accent-text); }
-.debt-payment-composer > summary::-webkit-details-marker { display: none; }
 .debt-payment-hint, .debt-payment-empty { color: var(--text-muted); font-size: 14px; }
-.debt-payment-form { max-width: 680px; }
 .form-two-col { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 13px; }
-.debt-payment-form .form-submit { width: 100%; }
-.debt-payment-composer--locked { padding-top: 12px; }
-.debt-payment-composer--locked a { min-height: 48px; display: flex; align-items: center; color: var(--text); font-weight: 650; }
 .mobile-actionbar { display: none; }
 .modal-backdrop { position: fixed; z-index: 80; inset: 0; padding: 24px; display: grid; place-items: center; background: var(--scrim); }
-.expense-modal, .delete-modal { width: min(100%, 660px); max-height: min(900px, calc(100dvh - 48px)); overflow: hidden; border-radius: var(--radius-sheet); background: var(--bg); box-shadow: var(--shadow-sheet); }
-.expense-modal { display: flex; flex-direction: column; }
+.expense-modal, .payment-modal, .delete-modal { width: min(100%, 660px); max-height: min(900px, calc(100dvh - 48px)); overflow: hidden; border-radius: var(--radius-sheet); background: var(--bg); box-shadow: var(--shadow-sheet); }
+.expense-modal, .payment-modal { display: flex; flex-direction: column; }
+.payment-modal { max-width: 560px; }
 .modal-header { min-height: 76px; padding: 15px 22px; display: flex; flex: 0 0 auto; align-items: center; justify-content: space-between; gap: 16px; background: var(--surface); }
 .modal-header h2 { margin: 0; font-size: 21px; letter-spacing: -.02em; }
 .modal-header p { margin: 2px 0 0; color: var(--text-muted); font-size: 14px; }
-.expense-modal__body { min-height: 0; padding: 16px 22px 20px; overflow-y: auto; overscroll-behavior: contain; scroll-padding-block: 18px; }
+.expense-modal__body, .payment-modal__body { min-height: 0; padding: 16px 22px 20px; overflow-y: auto; overscroll-behavior: contain; scroll-padding-block: 18px; }
 .expense-form-group { padding: 0 0 16px; }
 .expense-form-group + .expense-form-group { padding-top: 17px; border-top: 1px solid color-mix(in srgb, var(--border-subtle), transparent 25%); }
 .expense-form-group h3 { margin-bottom: 12px; font-size: 18px; }
@@ -207,14 +202,11 @@
   .account-tools { gap: 5px; }
   .invite-menu > summary { width: 44px; padding: 0; overflow: hidden; gap: 0; font-size: 0; }
   .invite-menu > summary svg { width: 19px; height: 19px; }
-  .theme-control { min-height: 44px; padding-inline: 6px; gap: 4px; }
-  .theme-control > svg { width: 15px; }
-  .theme-control select { max-width: 58px; min-height: 40px; padding-right: 9px; font-size: 13px; }
   .account-tools > .theme-control { display: none; }
   .account-menu-theme { padding: 9px 10px 10px; display: grid; gap: 6px; }
   .account-menu-theme > span { color: var(--text-muted); font-size: 13px; font-weight: 650; }
-  .account-menu-theme .theme-control { width: 100%; justify-content: space-between; border: 0; background: var(--surface-soft); }
-  .account-menu-theme .theme-control select { max-width: none; flex: 1; }
+  .account-menu-theme .theme-control { width: 100%; }
+  .account-menu-theme .theme-control > summary { border: 0; background: var(--surface-soft); }
   .account-menu-popover { width: min(250px, calc(100vw - 28px)); }
   .account-menu > summary { width: 42px; min-height: 44px; }
   .account-overview { padding: 18px; }
@@ -240,12 +232,11 @@
   .activity-meta { font-size: 14px; }
   .activity-amount { font-size: 15px; }
   .activity-actions button { flex: 0 0 auto; }
-  .debt-payment-composer { padding-inline: 15px; }
   .form-two-col { grid-template-columns: minmax(0, 1fr); gap: 0; }
   .modal-backdrop { padding: 0; place-items: stretch; }
-  .expense-modal { width: 100%; height: 100dvh; max-height: 100dvh; border-radius: 0; padding-bottom: env(safe-area-inset-bottom); }
+  .expense-modal, .payment-modal { width: 100%; height: 100dvh; max-height: 100dvh; border-radius: 0; padding-bottom: env(safe-area-inset-bottom); }
   .modal-header { min-height: 68px; padding: 9px 16px; }
-  .expense-modal__body { padding: 14px 17px 22px; }
+  .expense-modal__body, .payment-modal__body { padding: 14px 17px 22px; }
   .expense-modal__footer { padding: 9px 14px calc(9px + env(safe-area-inset-bottom)); }
   .expense-modal__actions { grid-template-columns: minmax(90px, .65fr) minmax(0, 1.35fr); gap: 7px; }
   .expense-modal__actions button { font-size: 14px; }
@@ -256,8 +247,6 @@
   .account-header { gap: 5px; }
   .account-household__name { max-width: 16ch; font-size: 13px; }
   .account-tools { gap: 3px; }
-  .account-menu-theme .theme-control { padding-inline: 10px; }
-  .account-menu-theme .theme-control > svg { display: block; }
   .activity-section { padding-inline: 12px; }
   .activity-count { font-size: 13px; }
   .activity-filters { flex-wrap: wrap; }

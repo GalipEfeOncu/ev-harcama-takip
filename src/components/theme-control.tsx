@@ -1,7 +1,7 @@
 "use client";
 
-import { SunMoon } from "lucide-react";
-import { useEffect } from "react";
+import { Check, Monitor, Moon, Sun, SunMoon } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 
 export type ThemeChoice = "system" | "light" | "dark";
 
@@ -25,26 +25,36 @@ function applyTheme(choice: ThemeChoice, systemPrefersDark: boolean) {
   const root = document.documentElement;
   root.dataset.theme = theme;
   root.dataset.themeChoice = choice;
-  document.querySelectorAll<HTMLSelectElement>('select[aria-label="Görünüm teması"]').forEach((select) => {
-    select.value = choice;
-  });
-
   const themeColor = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
-  themeColor?.setAttribute("content", theme === "dark" ? "#18130F" : "#EFE5D4");
+  themeColor?.setAttribute("content", theme === "dark" ? "#121412" : "#F6F5F2");
 }
 
-export default function ThemeControl() {
+const choices = [
+  { value: "system", label: "Sistem", icon: Monitor },
+  { value: "light", label: "Açık", icon: Sun },
+  { value: "dark", label: "Koyu", icon: Moon },
+] as const;
+
+export default function ThemeControl({ full = false }: { full?: boolean }) {
+  const [choice, setChoice] = useState<ThemeChoice>("system");
+  const menuRef = useRef<HTMLDetailsElement>(null);
+
   useEffect(() => {
     const media = window.matchMedia("(prefers-color-scheme: dark)");
     const syncTheme = () => {
       const currentChoice = document.documentElement.dataset.themeChoice ?? null;
-      const choice = isThemeChoice(currentChoice) ? currentChoice : readSavedChoice();
-      applyTheme(choice, media.matches);
+      const nextChoice = isThemeChoice(currentChoice) ? currentChoice : readSavedChoice();
+      setChoice(nextChoice);
+      applyTheme(nextChoice, media.matches);
     };
     syncTheme();
     media.addEventListener("change", syncTheme);
+    window.addEventListener("ev-hesap-theme-change", syncTheme);
 
-    return () => media.removeEventListener("change", syncTheme);
+    return () => {
+      media.removeEventListener("change", syncTheme);
+      window.removeEventListener("ev-hesap-theme-change", syncTheme);
+    };
   }, []);
 
   function changeTheme(nextChoice: ThemeChoice) {
@@ -54,21 +64,31 @@ export default function ThemeControl() {
       // Keep the selected theme for this visit when persistence is blocked.
     }
     applyTheme(nextChoice, window.matchMedia("(prefers-color-scheme: dark)").matches);
+    setChoice(nextChoice);
+    window.dispatchEvent(new Event("ev-hesap-theme-change"));
+    menuRef.current?.removeAttribute("open");
   }
 
+  const selectedLabel = choices.find((item) => item.value === choice)?.label ?? "Sistem";
+
   return (
-    <label className="theme-control">
-      <SunMoon aria-hidden="true" size={17} />
-      <span className="visually-hidden">Görünüm teması</span>
-      <select
-        aria-label="Görünüm teması"
-        onChange={(event) => changeTheme(event.target.value as ThemeChoice)}
-        defaultValue="system"
-      >
-        <option value="system">Sistem</option>
-        <option value="light">Açık</option>
-        <option value="dark">Koyu</option>
-      </select>
-    </label>
+    <details className={`theme-control${full ? " theme-control--full" : ""}`} ref={menuRef}>
+      <summary aria-label={`Görünüm teması: ${selectedLabel}`} title={`Görünüm teması: ${selectedLabel}`}>
+        <SunMoon aria-hidden="true" size={17} />
+        {full && <span>Görünüm: {selectedLabel}</span>}
+      </summary>
+      <div className="theme-control__menu" role="group" aria-label="Görünüm teması seçimi">
+        {choices.map((item) => {
+          const Icon = item.icon;
+          return (
+            <button aria-pressed={choice === item.value} className={choice === item.value ? "is-selected" : ""} key={item.value} onClick={() => changeTheme(item.value)} type="button">
+              <Icon aria-hidden="true" size={16} />
+              <span>{item.label}</span>
+              {choice === item.value && <Check aria-hidden="true" className="theme-control__check" size={15} />}
+            </button>
+          );
+        })}
+      </div>
+    </details>
   );
 }

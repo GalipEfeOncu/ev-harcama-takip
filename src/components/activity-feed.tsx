@@ -3,12 +3,16 @@
 import { ArrowRightLeft, Check, Edit2, History, ReceiptText, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { formatCurrency, splitAmount } from "@/lib/calculations";
-import type { DebtPayment, Expense } from "@/lib/types";
+import type { DebtPayment, Expense, SettlementRun } from "@/lib/types";
 
 type ActivityFilter = "open" | "month" | "all" | string;
 
 function dateLabel(date: string) {
   return new Intl.DateTimeFormat("tr-TR", { day: "numeric", month: "long" }).format(new Date(`${date}T12:00:00`));
+}
+
+function dateTimeLabel(date: string) {
+  return new Intl.DateTimeFormat("tr-TR", { day: "numeric", month: "long", year: "numeric" }).format(new Date(date));
 }
 
 function sharesForExpense(expense: Expense) {
@@ -19,6 +23,7 @@ function sharesForExpense(expense: Expense) {
 export default function ActivityFeed({
   expenses,
   payments,
+  runs,
   memberNames,
   canEdit,
   onEditExpense,
@@ -26,6 +31,7 @@ export default function ActivityFeed({
 }: {
   expenses: Expense[];
   payments: DebtPayment[];
+  runs: SettlementRun[];
   memberNames: Record<string, string>;
   canEdit: boolean;
   onEditExpense: (expense: Expense) => void;
@@ -51,7 +57,10 @@ export default function ActivityFeed({
         ? payment.paidAt.startsWith(monthKey)
         : payment.paidAt.startsWith(filter)))
     .map((payment) => ({ kind: "payment" as const, date: payment.paidAt, createdAt: payment.createdAt, payment }));
-  const items = [...expenseItems, ...paymentItems].sort((a, b) =>
+  const settlementItems = filter === "open" ? [] : runs
+    .filter((run) => filter === "all" || (filter === "month" ? run.createdAt.startsWith(monthKey) : run.createdAt.startsWith(filter)))
+    .map((run) => ({ kind: "settlement" as const, date: run.createdAt, createdAt: run.createdAt, run }));
+  const items = [...expenseItems, ...paymentItems, ...settlementItems].sort((a, b) =>
     b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt),
   );
 
@@ -143,7 +152,7 @@ export default function ActivityFeed({
                 )}
               </article>
             </li>
-          ) : (
+          ) : item.kind === "payment" ? (
             <li className="activity-item" key={`payment-${item.payment.id}`}>
               <article>
                 <div className="activity-item-main">
@@ -157,6 +166,16 @@ export default function ActivityFeed({
                   <p className="activity-meta">{dateLabel(item.payment.paidAt)} · {item.payment.note || "Yapılan ödeme"}</p>
                 </div>
                 <strong className="activity-amount">{formatCurrency(item.payment.amountCents)}</strong>
+              </article>
+            </li>
+          ) : (
+            <li className="activity-item activity-item--settlement" key={`settlement-${item.run.id}`}>
+              <article>
+                <div className="activity-item-main">
+                  <span className="activity-kind"><History aria-hidden="true" size={15} /> Dönem kapatıldı</span>
+                  <h3>Hesap dönemi geçmişe taşındı</h3>
+                  <p className="activity-meta">{dateTimeLabel(item.run.createdAt)} · {item.run.expenseIds.length} harcama · {item.run.paymentIds?.length ?? 0} yapılan ödeme</p>
+                </div>
               </article>
             </li>
           ))}

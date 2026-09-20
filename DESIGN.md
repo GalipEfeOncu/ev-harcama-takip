@@ -37,7 +37,7 @@ The negative state is standard red and stays distinct from coral actions. State 
 
 ## Information architecture
 
-- On mobile, show household identity first, followed by the open account, vertically stacked member balances, one filtered activity feed, and reachable primary actions.
+- On mobile, show household identity first, followed by the open account, vertically stacked member balances, one filtered activity feed, and reachable primary actions. The bottom actions open the expense and direct-payment forms from the same place; settlement remains a review route rather than a competing composer.
 - On desktop, use a centered two-column work area: account summary, members, and secondary actions on the left; activity on the right.
 - Keep equal split as the default. Progressively disclose custom shares and show their derived total; retain entered values when switching modes.
 - Persist `system`, `light`, or `dark` theme selection and apply it before first paint. On authenticated mobile screens, keep theme choice in the secondary account menu.
@@ -45,7 +45,7 @@ The negative state is standard red and stays distinct from coral actions. State 
 
 ## Accessibility and motion
 
-Keep visible keyboard focus, semantic headings and labels, announced save/error status, reduced-motion support, safe-area padding, and keyboard-contained dialogs with focus restoration. Destructive confirmation remains an accessible `alertdialog`; color never carries status by itself. Body and placeholder text must meet 4.5:1 contrast; large text must meet 3:1.
+Keep visible keyboard focus, semantic headings and labels, announced save/error status, reduced-motion support, safe-area padding, and keyboard-contained dialogs with focus restoration. Pointer interaction must not leave a persistent focus ring; keyboard navigation must. Destructive confirmation remains an accessible `alertdialog`; color never carries status by itself. Body and placeholder text must meet 4.5:1 contrast; large text must meet 3:1.
 
 ## Source files
 

@@ -19,11 +19,12 @@ import ActivityFeed from "@/components/activity-feed";
 import MemberBalances from "@/components/member-balances";
 import { beginGoogleSignIn } from "@/lib/auth";
 import { calculateBalances, formatCurrency, parseAmountToCents, splitAmount } from "@/lib/calculations";
-import { createRemoteDebtPayment, createRemoteExpense, deleteRemoteExpense, loadRemoteHousehold, loadRemoteHouseholdSession, rotateRemoteHouseholdJoinCode, updateRemoteExpense } from "@/lib/data-service";
+import { createRemoteDebtPayment, createRemoteExpense, deleteRemoteExpense, loadRemoteHousehold, loadRemoteHouseholdSession, loadRemoteSettlementRuns, rotateRemoteHouseholdJoinCode, updateRemoteExpense } from "@/lib/data-service";
 import {
   readLocalExpenses,
   readLocalDebtPayments,
   readLocalMembers,
+  readLocalSettlementRuns,
   readLocalSession,
   saveLocalSession,
   saveLocalExpenses,
@@ -31,7 +32,7 @@ import {
   type LocalSession,
 } from "@/lib/local-store";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
-import type { DebtPayment, Expense, ExpenseShare, Member } from "@/lib/types";
+import type { DebtPayment, Expense, ExpenseShare, Member, SettlementRun } from "@/lib/types";
 import "./dashboard.css";
 
 type DashboardData = {
@@ -40,6 +41,7 @@ type DashboardData = {
   members: Member[];
   expenses: Expense[];
   debtPayments: DebtPayment[];
+  runs: SettlementRun[];
 };
 
 function createId(prefix: string) {
@@ -62,6 +64,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [isExpenseFormOpen, setExpenseFormOpen] = useState(false);
+  const [isPaymentFormOpen, setPaymentFormOpen] = useState(false);
   const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
   const [amount, setAmount] = useState("");
   const [splitMode, setSplitMode] = useState<"equal" | "custom">("equal");
@@ -89,7 +92,7 @@ export default function DashboardPage() {
   const [linkingGoogle, setLinkingGoogle] = useState(false);
   const dialogReturnFocusRef = useRef<HTMLElement | null>(null);
   const cancelDeleteButtonRef = useRef<HTMLButtonElement | null>(null);
-  const isBlockingDialogOpen = isExpenseFormOpen || pendingDeleteExpense !== null;
+  const isBlockingDialogOpen = isExpenseFormOpen || isPaymentFormOpen || pendingDeleteExpense !== null;
 
   useEffect(() => {
     if (!isBlockingDialogOpen) return;
@@ -111,13 +114,13 @@ export default function DashboardPage() {
             const requestedHousehold = new URLSearchParams(window.location.search).get("household");
             const resolved = await loadRemoteHouseholdSession(requestedHousehold || storedSession?.householdId, storedSession);
             saveLocalSession(resolved.session);
-            const remoteData = await loadRemoteHousehold(resolved.session);
+            const [remoteData, runs] = await Promise.all([loadRemoteHousehold(resolved.session), loadRemoteSettlementRuns(resolved.session)]);
             setPayerId(resolved.session.memberId);
             setParticipantIds(remoteData.members.filter((member) => member.active).map((member) => member.id));
             setPaymentFromId(resolved.session.memberId);
-            setData({ session: resolved.session, account: resolved.account, ...remoteData });
+            setData({ session: resolved.session, account: resolved.account, ...remoteData, runs });
           } else if (storedSession) {
-            const localData = { members: readLocalMembers(storedSession), expenses: readLocalExpenses(storedSession), debtPayments: readLocalDebtPayments(storedSession) };
+            const localData = { members: readLocalMembers(storedSession), expenses: readLocalExpenses(storedSession), debtPayments: readLocalDebtPayments(storedSession), runs: readLocalSettlementRuns(storedSession) };
             setPayerId(storedSession.memberId);
             setParticipantIds(localData.members.filter((member) => member.active).map((member) => member.id));
             setPaymentFromId(storedSession.memberId);
@@ -170,6 +173,41 @@ export default function DashboardPage() {
     document.addEventListener("keydown", handleDialogKeys);
     return () => document.removeEventListener("keydown", handleDialogKeys);
   }, [isExpenseFormOpen]);
+
+  useEffect(() => {
+    if (!isPaymentFormOpen) return;
+    const dialog = document.querySelector<HTMLElement>(".payment-modal");
+    if (!dialog) return;
+    const activeDialog = dialog;
+    dialog.querySelector<HTMLElement>(
+      'input:not([disabled]), select:not([disabled]), textarea:not([disabled])',
+    )?.focus();
+
+    function handleDialogKeys(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closePaymentForm();
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const focusable = Array.from(activeDialog.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      ));
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+
+    document.addEventListener("keydown", handleDialogKeys);
+    return () => document.removeEventListener("keydown", handleDialogKeys);
+  }, [isPaymentFormOpen]);
 
   useEffect(() => {
     if (!pendingDeleteExpense) return;
@@ -281,6 +319,21 @@ export default function DashboardPage() {
     window.requestAnimationFrame(() => dialogReturnFocusRef.current?.focus());
   }
 
+  function openPaymentForm() {
+    dialogReturnFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    setPaymentError("");
+    setPaymentAmount("");
+    setPaymentNote("");
+    setPaymentDate(new Date().toISOString().slice(0, 10));
+    setPaymentFormOpen(true);
+  }
+
+  function closePaymentForm() {
+    setPaymentError("");
+    setPaymentFormOpen(false);
+    window.requestAnimationFrame(() => dialogReturnFocusRef.current?.focus());
+  }
+
   function toggleParticipant(memberId: string) {
     if (participantIds.includes(memberId)) {
       setParticipantIds((current) => current.filter((id) => id !== memberId));
@@ -355,7 +408,7 @@ export default function DashboardPage() {
             saveLocalExpenses(data.session, expenses);
             return { members: data.members, expenses, debtPayments: data.debtPayments };
           })();
-      setData({ session: data.session, account: data.account, ...nextData });
+      setData({ ...data, ...nextData });
       setActionStatus(editingExpenseId ? "Harcama güncellendi." : "Harcama eklendi.");
       setAmount("");
       setShareAmounts({});
@@ -442,7 +495,7 @@ export default function DashboardPage() {
             saveLocalExpenses(data.session, expenses);
             return { members: data.members, expenses, debtPayments: data.debtPayments };
           })();
-      setData({ session: data.session, account: data.account, ...nextData });
+      setData({ ...data, ...nextData });
       setPendingDeleteExpense(null);
       setActionStatus("Harcama silindi.");
       window.requestAnimationFrame(() => document.getElementById("activity-title")?.focus());
@@ -493,10 +546,11 @@ export default function DashboardPage() {
             saveLocalDebtPayments(data.session, debtPayments);
             return { members: data.members, expenses: data.expenses, debtPayments };
           })();
-      setData({ session: data.session, account: data.account, ...nextData });
+      setData({ ...data, ...nextData });
       setActionStatus("Yapılan ödeme kaydedildi.");
       setPaymentAmount("");
       setPaymentNote("");
+      closePaymentForm();
     } catch (saveFailure) {
       setPaymentError(saveFailure instanceof Error ? saveFailure.message : "Ödeme kaydedilemedi.");
     } finally {
@@ -562,7 +616,7 @@ export default function DashboardPage() {
             <div className="account-menu-popover">
               <div className="account-menu-theme">
                 <span>Görünüm teması</span>
-                <ThemeControl />
+                <ThemeControl full />
               </div>
               <Link href="/settle">Kim kime ödeyecek?</Link>
               <button onClick={() => void signOut()} type="button"><LogOut aria-hidden="true" size={16} /> Oturumu kapat</button>
@@ -609,7 +663,7 @@ export default function DashboardPage() {
             {canWrite ? (
               <button className="primary-action" onClick={openExpenseForm} type="button"><Plus aria-hidden="true" size={18} /> Harcama ekle</button>
             ) : <Link className="primary-action" href="/start?mode=create">Google hesabını bağla</Link>}
-            <Link className="secondary-action" href="/settle">Kim kime ödeyecek?</Link>
+            {canWrite ? <button className="secondary-action" onClick={openPaymentForm} type="button"><ArrowUpRight aria-hidden="true" size={17} /> Ödeme kaydet</button> : <Link className="secondary-action" href="/settle">Kim kime ödeyecek?</Link>}
           </div>
         </aside>
 
@@ -622,57 +676,15 @@ export default function DashboardPage() {
           onDeleteExpense={requestDeleteExpense}
           onEditExpense={openEditExpense}
           payments={data.debtPayments}
+          runs={data.runs}
         />
-
-        {canWrite ? (
-          <details className="debt-payment-composer">
-            <summary><ArrowUpRight aria-hidden="true" size={17} /> Yapılan ödemeyi kaydet</summary>
-            <p className="debt-payment-hint">Bir kişi diğerine kısmi ödeme yaptıysa buraya kaydet. Bu kayıt yalnızca açık bakiyeyi azaltır; dönemi kapatmaz.</p>
-            {debtors.length === 0 || creditors.length === 0 ? (
-              <p className="debt-payment-empty">Şu anda kaydedilecek açık bir ödeme eşleşmesi yok.</p>
-            ) : (
-              <form className="debt-payment-form" onSubmit={handleDebtPaymentSubmit}>
-                <div className="form-two-col">
-                  <label className="field-label">Kim ödedi?
-                    <select onChange={(event) => { setPaymentFromId(event.target.value); setPaymentToId(""); setPaymentError(""); }} value={selectedPaymentFromId}>
-                      {debtors.map((balance) => <option key={balance.memberId} value={balance.memberId}>{memberById.get(balance.memberId)?.name} · borçlu</option>)}
-                    </select>
-                  </label>
-                  <label className="field-label">Kime ödedi?
-                    <select onChange={(event) => setPaymentToId(event.target.value)} value={selectedPaymentToId}>
-                      {availablePaymentRecipients.map((balance) => <option key={balance.memberId} value={balance.memberId}>{memberById.get(balance.memberId)?.name} · alacaklı</option>)}
-                    </select>
-                  </label>
-                </div>
-                <div className="form-two-col">
-                  <label className="field-label">Tutar
-                    <input inputMode="decimal" onChange={(event) => setPaymentAmount(event.target.value)} placeholder="100,00" required value={paymentAmount} />
-                  </label>
-                  <label className="field-label">Tarih
-                    <input onChange={(event) => setPaymentDate(event.target.value)} required type="date" value={paymentDate} />
-                  </label>
-                </div>
-                <label className="field-label">Not <span>(isteğe bağlı)</span>
-                  <input maxLength={160} onChange={(event) => setPaymentNote(event.target.value)} placeholder="Örn. Borcun bir kısmını ödedi" value={paymentNote} />
-                </label>
-                <p className="debt-payment-hint">Bu ödeme için en fazla {formatCurrency(maxPaymentCents)} kaydedebilirsin.</p>
-                {paymentError && <p className="form-error" role="alert">{paymentError}</p>}
-                <button className="primary-action form-submit" disabled={savingPayment || maxPaymentCents <= 0} type="submit">{savingPayment ? "Kaydediliyor…" : "Ödemeyi kaydet"}</button>
-              </form>
-            )}
-          </details>
-        ) : (
-          <div className="debt-payment-composer debt-payment-composer--locked">
-            <Link href="/start?mode=create">Ödeme kaydetmek için Google hesabını bağla</Link>
-          </div>
-        )}
 
         </div>
       </section>
 
       <div className="mobile-actionbar" aria-label="Ana işlemler">
         {canWrite ? <button className="primary-action" onClick={openExpenseForm} type="button"><Plus aria-hidden="true" size={18} /> Harcama ekle</button> : <Link className="primary-action" href="/start?mode=create">Google hesabını bağla</Link>}
-        <Link className="secondary-action" href="/settle">Ödeme listesine bak</Link>
+        {canWrite ? <button className="secondary-action" onClick={openPaymentForm} type="button"><ArrowUpRight aria-hidden="true" size={17} /> Ödeme kaydet</button> : <Link className="secondary-action" href="/settle">Ödeme listesine bak</Link>}
       </div>
 
       {pendingDeleteExpense && (
@@ -688,6 +700,51 @@ export default function DashboardPage() {
                 {deletingExpense ? "Siliniyor…" : "Harcamayı sil"}
               </button>
             </div>
+          </section>
+        </div>
+      )}
+
+      {isPaymentFormOpen && (
+        <div className="modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) closePaymentForm(); }}>
+          <section className="payment-modal" role="dialog" aria-modal="true" aria-labelledby="payment-modal-title" aria-describedby={paymentError ? "payment-form-error" : undefined}>
+            <header className="modal-header">
+              <div><h2 id="payment-modal-title">Yapılan ödeme kaydet</h2><p>Kısmi ödemeyi açık bakiyeden düş.</p></div>
+              <button className="icon-button" aria-label="Formu kapat" onClick={closePaymentForm} type="button"><X aria-hidden="true" size={20} /></button>
+            </header>
+            <form className="payment-modal__body" onSubmit={handleDebtPaymentSubmit}>
+              {debtors.length === 0 || creditors.length === 0 ? (
+                <p className="debt-payment-empty">Şu anda kaydedilecek açık bir ödeme eşleşmesi yok.</p>
+              ) : (
+                <>
+                  <div className="form-two-col">
+                    <label className="field-label">Kim ödedi?
+                      <select onChange={(event) => { setPaymentFromId(event.target.value); setPaymentToId(""); setPaymentError(""); }} value={selectedPaymentFromId}>
+                        {debtors.map((balance) => <option key={balance.memberId} value={balance.memberId}>{memberById.get(balance.memberId)?.name} · borçlu</option>)}
+                      </select>
+                    </label>
+                    <label className="field-label">Kime ödedi?
+                      <select onChange={(event) => setPaymentToId(event.target.value)} value={selectedPaymentToId}>
+                        {availablePaymentRecipients.map((balance) => <option key={balance.memberId} value={balance.memberId}>{memberById.get(balance.memberId)?.name} · alacaklı</option>)}
+                      </select>
+                    </label>
+                  </div>
+                  <div className="form-two-col">
+                    <label className="field-label">Tutar
+                      <input inputMode="decimal" onChange={(event) => setPaymentAmount(event.target.value)} placeholder="100,00" required value={paymentAmount} />
+                    </label>
+                    <label className="field-label">Tarih
+                      <input onChange={(event) => setPaymentDate(event.target.value)} required type="date" value={paymentDate} />
+                    </label>
+                  </div>
+                  <label className="field-label">Not <span>(isteğe bağlı)</span>
+                    <input maxLength={160} onChange={(event) => setPaymentNote(event.target.value)} placeholder="Örn. Borcun bir kısmını ödedi" value={paymentNote} />
+                  </label>
+                  <p className="debt-payment-hint">Bu ödeme için en fazla {formatCurrency(maxPaymentCents)} kaydedebilirsin.</p>
+                  {paymentError && <p className="form-error" id="payment-form-error" role="alert">{paymentError}</p>}
+                  <button className="primary-action form-submit" disabled={savingPayment || maxPaymentCents <= 0} type="submit">{savingPayment ? "Kaydediliyor…" : "Ödemeyi kaydet"}</button>
+                </>
+              )}
+            </form>
           </section>
         </div>
       )}

@@ -7,8 +7,8 @@
 .settle-theme-menu .account-menu-popover { position: absolute; z-index: 30; top: calc(100% + 9px); right: 0; width: min(250px, calc(100vw - 28px)); padding: 7px; border-radius: 16px; background: var(--surface-raised); box-shadow: var(--shadow-sheet); }
 .settle-theme-menu .account-menu-theme { padding: 9px 10px 10px; display: grid; gap: 6px; }
 .settle-theme-menu .account-menu-theme > span { color: var(--text-muted); font-size: 13px; font-weight: 650; }
-.settle-theme-menu .theme-control { width: 100%; justify-content: space-between; border: 0; background: var(--surface-soft); }
-.settle-theme-menu .theme-control select { max-width: none; flex: 1; }
+.settle-theme-menu .theme-control { width: 100%; }
+.settle-theme-menu .theme-control > summary { border: 0; background: var(--surface-soft); }
 .settle-main { max-width: 1080px; margin: 30px auto 0; }
 .settle-heading { margin-bottom: 26px; display: flex; align-items: flex-end; justify-content: space-between; gap: 28px; }
 .settle-heading h1 { margin-bottom: 7px; font-size: clamp(29px, 4vw, 42px); letter-spacing: -.04em; line-height: 1.1; }
