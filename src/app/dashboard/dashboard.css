@@ -90,6 +90,8 @@
 .activity-year-filter { min-width: 0; margin-left: auto; }
 .activity-year-filter select { min-height: 36px; max-width: 108px; padding: 4px 8px 4px 10px; border: 0; border-left: 1px solid var(--border-subtle); border-radius: 0; background: transparent; color: var(--text-muted); font-size: 14px; }
 .activity-year-filter select:hover { color: var(--text); }
+:root[data-theme="dark"] .activity-year-filter select { color-scheme: dark; }
+:root[data-theme="dark"] .activity-year-filter select option { background: var(--surface-raised); color: var(--text); }
 .activity-list { margin: 14px 0 0; padding: 0; list-style: none; }
 .activity-item { padding: 17px 0; }
 .activity-item + .activity-item { margin-top: 5px; border-top: 1px solid color-mix(in srgb, var(--border-subtle), transparent 35%); }
