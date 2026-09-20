@@ -26,6 +26,8 @@ Supabase Authentication > Sign In / Providers bölümünde Google’ı etkinleş
 
 Supabase değişkenleri yokken Google girişi ve yeni ev işlemleri kullanılamaz. Daha önce bu cihazda açılmış yerel oturumlar prototip amaçlı okunabilir; evler arası paylaşım Supabase Auth/RLS gerektirir. Doğrudan borç ödemeleri açık bakiyeye eklenir; dönem kapatma harcamalarla ödemeleri birlikte arşivler.
 
+Admin paneli `/admin` adresinde açılır. Kullanıcı ve ev listeleri için sunucuda `ADMIN_EMAILS` ile `SUPABASE_SECRET_KEY` ayarlarının yapılması gerekir. Kurulum ve erişim modeli için [docs/admin-panel.md](./docs/admin-panel.md) dosyasına bakın.
+
 ```bash
 npm run test
 npm run lint
