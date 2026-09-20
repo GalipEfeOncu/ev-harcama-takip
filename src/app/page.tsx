@@ -5,10 +5,12 @@ import {
   CircleHelp,
   ClipboardList,
   House,
+  HousePlus,
   Users,
 } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import ThemeControl from "@/components/theme-control";
 import { createClient as createServerClient, hasSupabaseConfiguration } from "@/lib/supabase/server";
 
 const sampleMembers = [
@@ -28,10 +30,9 @@ const sampleExpenses = [
 function SampleMember({ member }: { member: (typeof sampleMembers)[number] }) {
   return (
     <li className="sample-person">
-      <span className="sample-person__node" aria-hidden="true" />
       <span className="sample-person__name">{member.name}</span>
-      <strong>{member.amount}</strong>
       <span className="sample-person__state">{member.state}</span>
+      <strong>{member.amount}</strong>
     </li>
   );
 }
@@ -59,66 +60,60 @@ export default async function HomePage() {
 
   return (
     <main className="marketing-shell" id="top">
+      <a className="skip-link" href="#main-content">İçeriğe geç</a>
       <header className="public-header">
         <Link className="public-wordmark" href="/" aria-label="Ev Hesap ana sayfa">
-          <span className="wordmark-symbol" aria-hidden="true">EH</span>
-          <span>EV HESAP</span>
+          <span className="wordmark-symbol" aria-hidden="true"><House /></span>
+          <span>Ev Hesap</span>
         </Link>
         <nav className="public-nav" aria-label="Sayfa bölümleri">
           <a href="#nasil-calisir">Nasıl çalışır?</a>
           <a href="#hesaplama">Hesaplama</a>
         </nav>
-        <Link className="header-action" href="/start?mode=create">
-          Evini oluştur <ArrowUpRight aria-hidden="true" size={16} />
-        </Link>
+        <div className="header-tools">
+          <ThemeControl />
+          <Link aria-label="Ev oluştur" className="header-action" href="/start?mode=create">
+            Ev oluştur <HousePlus aria-hidden="true" size={16} />
+          </Link>
+        </div>
       </header>
 
-      <section className="landing-hero" aria-labelledby="landing-title">
+      <section className="landing-hero" id="main-content" aria-labelledby="landing-title">
         <div className="landing-copy">
-          <h1 id="landing-title">Ortak evin hesabı <span>tek panoda.</span></h1>
+          <h1 id="landing-title">Ortak ev harcamaları <span>aynı hesapta.</span></h1>
           <p>
-            Ev kodunu paylaşın; marketi, faturayı ve herkesin payını birlikte
-            görün. Ev Hesap açık giderlerden kimin kime ödeme yapacağını çıkarır.
+            Ev kodunu paylaşın; kimin ne ödediğini, harcamaya kimlerin katıldığını
+            ve açık bakiyeleri birlikte görün.
           </p>
           <div className="landing-actions">
             <Link className="primary-action landing-primary" href="/start?mode=create">
-              <House aria-hidden="true" size={17} /> Ev oluştur <ArrowRight aria-hidden="true" size={17} />
+              <House aria-hidden="true" size={18} /> Ev oluştur <ArrowRight aria-hidden="true" size={18} />
             </Link>
             <Link className="text-link" href="/start?mode=join">
               Ev kodum var <ArrowUpRight aria-hidden="true" size={15} />
             </Link>
           </div>
-          <p className="landing-note"><Users aria-hidden="true" size={15} /> Aynı evde yaşayanlar için ortak gider hesabı.</p>
+          <p className="landing-note"><Users aria-hidden="true" size={17} /> Bir ev hesabında gideri, ödeyeni ve payları kaydedin.</p>
         </div>
 
-        <section className="sample-panel" aria-label="Örnek ev hesabı panosu">
+        <section className="sample-panel" aria-label="Örnek ev hesabı">
           <div className="sample-panel__header">
             <div>
-              <span className="sample-panel__house">ÇAMLIK EV</span>
-              <h2>Açık hesap</h2>
+              <h2>Bu evin açık giderleri</h2>
             </div>
-            <span className="sample-panel__tag">Örnek pano</span>
+            <span className="sample-panel__tag">Temsili görünüm</span>
           </div>
           <div className="sample-total">
             <span>Açık gider toplamı</span>
             <strong>₺3.250</strong>
           </div>
-          <ul className="sample-rail" aria-label="Beş ev arkadaşının örnek bakiyesi">
-            <li className="sample-rail__row sample-rail__row--three">
-              <ul className="sample-rail__members">
-                {sampleMembers.slice(0, 3).map((member) => <SampleMember key={member.name} member={member} />)}
-              </ul>
-            </li>
-            <li className="sample-rail__row sample-rail__row--two">
-              <ul className="sample-rail__members">
-                {sampleMembers.slice(3).map((member) => <SampleMember key={member.name} member={member} />)}
-              </ul>
-            </li>
-          </ul>
+          <div className="sample-balances" aria-label="Örnek kişi bakiyeleri">
+            <p className="sample-section-title">Kişi bakiyeleri</p>
+            <ul>{sampleMembers.map((member) => <SampleMember key={member.name} member={member} />)}</ul>
+          </div>
           <div className="sample-expenses">
             <div className="sample-expenses__heading">
-              <h3>Son eklenenler</h3>
-              <span>temsili kayıtlar</span>
+              <h3>Son hareketler</h3>
             </div>
             {sampleExpenses.map((expense) => (
               <div className="sample-expense" key={expense.description}>
@@ -136,7 +131,7 @@ export default async function HomePage() {
       <section className="how-section" id="nasil-calisir" aria-labelledby="how-title">
         <div className="section-intro">
           <h2 id="how-title">Harcama ortaksa, kayıt da ortak.</h2>
-          <p>Evdeki herkes aynı açık hesabı görür. Kimin ödediği ve kimlerin paylaştığı kayıtta kalır.</p>
+          <p>Açık hesapta gider, ödeyen kişi ve katılımcı payları birlikte izlenir.</p>
         </div>
         <ol className="process-list">
           <li>
@@ -168,8 +163,8 @@ export default async function HomePage() {
 
       <footer className="public-footer">
         <Link className="public-wordmark" href="#top">
-          <span className="wordmark-symbol" aria-hidden="true">EH</span>
-          <span>EV HESAP</span>
+          <span className="wordmark-symbol" aria-hidden="true"><House /></span>
+          <span>Ev Hesap</span>
         </Link>
         <p>Ev arkadaşlarının ortak gider hesabı.</p>
         <Link href="/start">Başla <ArrowUpRight aria-hidden="true" size={15} /></Link>

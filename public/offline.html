@@ -3,18 +3,25 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#e9f0e8">
+    <meta name="theme-color" content="#EFE5D4">
     <title>Bağlantı yok · Ev Hesap</title>
     <style>
-      :root { color-scheme: light; font-family: "Mada", "Segoe UI", sans-serif; background: #e9f0e8; color: #202a2b; }
+      :root { color-scheme: light dark; font-family: "Mada", "Segoe UI", sans-serif; background: #EFE5D4; color: #17211B; }
       * { box-sizing: border-box; }
       body { min-height: 100vh; margin: 0; display: grid; place-items: center; padding: 24px; }
-      main { width: min(100%, 440px); padding: 28px 0; border-top: 2px solid #202a2b; border-bottom: 1px solid #a6b5aa; }
+      main { width: min(100%, 440px); padding: 28px 0; border-top: 2px solid currentColor; border-bottom: 1px solid #DED4C4; }
       img { width: 52px; height: 52px; margin-bottom: 30px; }
       h1 { max-width: 10ch; margin: 0 0 12px; font-family: "Yantramanav", "Segoe UI", sans-serif; font-size: clamp(38px, 11vw, 56px); line-height: 0.98; letter-spacing: -0.03em; }
-      p { max-width: 38ch; margin: 0 0 24px; color: #586866; font-size: 17px; line-height: 1.5; }
-      button { min-height: 46px; padding: 0 16px; border: 1px solid #d86436; border-radius: 4px; background: #d86436; color: #0a1117; font: inherit; font-weight: 700; cursor: pointer; }
-      button:focus-visible { outline: 2px solid #0a1117; outline-offset: 3px; }
+      p { max-width: 38ch; margin: 0 0 24px; color: #59635D; font-size: 17px; line-height: 1.5; }
+      button { min-height: 48px; padding: 0 16px; border: 1px solid #E66E45; border-radius: 10px; background: #E66E45; color: #17211B; font: inherit; font-weight: 700; cursor: pointer; }
+      button:focus-visible { outline: 3px solid #286C56; outline-offset: 3px; }
+      @media (prefers-color-scheme: dark) {
+        :root { background: #18130F; color: #F5EFE5; }
+        main { border-bottom-color: #4A392D; }
+        p { color: #C1B19F; }
+        button { border-color: #D97850; background: #D97850; color: #24160F; }
+        button:focus-visible { outline-color: #F0B28E; }
+      }
     </style>
   </head>
   <body>

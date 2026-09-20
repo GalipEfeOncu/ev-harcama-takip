@@ -1,0 +1,83 @@
+.dashboard-shell.settle-shell { padding-bottom: 50px; }
+.settle-header-tools { justify-self: end; }
+.settle-header-tools .settle-theme-menu { display: none; position: relative; }
+.settle-theme-menu > summary { width: 44px; min-height: 44px; display: grid; place-items: center; border-radius: var(--radius-control); background: var(--surface); cursor: pointer; list-style: none; }
+.settle-theme-menu > summary:hover { background: var(--surface-soft); }
+.settle-theme-menu > summary::-webkit-details-marker { display: none; }
+.settle-theme-menu .account-menu-popover { position: absolute; z-index: 30; top: calc(100% + 9px); right: 0; width: min(250px, calc(100vw - 28px)); padding: 7px; border-radius: 16px; background: var(--surface-raised); box-shadow: var(--shadow-sheet); }
+.settle-theme-menu .account-menu-theme { padding: 9px 10px 10px; display: grid; gap: 6px; }
+.settle-theme-menu .account-menu-theme > span { color: var(--text-muted); font-size: 13px; font-weight: 650; }
+.settle-theme-menu .theme-control { width: 100%; justify-content: space-between; border: 0; background: var(--surface-soft); }
+.settle-theme-menu .theme-control select { max-width: none; flex: 1; }
+.settle-main { max-width: 1080px; margin: 30px auto 0; }
+.settle-heading { margin-bottom: 26px; display: flex; align-items: flex-end; justify-content: space-between; gap: 28px; }
+.settle-heading h1 { margin-bottom: 7px; font-size: clamp(29px, 4vw, 42px); letter-spacing: -.04em; line-height: 1.1; }
+.settle-heading > div > p { max-width: 58ch; margin: 0; color: var(--text-muted); }
+.settle-rule { max-width: 300px; margin: 0 0 2px; padding: 12px 14px; display: flex; align-items: flex-start; gap: 9px; border-radius: 12px; background: var(--surface-soft); color: var(--text-muted); font-size: 14px; }
+.settle-rule svg { margin-top: 2px; }
+.transfer-card { padding: clamp(18px, 3vw, 28px); border-radius: var(--radius-surface); background: var(--surface); }
+.transfer-card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 15px; }
+.transfer-card-head h2 { margin: 0; font-size: 23px; letter-spacing: -.03em; }
+.transfer-card-head p { margin: 4px 0 0; color: var(--text-muted); font-size: 14px; }
+.transfer-count { padding: 6px 10px; border-radius: 99px; background: var(--surface-soft); color: var(--text-muted); font-size: 14px; white-space: nowrap; }
+.transfer-list { margin-top: 18px; display: grid; gap: 8px; }
+.transfer-row { min-height: 74px; padding: 11px 14px; display: grid; grid-template-columns: minmax(0, 1fr) 28px minmax(0, 1fr) auto; align-items: center; gap: 12px; border-radius: 12px; background: var(--surface-soft); }
+.transfer-person { min-width: 0; display: flex; flex-direction: column; }
+.transfer-person span { overflow-wrap: anywhere; font-weight: 700; }
+.transfer-person small { color: var(--text-muted); font-size: 13px; }
+.transfer-person--receiver { text-align: left; }
+.transfer-arrow { display: grid; place-items: center; color: var(--text-muted); }
+.transfer-row > b { font-size: 16px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.settle-card-foot { margin-top: 19px; padding-top: 16px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.settle-card-foot > p { max-width: 56ch; margin: 0; color: var(--text-muted); font-size: 14px; }
+.settle-card-foot > .primary-action { flex: 0 0 auto; }
+.settle-confirm { flex: 0 1 530px; padding: 15px; border-radius: 13px; background: var(--warning-surface, var(--surface-soft)); }
+.settle-confirm > p { margin: 0 0 11px; font-weight: 650; }
+.settle-confirm > div { display: flex; flex-wrap: wrap; gap: 8px; }
+.settle-empty { min-height: 220px; padding: 28px 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-muted); text-align: center; }
+.settle-empty > svg { margin-bottom: 12px; color: var(--positive); }
+.settle-empty h3 { margin: 0 0 5px; color: var(--text); font-size: 20px; }
+.settle-empty p { max-width: 45ch; margin: 0 0 10px; }
+.settle-success { max-width: 620px; margin: 32px auto; padding: clamp(24px, 5vw, 42px); border-radius: var(--radius-surface); background: var(--surface); text-align: center; }
+.settle-success h2 { margin: 0 0 8px; font-size: 26px; }
+.settle-success > p { max-width: 47ch; margin: 0 auto 12px; color: var(--text-muted); }
+.settle-success > .success-icon { margin-inline: auto; }
+.settle-success > .primary-action { margin-top: 7px; }
+.settlement-history { margin-top: 28px; padding: 21px 23px; border-radius: var(--radius-surface); background: var(--surface); }
+.history-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.history-heading h2 { margin: 0; font-size: 20px; }
+.history-heading > span { color: var(--text-muted); font-size: 14px; }
+.history-empty { margin: 11px 0 0; color: var(--text-muted); }
+.settlement-history-row { min-height: 58px; padding: 10px 0; display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 15px; }
+.settlement-history-row + .settlement-history-row { border-top: 1px solid color-mix(in srgb, var(--border-subtle), transparent 35%); }
+.settlement-history-row > span { display: flex; align-items: center; gap: 7px; }
+.settlement-history-row > span svg { color: var(--positive); }
+.settlement-history-row b { color: var(--text-muted); font-size: 14px; font-weight: 500; }
+.settlement-history-row strong { font-size: 14px; }
+@media (max-width: 760px) {
+  .settle-heading { align-items: stretch; flex-direction: column; gap: 14px; }
+  .settle-rule { max-width: none; }
+  .settle-card-foot { align-items: stretch; flex-direction: column; gap: 13px; }
+  .settle-card-foot > .primary-action { width: 100%; }
+}
+@media (max-width: 560px) {
+  .dashboard-shell.settle-shell { padding-inline: 13px; }
+  .account-header { grid-template-columns: auto minmax(0, 1fr) auto; }
+  .settle-header-tools { gap: 5px; }
+  .settle-header-tools > .desktop-theme-control { display: none; }
+  .settle-header-tools .settle-theme-menu { display: block; }
+  .settle-header-tools .header-back { width: 44px; padding: 0; overflow: hidden; font-size: 0; }
+  .settle-header-tools .header-back svg { width: 20px; height: 20px; }
+  .settle-main { margin-top: 20px; }
+  .settle-heading { margin-bottom: 19px; }
+  .transfer-card { padding: 17px 14px; }
+  .transfer-card-head h2 { font-size: 20px; }
+  .transfer-card-head p { max-width: 28ch; line-height: 1.4; }
+  .transfer-row { padding: 10px; grid-template-columns: minmax(0, 1fr) 22px minmax(0, 1fr); gap: 6px; }
+  .transfer-row > b { grid-column: 1 / -1; justify-self: end; }
+  .settlement-history { padding: 18px 15px; }
+  .settlement-history-row { grid-template-columns: minmax(0, 1fr) auto; gap: 4px 10px; }
+  .settlement-history-row > span { grid-column: 1 / -1; }
+  .settlement-history-row b { font-size: 13px; }
+  .settlement-history-row strong { text-align: right; }
+}

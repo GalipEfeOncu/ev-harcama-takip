@@ -12,6 +12,7 @@ import {
   Users,
 } from "lucide-react";
 import Link from "next/link";
+import ThemeControl from "@/components/theme-control";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
 import { beginGoogleSignIn, getAccountSnapshot } from "@/lib/auth";
@@ -129,38 +130,36 @@ export default function StartPage() {
     <main className="onboarding-shell">
       <header className="public-header onboarding-header">
         <Link className="public-wordmark" href="/" aria-label="Ev Hesap ana sayfa">
-          <span className="wordmark-symbol" aria-hidden="true">EH</span>
-          <span>EV HESAP</span>
+          <span className="wordmark-symbol" aria-hidden="true"><Home /></span>
+          <span>Ev Hesap</span>
         </Link>
-        <Link className="header-back" href="/"><ArrowLeft aria-hidden="true" size={16} /> Ana sayfa</Link>
+        <div className="header-tools">
+          <ThemeControl />
+          <Link className="header-back" href="/"><ArrowLeft aria-hidden="true" size={16} /> Ana sayfa</Link>
+        </div>
       </header>
 
       <section className="onboarding-layout" aria-label="Ev hesabı kurulumu">
         <div className="onboarding-intro">
           <h1>Önce aynı evde buluşun.</h1>
           <p className="onboarding-lede">
-            Google hesabınla giriş yap, bir ev oluştur ya da ev arkadaşından aldığın
-            kodla katıl. Harcamalar yalnızca o evin üyelerine görünür.
+            Google hesabınla giriş yap; yeni bir ev hesabı açabilir veya ev koduyla
+            katılabilirsin. Harcama eklerken ödeyeni ve katılımcı paylarını seçebilirsin.
           </p>
           <ul className="onboarding-points">
             <li><KeyRound aria-hidden="true" size={18} /><span><strong>Ev kodu</strong><small>Katılmak için ev sahibinin kodunu kullan.</small></span></li>
             <li><Users aria-hidden="true" size={18} /><span><strong>Kişi ve pay</strong><small>Harcamanın kimleri ilgilendirdiğini seç.</small></span></li>
-            <li><LockKeyhole aria-hidden="true" size={18} /><span><strong>Hesabına geri dön</strong><small>Google hesabınla evini farklı cihazlardan aç.</small></span></li>
+            <li><ArrowRight aria-hidden="true" size={18} /><span><strong>Google hesabıyla devam et</strong><small>Girişten sonra yeni bir ev açabilir veya kodla katılabilirsin.</small></span></li>
           </ul>
         </div>
 
         <section className="onboarding-panel" aria-label="Ev oluştur veya katıl">
           {!session ? (
             <>
-              <div className="mode-switch" role="tablist" aria-label="Ev işlemi">
-                <button id="create-mode" aria-controls="setup-panel" className={mode === "create" ? "active" : ""} onClick={() => switchMode("create")} role="tab" aria-selected={mode === "create"} type="button">Yeni ev oluştur</button>
-                <button id="join-mode" aria-controls="setup-panel" className={mode === "join" ? "active" : ""} onClick={() => switchMode("join")} role="tab" aria-selected={mode === "join"} type="button">Ev koduyla katıl</button>
-              </div>
-
               {authState === "checking" ? (
-                <p className="form-footnote" id="setup-panel" role="tabpanel" aria-labelledby={mode === "create" ? "create-mode" : "join-mode"}>Hesap kontrol ediliyor…</p>
+                <p className="form-footnote" role="status">Hesap kontrol ediliyor…</p>
               ) : authState !== "account" ? (
-                <div className="google-sign-in" id="setup-panel" role="tabpanel" aria-labelledby={mode === "create" ? "create-mode" : "join-mode"}>
+                <div className="google-sign-in">
                   <div className="form-heading">
                     <span className="form-heading__icon" aria-hidden="true"><LockKeyhole size={20} /></span>
                     <h2>{authState === "anonymous" || authState === "unlinked" ? "Mevcut evini koru." : "Google hesabınla devam et."}</h2>
@@ -172,21 +171,25 @@ export default function StartPage() {
                   ) : (
                     <p className="google-sign-in__copy">Ev oluşturmak, davet koduyla katılmak ve hesabına yeniden dönmek için Google ile giriş yap.</p>
                   )}
-                  {(error || authFailed) && <p className="form-error" role="alert">{error || "Google girişi tamamlanmadı. Yeniden deneyebilirsin."}</p>}
+                  {(error || authFailed) && <p className="form-error" role="alert">{error || "Giriş bu kez tamamlanmadı. Bağlantını kontrol edip yeniden deneyebilirsin."}</p>}
                   <button className="secondary-action google-action" disabled={authBusy || authState === "unavailable"} onClick={() => void continueWithGoogle()} type="button">
                     <GoogleMark />
                     {authBusy ? "Google açılıyor…" : authState === "anonymous" || authState === "unlinked" ? "Google hesabını bağla" : "Google ile devam et"}
                   </button>
-                  <p className="form-footnote"><LockKeyhole aria-hidden="true" size={14} /> Yalnızca Google hesabı kullanılır; ev verilerin üyeliğinle korunur.</p>
+                  <p className="form-footnote"><ArrowRight aria-hidden="true" size={14} /> Girişten sonra ev açma ya da davet koduyla katılma seçeneği sunulur.</p>
                 </div>
               ) : (
                 <>
+                  <div className="mode-switch" role="group" aria-label="Ev işlemi">
+                    <button aria-pressed={mode === "create"} className={mode === "create" ? "active" : ""} onClick={() => switchMode("create")} type="button">Yeni ev oluştur</button>
+                    <button aria-pressed={mode === "join"} className={mode === "join" ? "active" : ""} onClick={() => switchMode("join")} type="button">Ev koduyla katıl</button>
+                  </div>
                   <div className="form-heading">
                     <span className="form-heading__icon" aria-hidden="true">{mode === "create" ? <Home size={20} /> : <KeyRound size={20} />}</span>
                     <h2 id="setup-title">{mode === "create" ? "Yeni bir ev hesabı aç." : "Arkadaşının evine katıl."}</h2>
                   </div>
 
-                  <div id="setup-panel" role="tabpanel" aria-labelledby={mode === "create" ? "create-mode" : "join-mode"}>
+                  <div className="setup-panel">
                     <form onSubmit={handleSubmit} noValidate>
                   {mode === "create" && (
                     <label className="field-label">
@@ -213,7 +216,7 @@ export default function StartPage() {
                         <ArrowRight aria-hidden="true" size={17} />
                       </button>
                     </form>
-                    <p className="form-footnote"><LockKeyhole aria-hidden="true" size={14} /> Google hesabınla giriş yaptın; ev bilgileri üyeliğine bağlı.</p>
+                    <p className="form-footnote"><ArrowRight aria-hidden="true" size={14} /> Giriş tamamlandı. Ev hesabına geçip açık giderleri inceleyebilirsin.</p>
                   </div>
                 </>
               )}
@@ -232,7 +235,7 @@ export default function StartPage() {
                 </button>
               </div>
               <p className="code-caption">Bu evin açık harcamalarını ve bakiyelerini görmek için devam et.</p>
-              <Link className="primary-action form-submit" href="/dashboard">Dashboard&apos;a git <ArrowRight aria-hidden="true" size={17} /></Link>
+              <Link className="primary-action form-submit" href="/dashboard">Ev hesabına dön <ArrowRight aria-hidden="true" size={17} /></Link>
               <button className="text-action" onClick={() => setSession(null)} type="button">Başka bir ev seç</button>
             </div>
           )}

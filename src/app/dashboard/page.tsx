@@ -3,17 +3,20 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  ArrowRightLeft,
+  ArrowUpRight,
   Copy,
-  Edit2,
   Home,
   LogOut,
-  ReceiptText,
+  MoreHorizontal,
+  Plus,
   Trash2,
   X,
 } from "lucide-react";
-import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import GoogleMark from "@/components/google-mark";
+import ThemeControl from "@/components/theme-control";
+import ActivityFeed from "@/components/activity-feed";
+import MemberBalances from "@/components/member-balances";
 import { beginGoogleSignIn } from "@/lib/auth";
 import { calculateBalances, formatCurrency, parseAmountToCents, splitAmount } from "@/lib/calculations";
 import { createRemoteDebtPayment, createRemoteExpense, deleteRemoteExpense, loadRemoteHousehold, loadRemoteHouseholdSession, rotateRemoteHouseholdJoinCode, updateRemoteExpense } from "@/lib/data-service";
@@ -29,6 +32,7 @@ import {
 } from "@/lib/local-store";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import type { DebtPayment, Expense, ExpenseShare, Member } from "@/lib/types";
+import "./dashboard.css";
 
 type DashboardData = {
   session: LocalSession;
@@ -43,54 +47,13 @@ function createId(prefix: string) {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
-function currentMonthKey() {
-  return new Date().toISOString().slice(0, 7);
-}
-
-function dateLabel(date: string) {
-  return new Intl.DateTimeFormat("tr-TR", { day: "numeric", month: "long" }).format(new Date(`${date}T12:00:00`));
-}
-
-function splitIntoRows<T>(items: T[], size: number) {
-  const rows: T[][] = [];
-  for (let index = 0; index < items.length; index += size) rows.push(items.slice(index, index + size));
-  return rows;
+function balanceState(amountCents: number) {
+  return amountCents > 0 ? "alacaklı" : amountCents < 0 ? "borçlu" : "dengede";
 }
 
 function signedCurrency(amountCents: number) {
   const sign = amountCents > 0 ? "+" : amountCents < 0 ? "−" : "";
   return `${sign}${formatCurrency(Math.abs(amountCents))}`;
-}
-
-function balanceState(amountCents: number) {
-  return amountCents > 0 ? "alacaklı" : amountCents < 0 ? "borçlu" : "dengede";
-}
-
-function MemberTerminal({
-  member,
-  balanceCents,
-  isCurrentMember,
-  placement,
-}: {
-  member: Member;
-  balanceCents: number;
-  isCurrentMember: boolean;
-  placement: "upper" | "lower";
-}) {
-  const state = balanceState(balanceCents);
-
-  return (
-    <div
-      className={`balance-terminal balance-terminal--${placement}`}
-      role="group"
-      aria-label={`${member.name}${isCurrentMember ? ", sen" : ""}: ${signedCurrency(balanceCents)}, ${state}`}
-    >
-      <span className="balance-terminal__node" aria-hidden="true" />
-      <span className="balance-terminal__name">{member.name}</span>
-      <strong className="balance-terminal__amount">{signedCurrency(balanceCents)}</strong>
-      <span className="balance-terminal__state">{state}</span>
-    </div>
-  );
 }
 
 export default function DashboardPage() {
@@ -120,12 +83,24 @@ export default function DashboardPage() {
   const [paymentNote, setPaymentNote] = useState("");
   const [paymentError, setPaymentError] = useState("");
   const [savingPayment, setSavingPayment] = useState(false);
-  const [selectedPeriod, setSelectedPeriod] = useState("month");
   const [copyStatus, setCopyStatus] = useState("");
+  const [actionStatus, setActionStatus] = useState("");
   const [rotatingCode, setRotatingCode] = useState(false);
   const [linkingGoogle, setLinkingGoogle] = useState(false);
   const dialogReturnFocusRef = useRef<HTMLElement | null>(null);
   const cancelDeleteButtonRef = useRef<HTMLButtonElement | null>(null);
+  const isBlockingDialogOpen = isExpenseFormOpen || pendingDeleteExpense !== null;
+
+  useEffect(() => {
+    if (!isBlockingDialogOpen) return;
+    const body = document.body;
+    const previousOverflow = body.style.overflow;
+    body.style.overflow = "hidden";
+
+    return () => {
+      body.style.overflow = previousOverflow;
+    };
+  }, [isBlockingDialogOpen]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -163,23 +138,26 @@ export default function DashboardPage() {
     if (!isExpenseFormOpen) return;
     const dialog = document.querySelector<HTMLElement>(".expense-modal");
     if (!dialog) return;
-    const focusable = Array.from(dialog.querySelectorAll<HTMLElement>(
-      'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
-    ));
+    const activeDialog = dialog;
     dialog.querySelector<HTMLElement>(
       'input:not([disabled]), select:not([disabled]), textarea:not([disabled])',
     )?.focus();
 
     function handleDialogKeys(event: KeyboardEvent) {
       if (event.key === "Escape") {
+        event.preventDefault();
         setFormError("");
         setExpenseFormOpen(false);
         window.requestAnimationFrame(() => dialogReturnFocusRef.current?.focus());
         return;
       }
-      if (event.key !== "Tab" || focusable.length === 0) return;
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
+      if (event.key !== "Tab") return;
+      const currentFocusable = Array.from(activeDialog.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      ));
+      if (currentFocusable.length === 0) return;
+      const first = currentFocusable[0];
+      const last = currentFocusable[currentFocusable.length - 1];
       if (event.shiftKey && document.activeElement === first) {
         event.preventDefault();
         last.focus();
@@ -238,18 +216,11 @@ export default function DashboardPage() {
   const customAmountCents = customSharesComplete
     ? parsedShares.reduce((sum, share) => sum + (share.amountCents ?? 0), 0)
     : 0;
-  const monthExpenses = useMemo(
-    () => data?.expenses.filter((expense) => expense.expenseDate.startsWith(currentMonthKey())) ?? [],
-    [data],
-  );
   const openExpenses = (data?.expenses.filter((expense) => !expense.settlementRunId) ?? [])
     .sort((a, b) => b.expenseDate.localeCompare(a.expenseDate));
   const openPayments = (data?.debtPayments.filter((payment) => !payment.settlementRunId) ?? [])
     .sort((a, b) => b.paidAt.localeCompare(a.paidAt) || b.createdAt.localeCompare(a.createdAt));
-  const archivedPayments = (data?.debtPayments.filter((payment) => payment.settlementRunId) ?? [])
-    .sort((a, b) => b.paidAt.localeCompare(a.paidAt) || b.createdAt.localeCompare(a.createdAt));
   const openTotal = openExpenses.reduce((sum, expense) => sum + expense.amountCents, 0);
-  const allTimeTotal = (data?.expenses ?? []).reduce((sum, expense) => sum + expense.amountCents, 0);
   const balances = data ? calculateBalances(activeMembers, openExpenses, openPayments) : [];
   const debtors = balances.filter((balance) => balance.amountCents < 0);
   const creditors = balances.filter((balance) => balance.amountCents > 0);
@@ -266,15 +237,8 @@ export default function DashboardPage() {
   );
   const canWrite = Boolean(data && (!isSupabaseConfigured() || data.account.hasGoogleIdentity));
   const memberById = new Map((data?.members ?? []).map((member) => [member.id, member]));
-  const balanceByMemberId = new Map(balances.map((balance) => [balance.memberId, balance.amountCents]));
-  const topMembers = activeMembers.slice(0, 3);
-  const lowerMemberRows = splitIntoRows(activeMembers.slice(3), 2);
-  const availableYears = [...new Set((data?.expenses ?? []).map((expense) => expense.expenseDate.slice(0, 4)))].sort((a, b) => b.localeCompare(a));
-  const periodExpenses = selectedPeriod === "month"
-    ? monthExpenses
-    : selectedPeriod === "all"
-      ? (data?.expenses ?? [])
-      : (data?.expenses ?? []).filter((expense) => expense.expenseDate.startsWith(selectedPeriod));
+  const currentBalance = balances.find((balance) => balance.memberId === data?.session.memberId)?.amountCents ?? 0;
+  const memberNames = Object.fromEntries((data?.members ?? []).map((member) => [member.id, member.name]));
 
   function openExpenseForm() {
     dialogReturnFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
@@ -336,17 +300,12 @@ export default function DashboardPage() {
     return (amountCents / 100).toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
 
-  function expenseShareLabel(expense: Expense) {
-    const shares = expense.participantShares
-      ?? [...splitAmount(expense.amountCents, expense.participantIds)].map(([memberId, amountCents]) => ({ memberId, amountCents }));
-    return shares.map((share) => `${memberById.get(share.memberId)?.name ?? "Bilinmeyen"} ${formatCurrency(share.amountCents)}`).join(" · ");
-  }
-
   function changeSplitMode(nextMode: "equal" | "custom") {
     if (nextMode === splitMode) return;
     if (nextMode === "custom") {
       const totalCents = parseAmountToCents(amount);
-      if (totalCents && participantIds.length > 0) {
+      const hasExistingShares = participantIds.some((memberId) => Object.hasOwn(shareAmounts, memberId));
+      if (!hasExistingShares && totalCents && participantIds.length > 0) {
         const initialShares = splitAmount(totalCents, participantIds);
         setShareAmounts(Object.fromEntries([...initialShares].map(([memberId, shareCents]) => [memberId, formatAmountInput(shareCents)])));
       }
@@ -370,7 +329,7 @@ export default function DashboardPage() {
       return;
     }
     if (splitMode === "custom" && !customSharesComplete) {
-      setFormError("Seçili her kişi için payı gir. Borçlandırılmayacak kişiye 0 yazabilirsin.");
+      setFormError("Seçili her kişi için payı gir. Pay almayacak kişiye 0 yazabilirsin.");
       return;
     }
     const amountCents = splitMode === "equal" ? parseAmountToCents(amount) : customAmountCents;
@@ -397,6 +356,7 @@ export default function DashboardPage() {
             return { members: data.members, expenses, debtPayments: data.debtPayments };
           })();
       setData({ session: data.session, account: data.account, ...nextData });
+      setActionStatus(editingExpenseId ? "Harcama güncellendi." : "Harcama eklendi.");
       setAmount("");
       setShareAmounts({});
       setSplitMode("equal");
@@ -484,7 +444,8 @@ export default function DashboardPage() {
           })();
       setData({ session: data.session, account: data.account, ...nextData });
       setPendingDeleteExpense(null);
-      window.requestAnimationFrame(() => document.getElementById("history-title")?.focus());
+      setActionStatus("Harcama silindi.");
+      window.requestAnimationFrame(() => document.getElementById("activity-title")?.focus());
     } catch (deleteFailure) {
       setDeleteError(deleteFailure instanceof Error ? deleteFailure.message : "Harcama silinemedi.");
     } finally {
@@ -501,7 +462,7 @@ export default function DashboardPage() {
       return;
     }
     if (!selectedPaymentFromId || !selectedPaymentToId || maxPaymentCents <= 0) {
-      setPaymentError("Bu açık hesapta kaydedilebilecek bir borç ödemesi yok.");
+      setPaymentError("Bu açık hesapta kaydedilebilecek bir ödeme yok.");
       return;
     }
     if (amountCents > maxPaymentCents) {
@@ -533,10 +494,11 @@ export default function DashboardPage() {
             return { members: data.members, expenses: data.expenses, debtPayments };
           })();
       setData({ session: data.session, account: data.account, ...nextData });
+      setActionStatus("Yapılan ödeme kaydedildi.");
       setPaymentAmount("");
       setPaymentNote("");
     } catch (saveFailure) {
-      setPaymentError(saveFailure instanceof Error ? saveFailure.message : "Borç ödemesi kaydedilemedi.");
+      setPaymentError(saveFailure instanceof Error ? saveFailure.message : "Ödeme kaydedilemedi.");
     } finally {
       setSavingPayment(false);
     }
@@ -551,7 +513,7 @@ export default function DashboardPage() {
       const message = loadError === "Auth session missing!"
         ? "Bu cihazda açık bir oturum bulunamadı. Google hesabınla giriş yapıp üyesi olduğun eve dönebilirsin."
         : loadError;
-      return <main className="dashboard-shell"><div className="empty-dashboard"><span className="empty-dashboard-icon"><Home size={25} /></span><h1>Ev hesabı açılamadı.</h1><p>{message}</p><Link className="primary-action" href="/start">Google ile devam et</Link><button className="secondary-action" onClick={() => window.location.reload()} type="button">Tekrar dene</button></div></main>;
+      return <main className="dashboard-shell"><div className="empty-dashboard"><span className="empty-dashboard-icon"><Home size={25} /></span><h1>Ev hesabı açılamadı.</h1><p>{message}</p><p className="recovery-hint">Bağlantını kontrol edip yeniden deneyebilirsin.</p><Link className="primary-action" href="/start">Google ile devam et</Link><button className="secondary-action" onClick={() => window.location.reload()} type="button">Tekrar dene</button></div></main>;
     }
     return (
       <main className="dashboard-shell">
@@ -566,25 +528,47 @@ export default function DashboardPage() {
   }
 
   return (
-    <main className="dashboard-shell">
+    <main className="dashboard-shell dashboard-shell--with-actionbar" id="main-content" tabIndex={-1}>
+      <a className="skip-link" href="#main-content">İçeriğe geç</a>
+      <p className="visually-hidden" role="status" aria-live="polite" aria-atomic="true">{actionStatus}</p>
       <header className="account-header">
-        <Link className="dashboard-wordmark" href="/" aria-label="Ev Hesap ana sayfa">EV HESAP</Link>
+        <Link className="dashboard-wordmark" href="/" aria-label="Ev Hesap ana sayfa">Ev Hesap</Link>
         <div className="account-household">
           <span className="account-household__name" title={data.session.householdName}>{data.session.householdName}</span>
-          <span className="account-household__divider" aria-hidden="true" />
-          {data.session.joinCode ? (
-            <button className="account-household__code" onClick={() => void copyJoinCode()} type="button" aria-label={`Ev kodunu kopyala: ${data.session.joinCode}`} title="Ev kodunu kopyala">
-              {data.session.joinCode}<Copy aria-hidden="true" size={13} />
-            </button>
-          ) : data.session.role === "owner" ? (
-            <button className="account-household__code" disabled={rotatingCode} onClick={() => void rotateJoinCode()} type="button">
-              {rotatingCode ? "Hazırlanıyor…" : "Kod oluştur"}
-            </button>
-          ) : (
-            <span className="account-household__code" title="Davet kodunu ev sahibinden iste">Kod ev sahibinde</span>
-          )}
+          <span className="account-member-count">{activeMembers.length} kişi</span>
         </div>
-        <span className="visually-hidden" aria-live="polite">{copyStatus}</span>
+        <div className="account-tools">
+          <details className="invite-menu">
+            <summary className="secondary-action"><Copy aria-hidden="true" size={16} /> Davet et</summary>
+            <div className="invite-popover">
+              <strong>Ev arkadaşını davet et</strong>
+              <p>Kodu yalnızca katılmasını istediğin kişilerle paylaş.</p>
+              {data.session.joinCode ? (
+                <div className="invite-code">
+                  <code>{data.session.joinCode}</code>
+                  <button aria-label="Ev kodunu kopyala" onClick={() => void copyJoinCode()} type="button"><Copy aria-hidden="true" size={17} /></button>
+                </div>
+              ) : data.session.role === "owner" ? (
+                <button className="primary-action invite-create" disabled={rotatingCode} onClick={() => void rotateJoinCode()} type="button">
+                  {rotatingCode ? "Hazırlanıyor…" : "Davet kodu oluştur"}
+                </button>
+              ) : <p className="invite-no-code">Davet kodunu ev sahibinden iste.</p>}
+              <span className="visually-hidden" aria-live="polite">{copyStatus}</span>
+            </div>
+          </details>
+          <ThemeControl />
+          <details className="account-menu">
+            <summary aria-label="Hesap seçenekleri"><MoreHorizontal aria-hidden="true" size={21} /></summary>
+            <div className="account-menu-popover">
+              <div className="account-menu-theme">
+                <span>Görünüm teması</span>
+                <ThemeControl />
+              </div>
+              <Link href="/settle">Kim kime ödeyecek?</Link>
+              <button onClick={() => void signOut()} type="button"><LogOut aria-hidden="true" size={16} /> Oturumu kapat</button>
+            </div>
+          </details>
+        </div>
       </header>
 
       {isSupabaseConfigured() && !data.account.hasGoogleIdentity && (
@@ -596,226 +580,100 @@ export default function DashboardPage() {
         </aside>
       )}
 
+      {loadError && <p className="inline-error" role="alert">{loadError}</p>}
+
       <section className="dashboard-main">
-        <section className="account-overview" aria-labelledby="account-title">
-          <div className="account-heading">
-            <h1 id="account-title">Açık hesap</h1>
-            <p className="account-period">Açık dönem · {openExpenses.length} harcama · {openPayments.length} doğrudan ödeme</p>
-          </div>
-          <div className="account-total">
-            <span>Açık gider toplamı</span>
-            <strong>{formatCurrency(openTotal)}</strong>
-          </div>
-        </section>
-
-        {loadError && <p className="inline-error" role="alert">{loadError}</p>}
-
-        <section className="balance-network" aria-label="Ev arkadaşlarının net bakiyeleri">
-          {activeMembers.length === 0 ? (
-            <p className="balance-empty">Henüz aktif üye yok.</p>
-          ) : (
-            <>
-              <div className={`balance-rail-upper balance-rail-upper--${topMembers.length}`}>
-                {topMembers.map((member) => (
-                  <MemberTerminal
-                    key={member.id}
-                    member={member}
-                    balanceCents={balanceByMemberId.get(member.id) ?? 0}
-                    isCurrentMember={member.id === data.session.memberId}
-                    placement="upper"
-                  />
-                ))}
-              </div>
-              {lowerMemberRows.map((row, index) => (
-                <div
-                  className={`balance-rail-lower${index > 0 ? " balance-rail-lower--continuation" : ""}${row.length === 1 ? " balance-rail-lower--single" : ""}`}
-                  key={row[0].id}
-                >
-                  {row.map((member) => (
-                    <MemberTerminal
-                      key={member.id}
-                      member={member}
-                      balanceCents={balanceByMemberId.get(member.id) ?? 0}
-                      isCurrentMember={member.id === data.session.memberId}
-                      placement="lower"
-                    />
-                  ))}
-                </div>
-              ))}
-            </>
-          )}
-        </section>
-
-        <div className="dashboard-actions">
-          {canWrite ? (
-            <button className="primary-action" onClick={openExpenseForm} type="button">Harcama ekle</button>
-          ) : (
-            <Link className="primary-action" href="/start?mode=create">Google hesabını bağla</Link>
-          )}
-          <Link className="secondary-action" href="/settle">Borçları hesapla</Link>
-        </div>
-
-        <section className="open-ledger" aria-labelledby="open-ledger-title">
-          <div className="ledger-heading">
-            <h2 id="open-ledger-title">Açık hesap kayıtları</h2>
-          </div>
-          {openExpenses.length === 0 && openPayments.length === 0 ? (
-            <div className="ledger-empty">
-              <ReceiptText aria-hidden="true" size={19} />
-              <p>Açık harcama yok. Yeni bir kayıt eklediğinde bakiye burada görünür.</p>
+        <aside className="dashboard-sidebar">
+          <section className="account-overview" aria-labelledby="account-title">
+            <div className="account-heading">
+              <h1 id="account-title">Ev hesabı</h1>
+              <p className="account-period">Bu evin açık giderleri</p>
             </div>
-          ) : openExpenses.length > 0 ? (
-            <div className="open-expense-list">
-              {openExpenses.slice(0, 3).map((expense) => (
-                <button
-                  className="open-expense-row"
-                  key={expense.id}
-                  onClick={canWrite ? () => openEditExpense(expense) : undefined}
-                  disabled={!canWrite}
-                  type="button"
-                  aria-label={`${expense.description}, ${formatCurrency(expense.amountCents)}${canWrite ? ". Düzenlemek için aç." : ". Görüntüleniyor; düzenlemek için Google hesabını bağla."}`}
-                  title={canWrite ? "Harcamayı düzenle" : "Düzenlemek için Google hesabını bağla"}
-                >
-                  <span className="open-expense-primary">
-                    <span className="open-expense-title">{expense.description}</span>
-                    <strong>{formatCurrency(expense.amountCents)}</strong>
-                  </span>
-                  <span className="open-expense-meta">
-                    <span>{memberById.get(expense.payerId)?.name ?? "Bilinmeyen"} ödedi</span>
-                    <span>{expense.participantIds.length} kişi</span>
-                  </span>
-                  <span className="open-expense-shares">Paylar: {expenseShareLabel(expense)}</span>
-                </button>
-              ))}
+            <div className="account-total">
+              <span>Açık gider toplamı</span>
+              <strong>{formatCurrency(openTotal)}</strong>
+              <small>{openExpenses.length} harcama · {openPayments.length} yapılan ödeme</small>
             </div>
-          ) : <p className="ledger-empty ledger-empty--text">Açık harcama yok. Kaydedilen doğrudan ödemeler aşağıda.</p>}
-
-          <section className="debt-payment-ledger" aria-labelledby="debt-payment-title">
-            <div className="debt-payment-heading">
-              <h3 id="debt-payment-title">Doğrudan ödemeler</h3>
-              <span>{openPayments.length} kayıt</span>
+            <div className="account-net">
+              <span>Senin net bakiyen · {balanceState(currentBalance)}</span>
+              <strong className={currentBalance > 0 ? "balance-positive" : currentBalance < 0 ? "balance-negative" : "balance-even"}>{signedCurrency(currentBalance)}</strong>
             </div>
-            {openPayments.length === 0 ? (
-              <p className="debt-payment-empty">Borç kapatmak için yapılan ödemeler burada görünür.</p>
-            ) : (
-              <div className="debt-payment-list">
-                {openPayments.map((payment) => (
-                  <div className="debt-payment-row" key={payment.id}>
-                    <span className="debt-payment-icon" aria-hidden="true"><ArrowRightLeft size={17} /></span>
-                    <div className="debt-payment-copy">
-                      <strong>{memberById.get(payment.fromMemberId)?.name ?? "Bilinmeyen"} ödedi</strong>
-                      <small>{memberById.get(payment.toMemberId)?.name ?? "Bilinmeyen"} aldı · {dateLabel(payment.paidAt)}{payment.note ? ` · ${payment.note}` : " · Borç ödemesi"}</small>
-                    </div>
-                    <b>{formatCurrency(payment.amountCents)}</b>
-                  </div>
-                ))}
-              </div>
-            )}
           </section>
 
-          {canWrite ? (
-            <details className="debt-payment-composer">
-              <summary><ArrowRightLeft aria-hidden="true" size={17} /> Borç ödemesi kaydet</summary>
-              <p className="debt-payment-hint">Bir kişi borcunun bir kısmını ödeyebilir; diğer ödemeler bekleyebilir. Bu kayıt yalnızca açık bakiyeyi azaltır.</p>
-              {debtors.length === 0 || creditors.length === 0 ? (
-                <p className="debt-payment-empty">Şu anda kaydedilebilecek açık bir borç ve alacak eşleşmesi yok.</p>
-              ) : (
-                <form className="debt-payment-form" onSubmit={handleDebtPaymentSubmit}>
-                  <div className="form-two-col">
-                    <label className="field-label">Kim ödedi?
-                      <select onChange={(event) => { setPaymentFromId(event.target.value); setPaymentToId(""); setPaymentError(""); }} value={selectedPaymentFromId}>
-                        {debtors.map((balance) => <option key={balance.memberId} value={balance.memberId}>{memberById.get(balance.memberId)?.name} · borçlu</option>)}
-                      </select>
-                    </label>
-                    <label className="field-label">Kime ödedi?
-                      <select onChange={(event) => setPaymentToId(event.target.value)} value={selectedPaymentToId}>
-                        {availablePaymentRecipients.map((balance) => <option key={balance.memberId} value={balance.memberId}>{memberById.get(balance.memberId)?.name} · alacaklı</option>)}
-                      </select>
-                    </label>
-                  </div>
-                  <div className="form-two-col">
-                    <label className="field-label">Tutar
-                      <input inputMode="decimal" onChange={(event) => setPaymentAmount(event.target.value)} placeholder="100,00" required value={paymentAmount} />
-                    </label>
-                    <label className="field-label">Tarih
-                      <input onChange={(event) => setPaymentDate(event.target.value)} required type="date" value={paymentDate} />
-                    </label>
-                  </div>
-                  <label className="field-label">Not <span>(isteğe bağlı)</span>
-                    <input maxLength={160} onChange={(event) => setPaymentNote(event.target.value)} placeholder="Örn. Borcun bir kısmını ödedi" value={paymentNote} />
+          <section className="member-balances-section" aria-labelledby="member-balances-title">
+            <header><h2 id="member-balances-title">Ev arkadaşları</h2><span>{activeMembers.length} kişi</span></header>
+            <MemberBalances members={activeMembers} balances={balances} currentMemberId={data.session.memberId} />
+          </section>
+
+          <div className="desktop-dashboard-actions">
+            {canWrite ? (
+              <button className="primary-action" onClick={openExpenseForm} type="button"><Plus aria-hidden="true" size={18} /> Harcama ekle</button>
+            ) : <Link className="primary-action" href="/start?mode=create">Google hesabını bağla</Link>}
+            <Link className="secondary-action" href="/settle">Kim kime ödeyecek?</Link>
+          </div>
+        </aside>
+
+        <div className="dashboard-content">
+
+        <ActivityFeed
+          canEdit={canWrite}
+          expenses={data.expenses}
+          memberNames={memberNames}
+          onDeleteExpense={requestDeleteExpense}
+          onEditExpense={openEditExpense}
+          payments={data.debtPayments}
+        />
+
+        {canWrite ? (
+          <details className="debt-payment-composer">
+            <summary><ArrowUpRight aria-hidden="true" size={17} /> Yapılan ödemeyi kaydet</summary>
+            <p className="debt-payment-hint">Bir kişi diğerine kısmi ödeme yaptıysa buraya kaydet. Bu kayıt yalnızca açık bakiyeyi azaltır; dönemi kapatmaz.</p>
+            {debtors.length === 0 || creditors.length === 0 ? (
+              <p className="debt-payment-empty">Şu anda kaydedilecek açık bir ödeme eşleşmesi yok.</p>
+            ) : (
+              <form className="debt-payment-form" onSubmit={handleDebtPaymentSubmit}>
+                <div className="form-two-col">
+                  <label className="field-label">Kim ödedi?
+                    <select onChange={(event) => { setPaymentFromId(event.target.value); setPaymentToId(""); setPaymentError(""); }} value={selectedPaymentFromId}>
+                      {debtors.map((balance) => <option key={balance.memberId} value={balance.memberId}>{memberById.get(balance.memberId)?.name} · borçlu</option>)}
+                    </select>
                   </label>
-                  <p className="debt-payment-hint">Bu ödeme için en fazla {formatCurrency(maxPaymentCents)} kaydedebilirsin.</p>
-                  {paymentError && <p className="form-error" role="alert">{paymentError}</p>}
-                  <button className="primary-action form-submit" disabled={savingPayment || maxPaymentCents <= 0} type="submit">{savingPayment ? "Kaydediliyor…" : "Ödemeyi kaydet"}</button>
-                </form>
-              )}
-            </details>
-          ) : (
-            <div className="debt-payment-composer debt-payment-composer--locked">
-              <Link href="/start?mode=create">Borç ödemesi kaydetmek için Google hesabını bağla</Link>
-            </div>
-          )}
-        </section>
-
-        <section className="history-section" id="gecmis" aria-labelledby="history-title">
-          <div className="history-heading">
-            <h2 id="history-title" tabIndex={-1}>Harcama geçmişi</h2>
-            <span>{data.expenses.length} kayıt · {formatCurrency(allTimeTotal)} toplam</span>
-          </div>
-          <div className="period-switch" role="tablist" aria-label="Harcama dönemi">
-            <button className={selectedPeriod === "month" ? "active" : ""} onClick={() => setSelectedPeriod("month")} role="tab" aria-selected={selectedPeriod === "month"} type="button">Bu ay</button>
-            {availableYears.map((year) => <button className={selectedPeriod === year ? "active" : ""} key={year} onClick={() => setSelectedPeriod(year)} role="tab" aria-selected={selectedPeriod === year} type="button">{year}</button>)}
-            <button className={selectedPeriod === "all" ? "active" : ""} onClick={() => setSelectedPeriod("all")} role="tab" aria-selected={selectedPeriod === "all"} type="button">Tümü</button>
-          </div>
-          {data.expenses.length === 0 ? (
-            <p className="history-empty">Harcama eklendiğinde geçmiş burada tutulacak.</p>
-          ) : periodExpenses.length === 0 ? (
-            <p className="history-empty">Bu dönemde kayıtlı harcama yok.</p>
-          ) : (
-            <div className="history-list">
-              {periodExpenses.map((expense) => (
-                <div className="history-row" key={expense.id}>
-                  <div className="history-details">
-                    <strong>{expense.description}</strong>
-                    <small>{dateLabel(expense.expenseDate)} · {expense.category} · {memberById.get(expense.payerId)?.name ?? "Bilinmeyen"} ödedi · {expense.participantIds.length} kişi</small>
-                    {expense.participantShares && <small className="history-share-meta">Paylar: {expenseShareLabel(expense)}</small>}
-                  </div>
-                  <b>{formatCurrency(expense.amountCents)}</b>
-                  {canWrite && <div className="history-actions">
-                    <button aria-label={`${expense.description} harcamasını düzenle`} onClick={() => openEditExpense(expense)} type="button"><Edit2 aria-hidden="true" size={15} /></button>
-                    <button aria-label={`${expense.description} harcamasını sil`} onClick={() => requestDeleteExpense(expense)} type="button"><Trash2 aria-hidden="true" size={15} /></button>
-                  </div>}
+                  <label className="field-label">Kime ödedi?
+                    <select onChange={(event) => setPaymentToId(event.target.value)} value={selectedPaymentToId}>
+                      {availablePaymentRecipients.map((balance) => <option key={balance.memberId} value={balance.memberId}>{memberById.get(balance.memberId)?.name} · alacaklı</option>)}
+                    </select>
+                  </label>
                 </div>
-              ))}
-            </div>
-          )}
-        </section>
-
-        {archivedPayments.length > 0 && (
-          <details className="closed-payment-history">
-            <summary>Önceki dönem doğrudan ödemeleri <span>{archivedPayments.length} kayıt</span></summary>
-            <div className="debt-payment-list">
-              {archivedPayments.map((payment) => (
-                <div className="debt-payment-row" key={payment.id}>
-                  <span className="debt-payment-icon" aria-hidden="true"><ArrowRightLeft size={17} /></span>
-                  <div className="debt-payment-copy">
-                    <strong>{memberById.get(payment.fromMemberId)?.name ?? "Bilinmeyen"} ödedi</strong>
-                    <small>{memberById.get(payment.toMemberId)?.name ?? "Bilinmeyen"} aldı · {dateLabel(payment.paidAt)}{payment.note ? ` · ${payment.note}` : " · Borç ödemesi"}</small>
-                  </div>
-                  <b>{formatCurrency(payment.amountCents)}</b>
+                <div className="form-two-col">
+                  <label className="field-label">Tutar
+                    <input inputMode="decimal" onChange={(event) => setPaymentAmount(event.target.value)} placeholder="100,00" required value={paymentAmount} />
+                  </label>
+                  <label className="field-label">Tarih
+                    <input onChange={(event) => setPaymentDate(event.target.value)} required type="date" value={paymentDate} />
+                  </label>
                 </div>
-              ))}
-            </div>
+                <label className="field-label">Not <span>(isteğe bağlı)</span>
+                  <input maxLength={160} onChange={(event) => setPaymentNote(event.target.value)} placeholder="Örn. Borcun bir kısmını ödedi" value={paymentNote} />
+                </label>
+                <p className="debt-payment-hint">Bu ödeme için en fazla {formatCurrency(maxPaymentCents)} kaydedebilirsin.</p>
+                {paymentError && <p className="form-error" role="alert">{paymentError}</p>}
+                <button className="primary-action form-submit" disabled={savingPayment || maxPaymentCents <= 0} type="submit">{savingPayment ? "Kaydediliyor…" : "Ödemeyi kaydet"}</button>
+              </form>
+            )}
           </details>
+        ) : (
+          <div className="debt-payment-composer debt-payment-composer--locked">
+            <Link href="/start?mode=create">Ödeme kaydetmek için Google hesabını bağla</Link>
+          </div>
         )}
 
-        <footer className="dashboard-footer">
-          <button className="dashboard-exit" onClick={() => void signOut()} type="button">
-            <LogOut aria-hidden="true" size={15} />
-            <span>Oturumu kapat</span>
-          </button>
-        </footer>
+        </div>
       </section>
+
+      <div className="mobile-actionbar" aria-label="Ana işlemler">
+        {canWrite ? <button className="primary-action" onClick={openExpenseForm} type="button"><Plus aria-hidden="true" size={18} /> Harcama ekle</button> : <Link className="primary-action" href="/start?mode=create">Google hesabını bağla</Link>}
+        <Link className="secondary-action" href="/settle">Ödeme listesine bak</Link>
+      </div>
 
       {pendingDeleteExpense && (
         <div className="modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) closeDeleteDialog(); }}>
@@ -836,77 +694,102 @@ export default function DashboardPage() {
 
       {isExpenseFormOpen && (
         <div className="modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) closeExpenseForm(); }}>
-          <section className="expense-modal" role="dialog" aria-modal="true" aria-labelledby="expense-modal-title">
-            <div className="modal-header">
-              <h2 id="expense-modal-title">{editingExpenseId ? "Harcamayı düzenle" : "Harcama ekle"}</h2>
-              <button className="icon-button" aria-label="Formu kapat" onClick={closeExpenseForm} type="button"><X aria-hidden="true" size={19} /></button>
-            </div>
-            <form onSubmit={handleExpenseSubmit}>
-              <fieldset className="share-mode-fieldset">
-                <legend>Paylaşım şekli</legend>
-                <div className="share-mode-switch" role="group" aria-label="Harcama paylaşım şekli">
-                  <button aria-pressed={splitMode === "equal"} className={splitMode === "equal" ? "is-selected" : ""} onClick={() => changeSplitMode("equal")} type="button">Eşit paylaş</button>
-                  <button aria-pressed={splitMode === "custom"} className={splitMode === "custom" ? "is-selected" : ""} onClick={() => changeSplitMode("custom")} type="button">Kişi başı tutar</button>
-                </div>
-              </fieldset>
-              {splitMode === "equal" ? (
-                <label className="field-label">Toplam tutar
-                  <input inputMode="decimal" onChange={(event) => setAmount(event.target.value)} placeholder="1.000,00" required value={amount} />
-                </label>
-              ) : <p className="share-mode-note">Toplamı, aşağıda seçtiğin kişilerin paylarından hesaplayacağız.</p>}
-              <label className="field-label">Açıklama
-                <input onChange={(event) => setDescription(event.target.value)} placeholder="Örn. Market alışverişi" required value={description} />
-              </label>
-              <div className="form-two-col">
-                <label className="field-label">Kategori
-                  <select onChange={(event) => setCategory(event.target.value)} value={category}><option>Genel</option><option>Market</option><option>Fatura</option><option>Ev</option><option>Ulaşım</option><option>Dışarıda yemek</option></select>
-                </label>
-                <label className="field-label">Tarih
-                  <input onChange={(event) => setExpenseDate(event.target.value)} required type="date" value={expenseDate} />
-                </label>
-              </div>
-              <label className="field-label">Toplamı kim ödedi?
-                <select onChange={(event) => setPayerId(event.target.value)} value={payerId}>{activeMembers.map((member) => <option key={member.id} value={member.id}>{member.name}</option>)}</select>
-              </label>
-              <fieldset className="participants-field">
-                <legend>Kimler için?</legend>
-                {activeMembers.map((member) => <label className="participant-option" key={member.id}><input checked={participantIds.includes(member.id)} onChange={() => toggleParticipant(member.id)} type="checkbox" /><span>{member.name}</span><small>{participantIds.includes(member.id) ? "dahil" : "hariç"}</small></label>)}
-              </fieldset>
-              {splitMode === "custom" && (
-                <section className="share-amount-section" aria-labelledby="share-amount-title">
-                  <h3 id="share-amount-title">Kişi payları</h3>
-                  {participantIds.length === 0 ? (
-                    <p className="share-amount-hint">Önce harcamaya katılacak kişileri seç.</p>
-                  ) : (
-                    <div className="share-amount-list">
-                      {activeMembers.filter((member) => participantIds.includes(member.id)).map((member) => (
-                        <label className="share-amount-row" key={member.id}>
-                          <span>{member.name}<small>kişisel payı</small></span>
-                          <span className="share-input-wrap">
-                            <input
-                              aria-label={`${member.name} kişinin payı`}
-                              inputMode="decimal"
-                              onChange={(event) => setShareAmounts((current) => ({ ...current, [member.id]: event.target.value }))}
-                              placeholder="0,00"
-                              required
-                              value={shareAmounts[member.id] ?? ""}
-                            />
-                            <span aria-hidden="true">₺</span>
-                          </span>
-                        </label>
-                      ))}
-                    </div>
-                  )}
-                  <div className="share-total" aria-live="polite">
-                    <span>Harcama toplamı</span>
+          <section className="expense-modal" role="dialog" aria-modal="true" aria-labelledby="expense-modal-title" aria-describedby={formError ? "expense-form-error" : undefined}>
+            <header className="modal-header">
+              <div><h2 id="expense-modal-title">{editingExpenseId ? "Harcamayı düzenle" : "Harcama ekle"}</h2><p>Ev hesabına yeni bir kayıt ekle.</p></div>
+              <button className="icon-button" aria-label="Formu kapat" onClick={closeExpenseForm} type="button"><X aria-hidden="true" size={20} /></button>
+            </header>
+
+            <form id="expense-form" className="expense-modal__body" onSubmit={handleExpenseSubmit}>
+              <section className="expense-form-group" aria-labelledby="expense-group-title">
+                <h3 id="expense-group-title">Harcama</h3>
+                {splitMode === "equal" ? (
+                  <label className="field-label">Toplam tutar
+                    <input autoComplete="off" inputMode="decimal" onChange={(event) => setAmount(event.target.value)} placeholder="1.000,00" required value={amount} />
+                  </label>
+                ) : (
+                  <div className="derived-total" aria-live="polite">
+                    <span>Payların toplamı</span>
                     <strong>{customSharesComplete ? formatCurrency(customAmountCents) : "Payları tamamla"}</strong>
                   </div>
-                  <p className="share-amount-hint">Girilen payların toplamı harcama tutarı olur. Ödeyen kişinin kendi payını da ekleyebilirsin; pay almıyorsa 0 yaz.</p>
-                </section>
-              )}
-              {formError && <p className="form-error" role="alert">{formError}</p>}
-              <button className="primary-action form-submit" disabled={savingExpense} type="submit">{savingExpense ? "Kaydediliyor…" : editingExpenseId ? "Değişiklikleri kaydet" : "Harcamayı kaydet"}</button>
+                )}
+                <label className="field-label">Açıklama
+                  <input onChange={(event) => setDescription(event.target.value)} placeholder="Örn. Market alışverişi" required value={description} />
+                </label>
+                <div className="form-two-col">
+                  <label className="field-label">Kategori
+                    <select onChange={(event) => setCategory(event.target.value)} value={category}><option>Genel</option><option>Market</option><option>Fatura</option><option>Ev</option><option>Ulaşım</option><option>Dışarıda yemek</option></select>
+                  </label>
+                  <label className="field-label">Tarih
+                    <input onChange={(event) => setExpenseDate(event.target.value)} required type="date" value={expenseDate} />
+                  </label>
+                </div>
+              </section>
+
+              <section className="expense-form-group" aria-labelledby="people-group-title">
+                <h3 id="people-group-title">Kimler</h3>
+                <label className="field-label">Toplamı kim ödedi?
+                  <select onChange={(event) => setPayerId(event.target.value)} value={payerId}>{activeMembers.map((member) => <option key={member.id} value={member.id}>{member.name}</option>)}</select>
+                </label>
+                <fieldset className="participants-field">
+                  <legend>Harcamaya kimler katılıyor?</legend>
+                  {activeMembers.map((member) => <label className="participant-option" key={member.id}><input checked={participantIds.includes(member.id)} onChange={() => toggleParticipant(member.id)} type="checkbox" /><span>{member.name}</span><small>{participantIds.includes(member.id) ? "Dahil" : "Hariç"}</small></label>)}
+                </fieldset>
+              </section>
+
+              <section className="expense-form-group" aria-labelledby="split-group-title">
+                <h3 id="split-group-title">Paylaşım</h3>
+                <fieldset className="share-mode-fieldset">
+                  <legend>Paylaşım şekli</legend>
+                  <div className="share-mode-switch" role="group" aria-label="Harcama paylaşım şekli">
+                    <button aria-pressed={splitMode === "equal"} className={splitMode === "equal" ? "is-selected" : ""} onClick={() => changeSplitMode("equal")} type="button">Eşit paylaş</button>
+                    <button aria-pressed={splitMode === "custom"} className={splitMode === "custom" ? "is-selected" : ""} onClick={() => changeSplitMode("custom")} type="button">Kişi başı tutar</button>
+                  </div>
+                </fieldset>
+                {splitMode === "custom" && (
+                  <section className="share-amount-section" aria-labelledby="share-amount-title">
+                    <h4 id="share-amount-title">Kişi payları</h4>
+                    {participantIds.length === 0 ? (
+                      <p className="share-amount-hint">Önce harcamaya katılacak kişileri seç.</p>
+                    ) : (
+                      <div className="share-amount-list">
+                        {activeMembers.filter((member) => participantIds.includes(member.id)).map((member) => (
+                          <label className="share-amount-row" key={member.id}>
+                            <span>{member.name}<small>kişisel payı</small></span>
+                            <span className="share-input-wrap">
+                              <input
+                                aria-label={`${member.name} kişinin payı`}
+                                inputMode="decimal"
+                                onChange={(event) => setShareAmounts((current) => ({ ...current, [member.id]: event.target.value }))}
+                                placeholder="0,00"
+                                required
+                                value={shareAmounts[member.id] ?? ""}
+                              />
+                              <span aria-hidden="true">₺</span>
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                    <div className="share-total" aria-live="polite">
+                      <span>Harcama toplamı</span>
+                      <strong>{customSharesComplete ? formatCurrency(customAmountCents) : "Payları tamamla"}</strong>
+                    </div>
+                    <p className="share-amount-hint">Toplam, seçili kişilerin paylarından oluşur. Ödeyen kişinin kendi payını da ekleyebilirsin; pay almıyorsa 0 yaz.</p>
+                  </section>
+                )}
+              </section>
             </form>
+
+            <footer className="expense-modal__footer">
+              {formError && <p className="form-error" id="expense-form-error" role="alert">{formError}</p>}
+              <div className="expense-modal__actions">
+                <button className="secondary-action" disabled={savingExpense} onClick={closeExpenseForm} type="button">Vazgeç</button>
+                <button className="primary-action" disabled={savingExpense} form="expense-form" type="submit" aria-busy={savingExpense}>
+                  {savingExpense ? "Kaydediliyor…" : editingExpenseId ? "Değişiklikleri kaydet" : "Harcamayı kaydet"}
+                </button>
+              </div>
+            </footer>
           </section>
         </div>
       )}
