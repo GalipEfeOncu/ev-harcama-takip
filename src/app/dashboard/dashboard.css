@@ -111,7 +111,7 @@
 .activity-action-delete:hover:not(:disabled) { background: var(--danger-surface); }
 .activity-item--settlement article { grid-template-columns: minmax(0, 1fr); }
 .activity-shares { grid-column: 1 / -1; margin-top: 1px; }
-.activity-shares summary { min-height: 44px; width: fit-content; display: flex; align-items: center; color: var(--text-muted); font-size: 14px; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.activity-shares summary { min-height: 44px; width: fit-content; display: flex; align-items: center; color: var(--text-muted); caret-color: transparent; font-size: 14px; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; user-select: none; }
 .activity-shares summary:hover { color: var(--text); }
 .activity-shares ul { max-width: 420px; margin: 4px 0 6px; padding: 8px 12px; border-radius: 10px; background: var(--surface-soft); list-style: none; }
 .activity-shares li { min-height: 36px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
