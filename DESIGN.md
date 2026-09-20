@@ -4,7 +4,7 @@ The implementation contract and rebuild rationale live in [UI_UX_REBUILD_SPEC.md
 
 ## Direction
 
-**Sıcak Ortak Ev Defteri** is the single visual direction. Ev Hesap should feel like a clear, shared household record: welcoming, dependable, and easy to scan while several people coordinate everyday expenses. Keep the light theme in its ivory, off-white, evergreen, and coral family. Give dark mode an espresso and blackened-olive base, with the warm-paper ledger as its focal surface.
+**Sade Ortak Ev Defteri** is the single visual direction. Ev Hesap should feel like a clear, shared household record: welcoming, dependable, and easy to scan while several people coordinate everyday expenses. Let neutral surfaces do almost all visual work; coral is reserved for primary action, green for positive state, and red for destructive state. Dark mode uses only charcoal-green surfaces: it never introduces a light paper or cream focal card.
 
 Use familiar household language and precise money labels. Keep ledger clarity in aligned amounts, explicit alacaklı/borçlu states, and traceable expense details. Build hierarchy with three quiet layers: room/page, working surface, and focal ledger. Avoid industrial panel motifs, rails, dense borders, decorative gradients, glass, fake testimonials, and unsupported claims.
 
@@ -12,21 +12,21 @@ Use familiar household language and precise money labels. Keep ledger clarity in
 
 | Role | Light | Dark |
 | --- | --- | --- |
-| Page | `#EFE5D4` | `#18130F` |
-| Working surface | `#FFFCF5` | `#30231B` |
-| Raised control | `#FFFFFF` | `#423126` |
-| Soft grouping | `#E9DFD0` | `#514031` |
-| Focal ledger | `#E5D3B8` | `#E8DCC7` |
-| Main text | `#17211B` | `#F5EFE5` |
-| Supporting text | `#59635D` | `#C1B19F` |
-| Primary action | `#E66E45` | `#D97850` |
-| Small accent text | `#A44729` | `#F0AB8B` |
-| On primary action | `#17211B` | `#24160F` |
-| Positive state | `#286248` | `#A9CCA8` |
-| Negative state | `#78364E` | `#E9A6BB` |
-| Focus ring | `#286C56` | `#F0B28E` |
+| Page | `#F6F5F2` | `#121412` |
+| Working surface | `#FFFFFF` | `#191B19` |
+| Raised control | `#FFFFFF` | `#202320` |
+| Soft grouping | `#F0EFEB` | `#252825` |
+| Focal ledger | `#F0EFEB` | `#202320` |
+| Main text | `#1A1D1B` | `#F1F3F0` |
+| Supporting text | `#69706B` | `#A8AEA8` |
+| Primary action | `#E96F4C` | `#E97A5A` |
+| Small accent text | `#B54627` | `#F19A82` |
+| On primary action | `#1A1D1B` | `#26130E` |
+| Positive state | `#24734B` | `#65B98A` |
+| Negative state | `#B42318` | `#F07D73` |
+| Focus ring | `#1E7A4E` | `#80CBA0` |
 
-The negative state uses a berry hue so it stays distinct from coral actions. State color always accompanies a written label or icon. `--surface-raised` is reserved for editable controls and selected options; it is not a fourth general content layer. The ledger surface stays warm and light in dark mode.
+The negative state is standard red and stays distinct from coral actions. State color always accompanies a written label or icon. `--surface-raised` is reserved for editable controls and selected options; it is not a fourth general content layer. The ledger uses a slightly raised charcoal surface in dark mode, never a light focal card.
 
 ## Type, space, and shape
 

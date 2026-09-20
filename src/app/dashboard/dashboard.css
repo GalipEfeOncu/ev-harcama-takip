@@ -93,8 +93,8 @@
 .activity-list { margin: 14px 0 0; padding: 0; list-style: none; }
 .activity-item { padding: 17px 0; }
 .activity-item + .activity-item { margin-top: 5px; border-top: 1px solid color-mix(in srgb, var(--border-subtle), transparent 35%); }
-.activity-item article { min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 5px 14px; }
-.activity-item-main { min-width: 0; display: grid; grid-template-columns: auto auto 1fr; align-items: center; justify-items: start; gap: 5px 9px; }
+.activity-item article { min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr) 108px; align-items: start; gap: 5px 14px; }
+.activity-item-main { min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 5px 9px; }
 .activity-kind, .activity-status { min-height: 26px; padding: 3px 8px; display: inline-flex; align-items: center; gap: 5px; border-radius: 99px; font-size: 13px; font-weight: 650; }
 .activity-kind { background: var(--surface-soft); color: var(--text-muted); }
 .activity-status.is-open { background: var(--success-surface); color: var(--positive); }
@@ -103,9 +103,11 @@
 .activity-item h3 span { color: var(--text-muted); font-weight: 500; }
 .activity-meta { grid-column: 1 / -1; margin: 0; color: var(--text-muted); font-size: 14px; line-height: 1.4; overflow-wrap: anywhere; }
 .activity-amount { padding-top: 27px; font-size: 16px; font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
-.activity-actions { grid-column: 1 / -1; display: flex; gap: 4px; }
-.activity-actions button { min-width: 48px; min-height: 44px; padding: 0 10px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 0; border-radius: 9px; background: var(--surface-soft); color: var(--text); font-size: 14px; font-weight: 650; }
-.activity-actions button:hover:not(:disabled) { background: var(--border-subtle); }
+.activity-actions { grid-column: 1 / -1; margin-top: 2px; display: flex; align-items: center; gap: 2px; }
+.activity-actions button { min-width: 48px; min-height: 44px; padding: 0 10px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 0; border-radius: 9px; background: transparent; color: var(--text-muted); font-size: 14px; font-weight: 650; }
+.activity-action-edit:hover:not(:disabled) { background: var(--surface-soft); color: var(--text); }
+.activity-action-delete { color: var(--negative) !important; }
+.activity-action-delete:hover:not(:disabled) { background: var(--danger-surface); }
 .activity-shares { grid-column: 1 / -1; margin-top: 1px; }
 .activity-shares summary { min-height: 44px; width: fit-content; display: flex; align-items: center; color: var(--text-muted); font-size: 14px; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
 .activity-shares summary:hover { color: var(--text); }
@@ -169,7 +171,7 @@
 .delete-modal > p strong { color: var(--text); }
 .delete-modal-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
 .delete-modal-actions > * { min-height: 48px; }
-.delete-confirm-action { padding: 0 13px; border: 1px solid var(--negative); border-radius: var(--radius-control); background: var(--negative); color: var(--bg); font-weight: 700; }
+.delete-confirm-action { padding: 0 13px; border: 1px solid var(--negative); border-radius: var(--radius-control); background: var(--negative); color: var(--on-negative); font-weight: 700; }
 .delete-confirm-action:disabled { opacity: .65; }
 .delete-confirm-action:hover:not(:disabled) { filter: brightness(1.08); }
 
@@ -231,13 +233,13 @@
   .activity-filters { gap: 2px; }
   .activity-filters > button { min-width: 0; flex: 1 1 0; padding-inline: 7px; font-size: 14px; }
   .activity-year-filter select { max-width: 93px; padding-inline: 5px; }
-  .activity-item article { gap: 4px 7px; }
-  .activity-item-main { grid-template-columns: auto auto; gap: 5px 7px; }
+  .activity-item article { grid-template-columns: minmax(0, 1fr) 104px; gap: 4px 7px; }
+  .activity-item-main { grid-template-columns: minmax(0, 1fr) auto; gap: 5px 7px; }
   .activity-kind, .activity-status { padding-inline: 7px; font-size: 12px; }
   .activity-item h3 { font-size: 16px; }
   .activity-meta { font-size: 14px; }
   .activity-amount { font-size: 15px; }
-  .activity-actions button { flex: 1; }
+  .activity-actions button { flex: 0 0 auto; }
   .debt-payment-composer { padding-inline: 15px; }
   .form-two-col { grid-template-columns: minmax(0, 1fr); gap: 0; }
   .modal-backdrop { padding: 0; place-items: stretch; }

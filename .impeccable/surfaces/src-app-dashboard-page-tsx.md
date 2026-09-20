@@ -25,7 +25,7 @@ Design density must remain clear for the user's four-person household and fit fi
 
 **THESIS:** Make a shared household account feel like a clear, welcoming home ledger. People should be able to see what the household recorded, who paid, who shares each cost, and what remains open without translating accounting jargon.
 
-**OWN-WORLD:** “Sıcak Ortak Ev Defteri” is the single direction across `/`, `/start`, `/dashboard`, and `/settle`. Keep the existing ivory, off-white, evergreen, and coral light family. Use espresso and blackened-olive surfaces in dark mode, with the warm-paper ledger retained as its focal surface. Use Mada, tabular amounts, code-native house marks, quiet tonal separation, and one coral action color. Berry negative-state color must remain distinct from coral and always carry a written state label.
+**OWN-WORLD:** “Sade Ortak Ev Defteri” is the single direction across `/`, `/start`, `/dashboard`, and `/settle`. Let neutral surfaces create hierarchy: white and one soft neutral in light mode; charcoal-green layers only in dark mode. Never use a light paper or cream focal card in dark mode. Use Mada, tabular amounts, code-native house marks, quiet tonal separation, and one coral action color. Green is reserved for positive state; standard red is reserved for destructive state and always carries a written label or icon.
 
 **STORY:** A housemate opens the household account, sees the open expenses and each person's explicit alacaklı/borçlu state, records or edits an expense, and reviews “Kim kime ödeyecek?” before deciding whether to move the open records into history. The app never sends money or closes a period automatically.
 

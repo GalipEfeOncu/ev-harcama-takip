@@ -60,6 +60,7 @@ export default function ActivityFeed({
     : filter === "month"
       ? "Bu ay henüz hareket yok. Yeni bir kayıt eklediğinde burada görünür."
       : "Bu dönemde kayıtlı hareket yok.";
+  const showStatus = filter !== "open";
 
   return (
     <section className="activity-section" aria-labelledby="activity-title">
@@ -110,9 +111,11 @@ export default function ActivityFeed({
               <article>
                 <div className="activity-item-main">
                   <span className="activity-kind"><ReceiptText aria-hidden="true" size={15} /> Harcama</span>
-                  <span className={`activity-status ${item.expense.settlementRunId ? "is-settled" : "is-open"}`}>
-                    {item.expense.settlementRunId ? <><History aria-hidden="true" size={14} /> Geçmişte</> : <><Check aria-hidden="true" size={14} /> Açık</>}
-                  </span>
+                  {showStatus && (
+                    <span className={`activity-status ${item.expense.settlementRunId ? "is-settled" : "is-open"}`}>
+                      {item.expense.settlementRunId ? <><History aria-hidden="true" size={14} /> Geçmişte</> : <><Check aria-hidden="true" size={14} /> Açık</>}
+                    </span>
+                  )}
                   <h3>{item.expense.description}</h3>
                   <p className="activity-meta">
                     {dateLabel(item.expense.expenseDate)} · {item.expense.category || "Genel"} · {memberNames[item.expense.payerId] ?? "Bilinmeyen"} ödedi · {item.expense.participantIds.length} kişi paylaştı
@@ -134,8 +137,8 @@ export default function ActivityFeed({
                 <strong className="activity-amount">{formatCurrency(item.expense.amountCents)}</strong>
                 {canEdit && (
                   <div className="activity-actions" aria-label={`${item.expense.description} harcama işlemleri`}>
-                    <button aria-label={`${item.expense.description} harcamasını düzenle`} onClick={() => onEditExpense(item.expense)} type="button"><Edit2 aria-hidden="true" size={17} /><span>Düzenle</span></button>
-                    <button aria-label={`${item.expense.description} harcamasını sil`} onClick={() => onDeleteExpense(item.expense)} type="button"><Trash2 aria-hidden="true" size={17} /><span>Sil</span></button>
+                    <button className="activity-action-edit" aria-label={`${item.expense.description} harcamasını düzenle`} onClick={() => onEditExpense(item.expense)} type="button"><Edit2 aria-hidden="true" size={17} /><span>Düzenle</span></button>
+                    <button className="activity-action-delete" aria-label={`${item.expense.description} harcamasını sil`} onClick={() => onDeleteExpense(item.expense)} type="button"><Trash2 aria-hidden="true" size={17} /><span>Sil</span></button>
                   </div>
                 )}
               </article>
@@ -145,9 +148,11 @@ export default function ActivityFeed({
               <article>
                 <div className="activity-item-main">
                   <span className="activity-kind"><ArrowRightLeft aria-hidden="true" size={15} /> Yapılan ödeme</span>
-                  <span className={`activity-status ${item.payment.settlementRunId ? "is-settled" : "is-open"}`}>
-                    {item.payment.settlementRunId ? <><History aria-hidden="true" size={14} /> Geçmişte</> : <><Check aria-hidden="true" size={14} /> Açık</>}
-                  </span>
+                  {showStatus && (
+                    <span className={`activity-status ${item.payment.settlementRunId ? "is-settled" : "is-open"}`}>
+                      {item.payment.settlementRunId ? <><History aria-hidden="true" size={14} /> Geçmişte</> : <><Check aria-hidden="true" size={14} /> Açık</>}
+                    </span>
+                  )}
                   <h3>{memberNames[item.payment.fromMemberId] ?? "Bilinmeyen"} ödedi <span>· {memberNames[item.payment.toMemberId] ?? "Bilinmeyen"} aldı</span></h3>
                   <p className="activity-meta">{dateLabel(item.payment.paidAt)} · {item.payment.note || "Yapılan ödeme"}</p>
                 </div>
