@@ -15,7 +15,7 @@ import {
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import GoogleMark from "@/components/google-mark";
 import { beginGoogleSignIn } from "@/lib/auth";
-import { calculateBalances, formatCurrency, parseAmountToCents } from "@/lib/calculations";
+import { calculateBalances, formatCurrency, parseAmountToCents, splitAmount } from "@/lib/calculations";
 import { createRemoteDebtPayment, createRemoteExpense, deleteRemoteExpense, loadRemoteHousehold, loadRemoteHouseholdSession, rotateRemoteHouseholdJoinCode, updateRemoteExpense } from "@/lib/data-service";
 import {
   readLocalExpenses,
@@ -28,7 +28,7 @@ import {
   type LocalSession,
 } from "@/lib/local-store";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
-import type { DebtPayment, Expense, Member } from "@/lib/types";
+import type { DebtPayment, Expense, ExpenseShare, Member } from "@/lib/types";
 
 type DashboardData = {
   session: LocalSession;
@@ -101,6 +101,8 @@ export default function DashboardPage() {
   const [isExpenseFormOpen, setExpenseFormOpen] = useState(false);
   const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
   const [amount, setAmount] = useState("");
+  const [splitMode, setSplitMode] = useState<"equal" | "custom">("equal");
+  const [shareAmounts, setShareAmounts] = useState<Record<string, string>>({});
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("Genel");
   const [expenseDate, setExpenseDate] = useState(new Date().toISOString().slice(0, 10));
@@ -108,6 +110,9 @@ export default function DashboardPage() {
   const [participantIds, setParticipantIds] = useState<string[]>([]);
   const [formError, setFormError] = useState("");
   const [savingExpense, setSavingExpense] = useState(false);
+  const [pendingDeleteExpense, setPendingDeleteExpense] = useState<Expense | null>(null);
+  const [deleteError, setDeleteError] = useState("");
+  const [deletingExpense, setDeletingExpense] = useState(false);
   const [paymentFromId, setPaymentFromId] = useState("");
   const [paymentToId, setPaymentToId] = useState("");
   const [paymentAmount, setPaymentAmount] = useState("");
@@ -120,6 +125,7 @@ export default function DashboardPage() {
   const [rotatingCode, setRotatingCode] = useState(false);
   const [linkingGoogle, setLinkingGoogle] = useState(false);
   const dialogReturnFocusRef = useRef<HTMLElement | null>(null);
+  const cancelDeleteButtonRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -187,7 +193,51 @@ export default function DashboardPage() {
     return () => document.removeEventListener("keydown", handleDialogKeys);
   }, [isExpenseFormOpen]);
 
+  useEffect(() => {
+    if (!pendingDeleteExpense) return;
+    const dialog = document.querySelector<HTMLElement>(".delete-modal");
+    if (!dialog) return;
+    const focusable = Array.from(dialog.querySelectorAll<HTMLElement>(
+      'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+    ));
+
+    function handleDialogKeys(event: KeyboardEvent) {
+      if (event.key === "Escape" && !deletingExpense) {
+        event.preventDefault();
+        setPendingDeleteExpense(null);
+        setDeleteError("");
+        window.requestAnimationFrame(() => dialogReturnFocusRef.current?.focus());
+        return;
+      }
+      if (event.key !== "Tab" || focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+
+    document.addEventListener("keydown", handleDialogKeys);
+    return () => document.removeEventListener("keydown", handleDialogKeys);
+  }, [pendingDeleteExpense, deletingExpense]);
+
+  useEffect(() => {
+    if (pendingDeleteExpense) cancelDeleteButtonRef.current?.focus();
+  }, [pendingDeleteExpense]);
+
   const activeMembers = data?.members.filter((member) => member.active) ?? [];
+  const parsedShares = participantIds.map((memberId) => ({
+    memberId,
+    amountCents: parseAmountToCents(shareAmounts[memberId] ?? "", true),
+  }));
+  const customSharesComplete = parsedShares.length > 0 && parsedShares.every((share) => share.amountCents !== null);
+  const customAmountCents = customSharesComplete
+    ? parsedShares.reduce((sum, share) => sum + (share.amountCents ?? 0), 0)
+    : 0;
   const monthExpenses = useMemo(
     () => data?.expenses.filter((expense) => expense.expenseDate.startsWith(currentMonthKey())) ?? [],
     [data],
@@ -231,6 +281,8 @@ export default function DashboardPage() {
     setFormError("");
     setEditingExpenseId(null);
     setAmount("");
+    setSplitMode("equal");
+    setShareAmounts({});
     setDescription("");
     setCategory("Genel");
     setExpenseDate(new Date().toISOString().slice(0, 10));
@@ -248,6 +300,13 @@ export default function DashboardPage() {
     setExpenseDate(expense.expenseDate);
     setPayerId(expense.payerId);
     setParticipantIds(expense.participantIds);
+    const shares = expense.participantShares ?? [...splitAmount(expense.amountCents, expense.participantIds)].map(([memberId, amountCents]) => ({ memberId, amountCents }));
+    const sharesByMember = new Map(shares.map((share) => [share.memberId, share.amountCents]));
+    const equalShares = splitAmount(expense.amountCents, expense.participantIds);
+    const wasEqualSplit = equalShares.size === sharesByMember.size
+      && [...equalShares].every(([memberId, amountCents]) => sharesByMember.get(memberId) === amountCents);
+    setShareAmounts(Object.fromEntries(shares.map((share) => [share.memberId, formatAmountInput(share.amountCents)])));
+    setSplitMode(wasEqualSplit ? "equal" : "custom");
     setFormError("");
     setExpenseFormOpen(true);
   }
@@ -259,34 +318,72 @@ export default function DashboardPage() {
   }
 
   function toggleParticipant(memberId: string) {
-    setParticipantIds((current) => current.includes(memberId) ? current.filter((id) => id !== memberId) : [...current, memberId]);
+    if (participantIds.includes(memberId)) {
+      setParticipantIds((current) => current.filter((id) => id !== memberId));
+      setShareAmounts((current) => {
+        const next = { ...current };
+        delete next[memberId];
+        return next;
+      });
+    } else {
+      setParticipantIds((current) => [...current, memberId]);
+      setShareAmounts((current) => ({ ...current, [memberId]: "" }));
+    }
+    setFormError("");
   }
 
   function formatAmountInput(amountCents: number) {
     return (amountCents / 100).toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
 
+  function expenseShareLabel(expense: Expense) {
+    const shares = expense.participantShares
+      ?? [...splitAmount(expense.amountCents, expense.participantIds)].map(([memberId, amountCents]) => ({ memberId, amountCents }));
+    return shares.map((share) => `${memberById.get(share.memberId)?.name ?? "Bilinmeyen"} ${formatCurrency(share.amountCents)}`).join(" · ");
+  }
+
+  function changeSplitMode(nextMode: "equal" | "custom") {
+    if (nextMode === splitMode) return;
+    if (nextMode === "custom") {
+      const totalCents = parseAmountToCents(amount);
+      if (totalCents && participantIds.length > 0) {
+        const initialShares = splitAmount(totalCents, participantIds);
+        setShareAmounts(Object.fromEntries([...initialShares].map(([memberId, shareCents]) => [memberId, formatAmountInput(shareCents)])));
+      }
+    } else if (customSharesComplete) {
+      setAmount(formatAmountInput(customAmountCents));
+    }
+    setSplitMode(nextMode);
+    setFormError("");
+  }
+
   async function handleExpenseSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!data) return;
 
-    const amountCents = parseAmountToCents(amount);
-    if (!amountCents) {
-      setFormError("Geçerli bir tutar gir.");
+    if (!payerId || participantIds.length === 0) {
+      setFormError("Ödeyen kişiyi ve en az bir katılımcıyı seç.");
       return;
     }
     if (description.trim().length < 2) {
       setFormError("Harcamaya kısa bir açıklama ekle.");
       return;
     }
-    if (!payerId || participantIds.length === 0) {
-      setFormError("Ödeyen kişiyi ve en az bir katılımcıyı seç.");
+    if (splitMode === "custom" && !customSharesComplete) {
+      setFormError("Seçili her kişi için payı gir. Borçlandırılmayacak kişiye 0 yazabilirsin.");
       return;
     }
-
+    const amountCents = splitMode === "equal" ? parseAmountToCents(amount) : customAmountCents;
+    if (!amountCents) {
+      setFormError(splitMode === "equal" ? "Geçerli bir toplam tutar gir." : "Kişi paylarının toplamı sıfırdan büyük olmalı.");
+      return;
+    }
+    const participantShares: ExpenseShare[] = splitMode === "equal"
+      ? [...splitAmount(amountCents, participantIds)].map(([memberId, shareCents]) => ({ memberId, amountCents: shareCents }))
+      : parsedShares.map((share) => ({ memberId: share.memberId, amountCents: share.amountCents ?? 0 }));
     setSavingExpense(true);
     try {
-      const input = { payerId, amountCents, description: description.trim(), category, expenseDate, participantIds };
+      const input = { payerId, amountCents, description: description.trim(), category, expenseDate, participantIds, participantShares };
       const nextData = isSupabaseConfigured()
         ? editingExpenseId
           ? await updateRemoteExpense(data.session, editingExpenseId, input)
@@ -301,6 +398,8 @@ export default function DashboardPage() {
           })();
       setData({ session: data.session, account: data.account, ...nextData });
       setAmount("");
+      setShareAmounts({});
+      setSplitMode("equal");
       setDescription("");
       setCategory("Genel");
       setExpenseDate(new Date().toISOString().slice(0, 10));
@@ -357,20 +456,39 @@ export default function DashboardPage() {
     }
   }
 
-  async function deleteExpense(expense: Expense) {
-    if (!data || !window.confirm(`“${expense.description}” harcamasını silmek istediğine emin misin?`)) return;
+  function requestDeleteExpense(expense: Expense) {
+    dialogReturnFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    setDeleteError("");
+    setPendingDeleteExpense(expense);
+  }
 
+  function closeDeleteDialog() {
+    if (deletingExpense) return;
+    setPendingDeleteExpense(null);
+    setDeleteError("");
+    window.requestAnimationFrame(() => dialogReturnFocusRef.current?.focus());
+  }
+
+  async function confirmDeleteExpense() {
+    if (!data || !pendingDeleteExpense) return;
+
+    setDeletingExpense(true);
+    setDeleteError("");
     try {
       const nextData = isSupabaseConfigured()
-        ? await deleteRemoteExpense(data.session, expense.id)
+        ? await deleteRemoteExpense(data.session, pendingDeleteExpense.id)
         : (() => {
-            const expenses = data.expenses.filter((item) => item.id !== expense.id);
+            const expenses = data.expenses.filter((item) => item.id !== pendingDeleteExpense.id);
             saveLocalExpenses(data.session, expenses);
             return { members: data.members, expenses, debtPayments: data.debtPayments };
           })();
       setData({ session: data.session, account: data.account, ...nextData });
+      setPendingDeleteExpense(null);
+      window.requestAnimationFrame(() => document.getElementById("history-title")?.focus());
     } catch (deleteFailure) {
-      setLoadError(deleteFailure instanceof Error ? deleteFailure.message : "Harcama silinemedi.");
+      setDeleteError(deleteFailure instanceof Error ? deleteFailure.message : "Harcama silinemedi.");
+    } finally {
+      setDeletingExpense(false);
     }
   }
 
@@ -566,6 +684,7 @@ export default function DashboardPage() {
                     <span>{memberById.get(expense.payerId)?.name ?? "Bilinmeyen"} ödedi</span>
                     <span>{expense.participantIds.length} kişi</span>
                   </span>
+                  <span className="open-expense-shares">Paylar: {expenseShareLabel(expense)}</span>
                 </button>
               ))}
             </div>
@@ -640,7 +759,7 @@ export default function DashboardPage() {
 
         <section className="history-section" id="gecmis" aria-labelledby="history-title">
           <div className="history-heading">
-            <h2 id="history-title">Harcama geçmişi</h2>
+            <h2 id="history-title" tabIndex={-1}>Harcama geçmişi</h2>
             <span>{data.expenses.length} kayıt · {formatCurrency(allTimeTotal)} toplam</span>
           </div>
           <div className="period-switch" role="tablist" aria-label="Harcama dönemi">
@@ -659,11 +778,12 @@ export default function DashboardPage() {
                   <div className="history-details">
                     <strong>{expense.description}</strong>
                     <small>{dateLabel(expense.expenseDate)} · {expense.category} · {memberById.get(expense.payerId)?.name ?? "Bilinmeyen"} ödedi · {expense.participantIds.length} kişi</small>
+                    {expense.participantShares && <small className="history-share-meta">Paylar: {expenseShareLabel(expense)}</small>}
                   </div>
                   <b>{formatCurrency(expense.amountCents)}</b>
                   {canWrite && <div className="history-actions">
                     <button aria-label={`${expense.description} harcamasını düzenle`} onClick={() => openEditExpense(expense)} type="button"><Edit2 aria-hidden="true" size={15} /></button>
-                    <button aria-label={`${expense.description} harcamasını sil`} onClick={() => void deleteExpense(expense)} type="button"><Trash2 aria-hidden="true" size={15} /></button>
+                    <button aria-label={`${expense.description} harcamasını sil`} onClick={() => requestDeleteExpense(expense)} type="button"><Trash2 aria-hidden="true" size={15} /></button>
                   </div>}
                 </div>
               ))}
@@ -697,7 +817,99 @@ export default function DashboardPage() {
         </footer>
       </section>
 
-      {isExpenseFormOpen && <div className="modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) closeExpenseForm(); }}><section className="expense-modal" role="dialog" aria-modal="true" aria-labelledby="expense-modal-title"><div className="modal-header"><h2 id="expense-modal-title">{editingExpenseId ? "Harcamayı düzenle" : "Harcama ekle"}</h2><button className="icon-button" aria-label="Formu kapat" onClick={closeExpenseForm} type="button"><X aria-hidden="true" size={19} /></button></div><form onSubmit={handleExpenseSubmit}><label className="field-label">Tutar<input inputMode="decimal" onChange={(event) => setAmount(event.target.value)} placeholder="850,00" required value={amount} /></label><label className="field-label">Açıklama<input onChange={(event) => setDescription(event.target.value)} placeholder="Örn. Market alışverişi" required value={description} /></label><div className="form-two-col"><label className="field-label">Kategori<select onChange={(event) => setCategory(event.target.value)} value={category}><option>Genel</option><option>Market</option><option>Fatura</option><option>Ev</option><option>Ulaşım</option><option>Dışarıda yemek</option></select></label><label className="field-label">Tarih<input onChange={(event) => setExpenseDate(event.target.value)} required type="date" value={expenseDate} /></label></div><label className="field-label">Kim ödedi?<select onChange={(event) => setPayerId(event.target.value)} value={payerId}>{activeMembers.map((member) => <option key={member.id} value={member.id}>{member.name}</option>)}</select></label><fieldset className="participants-field"><legend>Kimler için?</legend>{activeMembers.map((member) => <label className="participant-option" key={member.id}><input checked={participantIds.includes(member.id)} onChange={() => toggleParticipant(member.id)} type="checkbox" /><span>{member.name}</span><small>{participantIds.includes(member.id) ? "dahil" : "hariç"}</small></label>)}</fieldset>{formError && <p className="form-error" role="alert">{formError}</p>}<button className="primary-action form-submit" disabled={savingExpense} type="submit">{savingExpense ? "Kaydediliyor…" : editingExpenseId ? "Değişiklikleri kaydet" : "Harcamayı kaydet"}</button></form></section></div>}
+      {pendingDeleteExpense && (
+        <div className="modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) closeDeleteDialog(); }}>
+          <section className="delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="delete-modal-title" aria-describedby="delete-modal-description">
+            <div className="delete-modal-mark" aria-hidden="true"><Trash2 size={21} /></div>
+            <h2 id="delete-modal-title">Harcamayı sil?</h2>
+            <p id="delete-modal-description"><strong>“{pendingDeleteExpense.description}”</strong> kaydı ev hesabından kaldırılacak. Bu kayda bağlı açık bakiyeler yeniden hesaplanır.</p>
+            {deleteError && <p className="form-error" role="alert">{deleteError}</p>}
+            <div className="delete-modal-actions">
+              <button className="secondary-action" disabled={deletingExpense} onClick={closeDeleteDialog} ref={cancelDeleteButtonRef} type="button">Vazgeç</button>
+              <button className="delete-confirm-action" disabled={deletingExpense} onClick={() => void confirmDeleteExpense()} type="button">
+                {deletingExpense ? "Siliniyor…" : "Harcamayı sil"}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
+
+      {isExpenseFormOpen && (
+        <div className="modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) closeExpenseForm(); }}>
+          <section className="expense-modal" role="dialog" aria-modal="true" aria-labelledby="expense-modal-title">
+            <div className="modal-header">
+              <h2 id="expense-modal-title">{editingExpenseId ? "Harcamayı düzenle" : "Harcama ekle"}</h2>
+              <button className="icon-button" aria-label="Formu kapat" onClick={closeExpenseForm} type="button"><X aria-hidden="true" size={19} /></button>
+            </div>
+            <form onSubmit={handleExpenseSubmit}>
+              <fieldset className="share-mode-fieldset">
+                <legend>Paylaşım şekli</legend>
+                <div className="share-mode-switch" role="group" aria-label="Harcama paylaşım şekli">
+                  <button aria-pressed={splitMode === "equal"} className={splitMode === "equal" ? "is-selected" : ""} onClick={() => changeSplitMode("equal")} type="button">Eşit paylaş</button>
+                  <button aria-pressed={splitMode === "custom"} className={splitMode === "custom" ? "is-selected" : ""} onClick={() => changeSplitMode("custom")} type="button">Kişi başı tutar</button>
+                </div>
+              </fieldset>
+              {splitMode === "equal" ? (
+                <label className="field-label">Toplam tutar
+                  <input inputMode="decimal" onChange={(event) => setAmount(event.target.value)} placeholder="1.000,00" required value={amount} />
+                </label>
+              ) : <p className="share-mode-note">Toplamı, aşağıda seçtiğin kişilerin paylarından hesaplayacağız.</p>}
+              <label className="field-label">Açıklama
+                <input onChange={(event) => setDescription(event.target.value)} placeholder="Örn. Market alışverişi" required value={description} />
+              </label>
+              <div className="form-two-col">
+                <label className="field-label">Kategori
+                  <select onChange={(event) => setCategory(event.target.value)} value={category}><option>Genel</option><option>Market</option><option>Fatura</option><option>Ev</option><option>Ulaşım</option><option>Dışarıda yemek</option></select>
+                </label>
+                <label className="field-label">Tarih
+                  <input onChange={(event) => setExpenseDate(event.target.value)} required type="date" value={expenseDate} />
+                </label>
+              </div>
+              <label className="field-label">Toplamı kim ödedi?
+                <select onChange={(event) => setPayerId(event.target.value)} value={payerId}>{activeMembers.map((member) => <option key={member.id} value={member.id}>{member.name}</option>)}</select>
+              </label>
+              <fieldset className="participants-field">
+                <legend>Kimler için?</legend>
+                {activeMembers.map((member) => <label className="participant-option" key={member.id}><input checked={participantIds.includes(member.id)} onChange={() => toggleParticipant(member.id)} type="checkbox" /><span>{member.name}</span><small>{participantIds.includes(member.id) ? "dahil" : "hariç"}</small></label>)}
+              </fieldset>
+              {splitMode === "custom" && (
+                <section className="share-amount-section" aria-labelledby="share-amount-title">
+                  <h3 id="share-amount-title">Kişi payları</h3>
+                  {participantIds.length === 0 ? (
+                    <p className="share-amount-hint">Önce harcamaya katılacak kişileri seç.</p>
+                  ) : (
+                    <div className="share-amount-list">
+                      {activeMembers.filter((member) => participantIds.includes(member.id)).map((member) => (
+                        <label className="share-amount-row" key={member.id}>
+                          <span>{member.name}<small>kişisel payı</small></span>
+                          <span className="share-input-wrap">
+                            <input
+                              aria-label={`${member.name} kişinin payı`}
+                              inputMode="decimal"
+                              onChange={(event) => setShareAmounts((current) => ({ ...current, [member.id]: event.target.value }))}
+                              placeholder="0,00"
+                              required
+                              value={shareAmounts[member.id] ?? ""}
+                            />
+                            <span aria-hidden="true">₺</span>
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                  <div className="share-total" aria-live="polite">
+                    <span>Harcama toplamı</span>
+                    <strong>{customSharesComplete ? formatCurrency(customAmountCents) : "Payları tamamla"}</strong>
+                  </div>
+                  <p className="share-amount-hint">Girilen payların toplamı harcama tutarı olur. Ödeyen kişinin kendi payını da ekleyebilirsin; pay almıyorsa 0 yaz.</p>
+                </section>
+              )}
+              {formError && <p className="form-error" role="alert">{formError}</p>}
+              <button className="primary-action form-submit" disabled={savingExpense} type="submit">{savingExpense ? "Kaydediliyor…" : editingExpenseId ? "Değişiklikleri kaydet" : "Harcamayı kaydet"}</button>
+            </form>
+          </section>
+        </div>
+      )}
     </main>
   );
 }

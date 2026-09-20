@@ -42,10 +42,20 @@ export function calculateBalances(
       (balances.get(expense.payerId) ?? 0) + expense.amountCents,
     );
 
-    for (const [memberId, shareCents] of splitAmount(
-      expense.amountCents,
-      expense.participantIds,
-    )) {
+    const shares = expense.participantShares
+      ? new Map(expense.participantShares.map((share) => [share.memberId, share.amountCents]))
+      : splitAmount(expense.amountCents, expense.participantIds);
+    const participantTotal = [...shares.values()].reduce((sum, shareCents) => sum + shareCents, 0);
+    if (
+      shares.size !== expense.participantIds.length
+      || expense.participantIds.some((memberId) => !shares.has(memberId))
+      || [...shares.values()].some((shareCents) => !Number.isSafeInteger(shareCents) || shareCents < 0)
+      || participantTotal !== expense.amountCents
+    ) {
+      throw new Error(`Expense has invalid participant shares: ${expense.id}`);
+    }
+
+    for (const [memberId, shareCents] of shares) {
       if (!balances.has(memberId)) {
         throw new Error(`Unknown participant: ${memberId}`);
       }
@@ -118,7 +128,7 @@ export function formatCurrency(amountCents: number) {
   }).format(amountCents / 100);
 }
 
-export function parseAmountToCents(value: string) {
+export function parseAmountToCents(value: string, allowZero = false) {
   const normalized = value.trim().replace(/[₺\s]/g, "");
   if (!normalized || !/^\d+(?:[.,]\d+)*$/.test(normalized)) return null;
 
@@ -166,6 +176,6 @@ export function parseAmountToCents(value: string) {
   }
 
   const cents = Number(whole) * 100 + Number(fraction.padEnd(2, "0"));
-  if (!Number.isSafeInteger(cents) || cents <= 0) return null;
+  if (!Number.isSafeInteger(cents) || cents < (allowZero ? 0 : 1)) return null;
   return cents;
 }

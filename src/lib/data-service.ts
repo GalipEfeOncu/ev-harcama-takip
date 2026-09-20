@@ -1,5 +1,5 @@
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
-import type { DebtPayment, Expense, Member, SettlementRun, Transfer } from "@/lib/types";
+import type { DebtPayment, Expense, ExpenseShare, Member, SettlementRun, Transfer } from "@/lib/types";
 import type { LocalSession } from "@/lib/local-store";
 
 type HouseholdRpcResult = {
@@ -37,7 +37,7 @@ type RemoteExpense = {
   updated_at: string;
 };
 
-type RemoteParticipant = { expense_id: string; member_id: string };
+type RemoteParticipant = { expense_id: string; member_id: string; share_cents: number | string };
 
 type RemoteDebtPayment = {
   id: string;
@@ -58,6 +58,7 @@ export type ExpenseInput = {
   category: string;
   expenseDate: string;
   participantIds: string[];
+  participantShares: ExpenseShare[];
 };
 
 function toMember(member: RemoteMember): Member {
@@ -72,6 +73,7 @@ function toMember(member: RemoteMember): Member {
 }
 
 function toExpense(expense: RemoteExpense, participants: RemoteParticipant[]): Expense {
+  const expenseParticipants = participants.filter((participant) => participant.expense_id === expense.id);
   return {
     id: expense.id,
     householdId: expense.household_id,
@@ -80,7 +82,8 @@ function toExpense(expense: RemoteExpense, participants: RemoteParticipant[]): E
     description: expense.description,
     category: expense.category,
     expenseDate: expense.expense_date,
-    participantIds: participants.filter((participant) => participant.expense_id === expense.id).map((participant) => participant.member_id),
+    participantIds: expenseParticipants.map((participant) => participant.member_id),
+    participantShares: expenseParticipants.map((participant) => ({ memberId: participant.member_id, amountCents: Number(participant.share_cents) })),
     settlementRunId: expense.settlement_run_id ?? undefined,
     createdAt: expense.created_at,
     updatedAt: expense.updated_at,
@@ -219,7 +222,7 @@ export async function loadRemoteHousehold(session: LocalSession) {
   const expenseRows = (expenses ?? []) as RemoteExpense[];
   const { data: participants, error: participantsError } = expenseRows.length === 0
     ? { data: [], error: null }
-    : await supabase.from("expense_participants").select("expense_id, member_id").in("expense_id", expenseRows.map((expense) => expense.id));
+    : await supabase.from("expense_participants").select("expense_id, member_id, share_cents").in("expense_id", expenseRows.map((expense) => expense.id));
   if (participantsError) throw participantsError;
 
   return {
@@ -248,14 +251,14 @@ export async function createRemoteDebtPayment(
 
 export async function createRemoteExpense(session: LocalSession, input: ExpenseInput) {
   const { supabase } = await getAuthenticatedClient(true);
-  const { error } = await supabase.rpc("create_expense_atomic", {
+  const { error } = await supabase.rpc("create_expense_with_shares_atomic", {
     p_household_id: session.householdId,
     p_payer_member_id: input.payerId,
     p_amount_cents: input.amountCents,
     p_description: input.description,
     p_category: input.category,
     p_expense_date: input.expenseDate,
-    p_participant_member_ids: input.participantIds,
+    p_participant_shares: input.participantShares.map((share) => ({ member_id: share.memberId, share_cents: share.amountCents })),
   });
   if (error) throw error;
   return loadRemoteHousehold(session);
@@ -263,7 +266,7 @@ export async function createRemoteExpense(session: LocalSession, input: ExpenseI
 
 export async function updateRemoteExpense(session: LocalSession, expenseId: string, input: ExpenseInput) {
   const { supabase } = await getAuthenticatedClient(true);
-  const { error } = await supabase.rpc("update_expense_atomic", {
+  const { error } = await supabase.rpc("update_expense_with_shares_atomic", {
     p_household_id: session.householdId,
     p_expense_id: expenseId,
     p_payer_member_id: input.payerId,
@@ -271,7 +274,7 @@ export async function updateRemoteExpense(session: LocalSession, expenseId: stri
     p_description: input.description,
     p_category: input.category,
     p_expense_date: input.expenseDate,
-    p_participant_member_ids: input.participantIds,
+    p_participant_shares: input.participantShares.map((share) => ({ member_id: share.memberId, share_cents: share.amountCents })),
   });
   if (error) throw error;
   return loadRemoteHousehold(session);

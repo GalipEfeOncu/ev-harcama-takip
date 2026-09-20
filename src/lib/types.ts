@@ -18,9 +18,15 @@ export type Expense = {
   category?: string;
   expenseDate: string;
   participantIds: string[];
+  participantShares?: ExpenseShare[];
   createdAt: string;
   updatedAt: string;
   settlementRunId?: string;
+};
+
+export type ExpenseShare = {
+  memberId: string;
+  amountCents: number;
 };
 
 export type DebtPayment = {
