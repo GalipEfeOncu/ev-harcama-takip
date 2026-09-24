@@ -144,7 +144,7 @@ export default function ActivityFeed({
                   )}
                 </div>
                 <strong className="activity-amount">{formatCurrency(item.expense.amountCents)}</strong>
-                {canEdit && (
+                {canEdit && !item.expense.settlementRunId && (
                   <div className="activity-actions" aria-label={`${item.expense.description} harcama işlemleri`}>
                     <button className="activity-action-edit" aria-label={`${item.expense.description} harcamasını düzenle`} onClick={() => onEditExpense(item.expense)} type="button"><Edit2 aria-hidden="true" size={17} /><span>Düzenle</span></button>
                     <button className="activity-action-delete" aria-label={`${item.expense.description} harcamasını sil`} onClick={() => onDeleteExpense(item.expense)} type="button"><Trash2 aria-hidden="true" size={17} /><span>Sil</span></button>

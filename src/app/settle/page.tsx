@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, CheckCircle2, Home, LockKeyhole, MoreHorizontal } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { calculateBalances, formatCurrency, simplifyDebts } from "@/lib/calculations";
 import { closeRemoteSettlement, loadRemoteHousehold, loadRemoteHouseholdSession, loadRemoteSettlementRuns } from "@/lib/data-service";
 import {
@@ -38,6 +38,15 @@ export default function SettlePage() {
   const [closeArmed, setCloseArmed] = useState(false);
   const [loadError, setLoadError] = useState("");
   const [closing, setClosing] = useState(false);
+  const openConfirmButtonRef = useRef<HTMLButtonElement | null>(null);
+  const confirmButtonRef = useRef<HTMLButtonElement | null>(null);
+  const wasCloseArmedRef = useRef(false);
+
+  useEffect(() => {
+    if (closeArmed) confirmButtonRef.current?.focus();
+    else if (wasCloseArmedRef.current) openConfirmButtonRef.current?.focus();
+    wasCloseArmedRef.current = closeArmed;
+  }, [closeArmed]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -202,12 +211,12 @@ export default function SettlePage() {
                   {!canWrite ? (
                     <Link className="primary-action" href="/start?mode=create">Google hesabını bağla <ArrowRight aria-hidden="true" size={17} /></Link>
                   ) : !closeArmed ? (
-                    <button className="primary-action" disabled={closing} onClick={() => setCloseArmed(true)} type="button">Dönemi kapat <CheckCircle2 aria-hidden="true" size={17} /></button>
+                    <button className="primary-action" disabled={closing} onClick={() => setCloseArmed(true)} ref={openConfirmButtonRef} type="button">Dönemi kapat <CheckCircle2 aria-hidden="true" size={17} /></button>
                   ) : (
                     <div className="settle-confirm" role="group" aria-label="Dönemi kapatma onayı">
                       <p>{openExpenses.length} gider ve {openPayments.length} ödeme geçmişe taşınacak. Para transferi yapılmayacak.</p>
                       <div>
-                        <button className="primary-action" disabled={closing} onClick={() => void closeCurrentPeriod()} type="button">{closing ? "Kayıtlar taşınıyor…" : "Evet, dönemi kapat"}</button>
+                        <button className="primary-action" disabled={closing} onClick={() => void closeCurrentPeriod()} ref={confirmButtonRef} type="button">{closing ? "Kayıtlar taşınıyor…" : "Evet, dönemi kapat"}</button>
                         <button className="secondary-action" disabled={closing} onClick={() => setCloseArmed(false)} type="button">Geri dön</button>
                       </div>
                     </div>

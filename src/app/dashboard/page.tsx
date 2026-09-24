@@ -19,6 +19,7 @@ import ActivityFeed from "@/components/activity-feed";
 import MemberBalances from "@/components/member-balances";
 import { beginGoogleSignIn, getAccountSnapshot } from "@/lib/auth";
 import { calculateBalances, formatCurrency, parseAmountToCents, splitAmount } from "@/lib/calculations";
+import { localDateInputValue } from "@/lib/local-date";
 import { createRemoteDebtPayment, createRemoteExpense, deleteRemoteExpense, loadRemoteHousehold, loadRemoteHouseholdSession, loadRemoteSettlementRuns, rotateRemoteHouseholdJoinCode, updateRemoteExpense } from "@/lib/data-service";
 import {
   readLocalExpenses,
@@ -71,7 +72,7 @@ export default function DashboardPage() {
   const [shareAmounts, setShareAmounts] = useState<Record<string, string>>({});
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("Genel");
-  const [expenseDate, setExpenseDate] = useState(new Date().toISOString().slice(0, 10));
+  const [expenseDate, setExpenseDate] = useState("");
   const [payerId, setPayerId] = useState("");
   const [participantIds, setParticipantIds] = useState<string[]>([]);
   const [formError, setFormError] = useState("");
@@ -82,7 +83,7 @@ export default function DashboardPage() {
   const [paymentFromId, setPaymentFromId] = useState("");
   const [paymentToId, setPaymentToId] = useState("");
   const [paymentAmount, setPaymentAmount] = useState("");
-  const [paymentDate, setPaymentDate] = useState(new Date().toISOString().slice(0, 10));
+  const [paymentDate, setPaymentDate] = useState("");
   const [paymentNote, setPaymentNote] = useState("");
   const [paymentError, setPaymentError] = useState("");
   const [savingPayment, setSavingPayment] = useState(false);
@@ -293,13 +294,17 @@ export default function DashboardPage() {
     setShareAmounts({});
     setDescription("");
     setCategory("Genel");
-    setExpenseDate(new Date().toISOString().slice(0, 10));
+    setExpenseDate(localDateInputValue());
     setPayerId(data?.session.memberId ?? "");
     setParticipantIds(activeMembers.map((member) => member.id));
     setExpenseFormOpen(true);
   }
 
   function openEditExpense(expense: Expense) {
+    if (expense.settlementRunId) {
+      setLoadError("Kapanmış dönemdeki harcamalar düzenlenemez.");
+      return;
+    }
     dialogReturnFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     setEditingExpenseId(expense.id);
     setAmount(formatAmountInput(expense.amountCents));
@@ -330,7 +335,7 @@ export default function DashboardPage() {
     setPaymentError("");
     setPaymentAmount("");
     setPaymentNote("");
-    setPaymentDate(new Date().toISOString().slice(0, 10));
+    setPaymentDate(localDateInputValue());
     setPaymentFormOpen(true);
   }
 
@@ -378,6 +383,10 @@ export default function DashboardPage() {
   async function handleExpenseSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!data) return;
+    if (editingExpenseId && data.expenses.find((expense) => expense.id === editingExpenseId)?.settlementRunId) {
+      setFormError("Kapanmış dönemdeki harcamalar düzenlenemez.");
+      return;
+    }
 
     if (!payerId || participantIds.length === 0) {
       setFormError("Ödeyen kişiyi ve en az bir katılımcıyı seç.");
@@ -421,7 +430,7 @@ export default function DashboardPage() {
       setSplitMode("equal");
       setDescription("");
       setCategory("Genel");
-      setExpenseDate(new Date().toISOString().slice(0, 10));
+      setExpenseDate(localDateInputValue());
       closeExpenseForm();
     } catch (saveFailure) {
       setFormError(saveFailure instanceof Error ? saveFailure.message : "Harcama kaydedilemedi.");
@@ -476,6 +485,10 @@ export default function DashboardPage() {
   }
 
   function requestDeleteExpense(expense: Expense) {
+    if (expense.settlementRunId) {
+      setLoadError("Kapanmış dönemdeki harcamalar silinemez.");
+      return;
+    }
     dialogReturnFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     setDeleteError("");
     setPendingDeleteExpense(expense);
@@ -490,6 +503,10 @@ export default function DashboardPage() {
 
   async function confirmDeleteExpense() {
     if (!data || !pendingDeleteExpense) return;
+    if (data.expenses.find((expense) => expense.id === pendingDeleteExpense.id)?.settlementRunId) {
+      setDeleteError("Kapanmış dönemdeki harcamalar silinemez.");
+      return;
+    }
 
     setDeletingExpense(true);
     setDeleteError("");

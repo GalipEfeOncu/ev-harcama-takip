@@ -1,6 +1,8 @@
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import type { DebtPayment, Expense, ExpenseShare, Member, SettlementRun, Transfer } from "@/lib/types";
 import type { LocalSession } from "@/lib/local-store";
+import { readAllByIds, readAllPages } from "@/lib/supabase/pagination";
+import { requireCompleteExpenseShares } from "@/lib/expense-shares";
 
 type HouseholdRpcResult = {
   household_id: string;
@@ -74,6 +76,7 @@ function toMember(member: RemoteMember): Member {
 
 function toExpense(expense: RemoteExpense, participants: RemoteParticipant[]): Expense {
   const expenseParticipants = participants.filter((participant) => participant.expense_id === expense.id);
+  const shares = requireCompleteExpenseShares(expense.id, expense.amount_cents, expenseParticipants.map((participant) => participant.share_cents));
   return {
     id: expense.id,
     householdId: expense.household_id,
@@ -83,7 +86,7 @@ function toExpense(expense: RemoteExpense, participants: RemoteParticipant[]): E
     category: expense.category,
     expenseDate: expense.expense_date,
     participantIds: expenseParticipants.map((participant) => participant.member_id),
-    participantShares: expenseParticipants.map((participant) => ({ memberId: participant.member_id, amountCents: Number(participant.share_cents) })),
+    participantShares: expenseParticipants.map((participant, index) => ({ memberId: participant.member_id, amountCents: shares[index] })),
     settlementRunId: expense.settlement_run_id ?? undefined,
     createdAt: expense.created_at,
     updatedAt: expense.updated_at,
@@ -210,25 +213,24 @@ export async function joinRemoteHousehold(joinCode: string, memberName: string) 
 
 export async function loadRemoteHousehold(session: LocalSession) {
   const { supabase } = await getAuthenticatedClient();
-  const [{ data: members, error: membersError }, { data: expenses, error: expensesError }, { data: payments, error: paymentsError }] = await Promise.all([
-    supabase.from("members").select("id, household_id, user_id, name, role, active, joined_at").eq("household_id", session.householdId).order("joined_at"),
-    supabase.from("expenses").select("id, household_id, payer_member_id, amount_cents, description, category, expense_date, settlement_run_id, created_at, updated_at").eq("household_id", session.householdId).order("expense_date", { ascending: false }),
-    supabase.from("debt_payments").select("id, household_id, from_member_id, to_member_id, amount_cents, paid_at, description, settlement_run_id, created_at").eq("household_id", session.householdId).order("paid_at", { ascending: false }),
+  const [members, expenses, payments] = await Promise.all([
+    readAllPages<RemoteMember>((from, to) => supabase.from("members").select("id, household_id, user_id, name, role, active, joined_at").eq("household_id", session.householdId).order("joined_at").order("id").range(from, to)),
+    readAllPages<RemoteExpense>((from, to) => supabase.from("expenses").select("id, household_id, payer_member_id, amount_cents, description, category, expense_date, settlement_run_id, created_at, updated_at").eq("household_id", session.householdId).order("expense_date", { ascending: false }).order("id").range(from, to)),
+    readAllPages<RemoteDebtPayment>((from, to) => supabase.from("debt_payments").select("id, household_id, from_member_id, to_member_id, amount_cents, paid_at, description, settlement_run_id, created_at").eq("household_id", session.householdId).order("paid_at", { ascending: false }).order("id").range(from, to)),
   ]);
-  if (membersError) throw membersError;
-  if (expensesError) throw expensesError;
-  if (paymentsError) throw paymentsError;
-
-  const expenseRows = (expenses ?? []) as RemoteExpense[];
-  const { data: participants, error: participantsError } = expenseRows.length === 0
-    ? { data: [], error: null }
-    : await supabase.from("expense_participants").select("expense_id, member_id, share_cents").in("expense_id", expenseRows.map((expense) => expense.id));
-  if (participantsError) throw participantsError;
+  const participants = await readAllByIds<RemoteParticipant>(expenses.map((expense) => expense.id), (ids, from, to) =>
+    supabase.from("expense_participants").select("expense_id, member_id, share_cents").in("expense_id", ids).order("expense_id").order("member_id").range(from, to));
+  const participantsByExpense = new Map<string, RemoteParticipant[]>();
+  for (const participant of participants) {
+    const shares = participantsByExpense.get(participant.expense_id) ?? [];
+    shares.push(participant);
+    participantsByExpense.set(participant.expense_id, shares);
+  }
 
   return {
-    members: (members ?? []).map((member) => toMember(member as RemoteMember)),
-    expenses: expenseRows.map((expense) => toExpense(expense, (participants ?? []) as RemoteParticipant[])),
-    debtPayments: ((payments ?? []) as RemoteDebtPayment[]).map(toDebtPayment),
+    members: members.map(toMember),
+    expenses: expenses.map((expense) => toExpense(expense, participantsByExpense.get(expense.id) ?? [])),
+    debtPayments: payments.map(toDebtPayment),
   };
 }
 
@@ -282,27 +284,24 @@ export async function updateRemoteExpense(session: LocalSession, expenseId: stri
 
 export async function deleteRemoteExpense(session: LocalSession, expenseId: string) {
   const { supabase } = await getAuthenticatedClient(true);
-  const { error } = await supabase.from("expenses").delete().eq("id", expenseId).eq("household_id", session.householdId);
+  const { data, error } = await supabase.from("expenses").delete().eq("id", expenseId).eq("household_id", session.householdId).is("settlement_run_id", null).select("id");
   if (error) throw error;
+  if (!data?.length) throw new Error("Harcama bulunamadı veya dönem kapatıldığı için silinemez.");
   return loadRemoteHousehold(session);
 }
 
 export async function loadRemoteSettlementRuns(session: LocalSession) {
   const { supabase } = await getAuthenticatedClient();
-  const { data: runs, error: runsError } = await supabase.from("settlement_runs").select("id, household_id, created_by_user_id, created_at").eq("household_id", session.householdId).order("created_at", { ascending: false });
-  if (runsError) throw runsError;
-  const runRows = (runs ?? []) as Array<{ id: string; household_id: string; created_at: string }>;
+  const runRows = await readAllPages<{ id: string; household_id: string; created_at: string }>((from, to) =>
+    supabase.from("settlement_runs").select("id, household_id, created_at").eq("household_id", session.householdId).order("created_at", { ascending: false }).order("id").range(from, to));
   if (runRows.length === 0) return [];
 
-  const { data: settlements, error: settlementsError } = await supabase.from("settlements").select("settlement_run_id, from_member_id, to_member_id, amount_cents").in("settlement_run_id", runRows.map((run) => run.id));
-  if (settlementsError) throw settlementsError;
-  const settlementRows = (settlements ?? []) as Array<{ settlement_run_id: string; from_member_id: string; to_member_id: string; amount_cents: number }>;
-  const { data: settledExpenses, error: settledExpensesError } = await supabase.from("expenses").select("id, settlement_run_id").in("settlement_run_id", runRows.map((run) => run.id));
-  if (settledExpensesError) throw settledExpensesError;
-  const settledExpenseRows = (settledExpenses ?? []) as Array<{ id: string; settlement_run_id: string | null }>;
-  const { data: settledPayments, error: settledPaymentsError } = await supabase.from("debt_payments").select("id, settlement_run_id").in("settlement_run_id", runRows.map((run) => run.id));
-  if (settledPaymentsError) throw settledPaymentsError;
-  const settledPaymentRows = (settledPayments ?? []) as Array<{ id: string; settlement_run_id: string | null }>;
+  const runIds = runRows.map((run) => run.id);
+  const [settlementRows, settledExpenseRows, settledPaymentRows] = await Promise.all([
+    readAllByIds<{ settlement_run_id: string; from_member_id: string; to_member_id: string; amount_cents: number }>(runIds, (ids, from, to) => supabase.from("settlements").select("settlement_run_id, from_member_id, to_member_id, amount_cents").in("settlement_run_id", ids).order("settlement_run_id").order("id").range(from, to)),
+    readAllByIds<{ id: string; settlement_run_id: string }>(runIds, (ids, from, to) => supabase.from("expenses").select("id, settlement_run_id").in("settlement_run_id", ids).order("settlement_run_id").order("id").range(from, to)),
+    readAllByIds<{ id: string; settlement_run_id: string }>(runIds, (ids, from, to) => supabase.from("debt_payments").select("id, settlement_run_id").in("settlement_run_id", ids).order("settlement_run_id").order("id").range(from, to)),
+  ]);
   return runRows.map((run) => ({
     id: run.id,
     householdId: run.household_id,

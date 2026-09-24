@@ -1,10 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient, hasSupabaseConfiguration } from "@/lib/supabase/server";
-
-function safeNextPath(value: string | null) {
-  if (!value || !value.startsWith("/") || value.startsWith("//")) return "/";
-  return value;
-}
+import { safeNextUrl } from "@/lib/safe-next-url";
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
@@ -18,5 +14,5 @@ export async function GET(request: Request) {
   const { error } = await supabase.auth.exchangeCodeForSession(code);
   if (error) return NextResponse.redirect(new URL("/start?auth=failed", requestUrl.origin));
 
-  return NextResponse.redirect(new URL(safeNextPath(requestUrl.searchParams.get("next")), requestUrl.origin));
+  return NextResponse.redirect(safeNextUrl(requestUrl.searchParams.get("next"), requestUrl.origin));
 }
