@@ -61,6 +61,7 @@
 .account-net { margin-top: 17px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .account-net > span { max-width: 27ch; }
 .account-net > strong { font-size: 19px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.account-settlement-action { width: 100%; margin-top: 14px; justify-content: space-between; }
 .balance-positive { color: var(--positive); }
 .balance-negative { color: var(--negative); }
 .balance-even { color: var(--text); }

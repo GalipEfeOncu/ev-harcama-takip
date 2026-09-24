@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
+  ArrowRight,
   ArrowUpRight,
   Copy,
   Home,
@@ -641,7 +642,6 @@ export default function DashboardPage() {
                 <span>Görünüm teması</span>
                 <ThemeControl full />
               </div>
-              <Link href="/settle">Kim kime ödeyecek?</Link>
               <button onClick={() => void signOut()} type="button"><LogOut aria-hidden="true" size={16} /> Oturumu kapat</button>
             </div>
           </details>
@@ -675,6 +675,9 @@ export default function DashboardPage() {
               <span>Senin net bakiyen · {balanceState(currentBalance)}</span>
               <strong className={currentBalance > 0 ? "balance-positive" : currentBalance < 0 ? "balance-negative" : "balance-even"}>{signedCurrency(currentBalance)}</strong>
             </div>
+            <Link className="secondary-action account-settlement-action" href="/settle">
+              <span>Kim kime ödeyecek?</span><ArrowRight aria-hidden="true" size={17} />
+            </Link>
           </section>
 
           <section className="member-balances-section" aria-labelledby="member-balances-title">
@@ -686,7 +689,7 @@ export default function DashboardPage() {
             {canWrite ? (
               <button className="primary-action" onClick={openExpenseForm} type="button"><Plus aria-hidden="true" size={18} /> Harcama ekle</button>
             ) : <Link className="primary-action" href="/start?mode=create">Google hesabını bağla</Link>}
-            {canWrite ? <button className="secondary-action" onClick={openPaymentForm} type="button"><ArrowUpRight aria-hidden="true" size={17} /> Ödeme kaydet</button> : <Link className="secondary-action" href="/settle">Kim kime ödeyecek?</Link>}
+            {canWrite && <button className="secondary-action" onClick={openPaymentForm} type="button"><ArrowUpRight aria-hidden="true" size={17} /> Ödeme kaydet</button>}
           </div>
         </aside>
 
