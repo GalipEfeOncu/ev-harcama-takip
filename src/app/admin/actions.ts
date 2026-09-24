@@ -80,3 +80,58 @@ export async function deleteHousehold(formData: FormData): Promise<AdminActionRe
   revalidatePath("/admin");
   return { ok: true, message: "Ev ve bu eve bağlı kayıtlar silindi." };
 }
+
+export async function deleteUser(formData: FormData): Promise<AdminActionResult> {
+  const admin = await requireAdmin();
+  const userId = readString(formData, "userId");
+  const confirmation = readString(formData, "confirmation");
+
+  if (!isUuid(userId) || !confirmation) {
+    return { ok: false, message: "Kullanıcı silme onayı geçerli değil." };
+  }
+  if (userId === admin.id) {
+    return { ok: false, message: "Kendi yönetici hesabınızı silemezsiniz." };
+  }
+
+  const client = createAdminClient();
+  if (!client) return { ok: false, message: "Sunucu veritabanı ayarları eksik." };
+
+  const { data: target, error: lookupError } = await client.auth.admin.getUserById(userId);
+  if (lookupError || !target.user) {
+    return { ok: false, message: "Kullanıcı bulunamadı. Listeyi yenileyin." };
+  }
+
+  const targetEmail = target.user.email?.trim() || "";
+  if (confirmation !== (targetEmail || target.user.id)) {
+    return { ok: false, message: "Onay bilgisi eşleşmedi. Listeyi yenileyip tekrar deneyin." };
+  }
+
+  const allowlistedEmails = (process.env.ADMIN_EMAILS ?? "")
+    .split(",")
+    .map((email) => email.trim().toLowerCase());
+  if (targetEmail && allowlistedEmails.includes(targetEmail.toLowerCase())) {
+    return { ok: false, message: "Yönetici hesabı silinemez." };
+  }
+
+  const [ownership, membership] = await Promise.all([
+    client.from("households").select("id", { count: "exact", head: true }).eq("owner_user_id", userId),
+    client.from("members").select("id", { count: "exact", head: true }).eq("user_id", userId),
+  ]);
+
+  if (ownership.error || membership.error || ownership.count === null || membership.count === null) {
+    console.error("Admin user relationship lookup failed:", ownership.error?.code ?? membership.error?.code ?? "unknown");
+    return { ok: false, message: "Kullanıcının ev bağlantıları kontrol edilemedi." };
+  }
+  if (ownership.count > 0 || membership.count > 0) {
+    return { ok: false, message: "Bir eve sahip veya üye olan kullanıcı silinemez. Pasif üyelikler de buna dahildir." };
+  }
+
+  const { error } = await client.auth.admin.deleteUser(userId);
+  if (error) {
+    console.error("Admin user delete failed:", error.code ?? "unknown");
+    return { ok: false, message: "Kullanıcı silinemedi. Hesaba bağlı geçmiş kayıtlar olabilir; listeyi yenileyin." };
+  }
+
+  revalidatePath("/admin");
+  return { ok: true, message: "Kullanıcı hesabı silindi." };
+}

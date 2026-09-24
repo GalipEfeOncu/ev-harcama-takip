@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
   Check,
+  ChevronDown,
   ChevronRight,
   House,
   Pencil,
@@ -15,8 +16,8 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useRef, useState, useTransition } from "react";
-import { deleteHousehold, updateHouseholdName, type AdminActionResult } from "./actions";
-import type { AdminDashboardData, AdminHousehold } from "@/lib/admin";
+import { deleteHousehold, deleteUser, updateHouseholdName, type AdminActionResult } from "./actions";
+import type { AdminAccount, AdminDashboardData, AdminHousehold } from "@/lib/admin";
 
 type AdminPanelProps = {
   data: AdminDashboardData | null;
@@ -54,7 +55,9 @@ function HouseholdNames({ households }: { households: AdminDashboardData["accoun
 function HouseholdRow({
   household,
   editing,
+  previewOpen,
   busy,
+  onPreview,
   onEdit,
   onCancelEdit,
   onSave,
@@ -62,7 +65,9 @@ function HouseholdRow({
 }: {
   household: AdminHousehold;
   editing: boolean;
+  previewOpen: boolean;
   busy: boolean;
+  onPreview: (householdId: string) => void;
   onEdit: (household: AdminHousehold) => void;
   onCancelEdit: () => void;
   onSave: (householdId: string, name: string) => void;
@@ -118,6 +123,16 @@ function HouseholdRow({
         <span>{formatDate(household.createdAt)}</span>
       </div>
       <div className="admin-house-actions" aria-label={`${household.name} evi işlemleri`}>
+        <button
+          type="button"
+          className="admin-row-action"
+          aria-expanded={previewOpen}
+          aria-controls={`admin-house-preview-${household.id}`}
+          onClick={() => onPreview(household.id)}
+        >
+          <ChevronDown size={16} className={previewOpen ? "is-open" : ""} aria-hidden="true" />
+          <span>{previewOpen ? "Önizlemeyi kapat" : "Önizle"}</span>
+        </button>
         {!editing && (
           <button type="button" className="admin-row-action" onClick={() => onEdit(household)}>
             <Pencil size={16} aria-hidden="true" /> <span>Adı düzenle</span>
@@ -132,6 +147,28 @@ function HouseholdRow({
           <Trash2 size={16} aria-hidden="true" /> <span>Evi sil</span>
         </button>
       </div>
+      <section className="admin-house-preview" id={`admin-house-preview-${household.id}`} aria-label={`${household.name} evinin üyeleri`} hidden={!previewOpen}>
+        <div className="admin-preview-heading">
+          <strong>Evdeki kişiler</strong>
+          <span>{activeMembers} aktif · {household.members.length} toplam üyelik</span>
+        </div>
+        {household.members.length > 0 ? (
+          <ul className="admin-preview-members">
+            {household.members.map((member) => (
+              <li key={member.id}>
+                <div>
+                  <strong>{member.name}</strong>
+                  <span>{member.email ?? "E-posta yok"}</span>
+                </div>
+                <span className="admin-member-role">{member.role === "owner" ? "Ev sahibi" : "Üye"}</span>
+                <span className={member.active ? "admin-member-state" : "admin-member-state is-inactive"}>
+                  {member.active ? "Aktif" : "Pasif"}
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : <p className="admin-preview-empty">Bu evde kayıtlı üye yok.</p>}
+      </section>
     </article>
   );
 }
@@ -141,26 +178,29 @@ export default function AdminPanel({ data, setupIncomplete, error }: AdminPanelP
   const [activeTab, setActiveTab] = useState<"households" | "users">("households");
   const [query, setQuery] = useState("");
   const [editing, setEditing] = useState<EditingHousehold | null>(null);
+  const [previewingHouseholdId, setPreviewingHouseholdId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<AdminHousehold | null>(null);
+  const [deletingAccount, setDeletingAccount] = useState<AdminAccount | null>(null);
   const [confirmation, setConfirmation] = useState("");
   const [feedback, setFeedback] = useState<AdminActionResult | null>(null);
   const [isPending, startTransition] = useTransition();
   const dialogRef = useRef<HTMLDivElement>(null);
   const cancelRef = useRef<HTMLButtonElement>(null);
   const householdsTabRef = useRef<HTMLButtonElement>(null);
+  const usersTabRef = useRef<HTMLButtonElement>(null);
   const deleteTriggerRef = useRef<HTMLButtonElement>(null);
   const wasDialogOpenRef = useRef(false);
-  const isDialogOpen = deleting !== null;
+  const isDialogOpen = deleting !== null || deletingAccount !== null;
 
   useEffect(() => {
     if (wasDialogOpenRef.current && !isDialogOpen) {
       window.requestAnimationFrame(() => {
         if (deleteTriggerRef.current?.isConnected) deleteTriggerRef.current.focus();
-        else householdsTabRef.current?.focus();
+        else (activeTab === "users" ? usersTabRef.current : householdsTabRef.current)?.focus();
       });
     }
     wasDialogOpenRef.current = isDialogOpen;
-  }, [isDialogOpen]);
+  }, [isDialogOpen, activeTab]);
 
   useEffect(() => {
     if (!isDialogOpen) return;
@@ -172,6 +212,7 @@ export default function AdminPanel({ data, setupIncomplete, error }: AdminPanelP
       if (event.key === "Escape" && !isPending) {
         event.preventDefault();
         setDeleting(null);
+        setDeletingAccount(null);
         setConfirmation("");
         return;
       }
@@ -275,6 +316,28 @@ export default function AdminPanel({ data, setupIncomplete, error }: AdminPanelP
     });
   }
 
+  function handleDeleteAccount() {
+    if (!deletingAccount || isPending) return;
+    const formData = new FormData();
+    formData.set("userId", deletingAccount.id);
+    formData.set("confirmation", confirmation.trim());
+    setFeedback(null);
+    startTransition(async () => {
+      try {
+        const result = await deleteUser(formData);
+        setFeedback(result);
+        if (result.ok) {
+          setDeletingAccount(null);
+          setConfirmation("");
+        }
+      } catch {
+        setFeedback({ ok: false, message: "Kullanıcı silinemedi. Bağlantıyı kontrol edip tekrar deneyin." });
+      } finally {
+        router.refresh();
+      }
+    });
+  }
+
   return (
     <main className="admin-shell">
       <AdminHeader email={data.adminEmail} />
@@ -307,6 +370,7 @@ export default function AdminPanel({ data, setupIncomplete, error }: AdminPanelP
             </button>
             <button
               type="button"
+              ref={usersTabRef}
               aria-pressed={activeTab === "users"}
               onClick={() => setActiveTab("users")}
             >
@@ -336,7 +400,9 @@ export default function AdminPanel({ data, setupIncomplete, error }: AdminPanelP
                 key={`${household.id}-${editing?.id === household.id ? "editing" : "viewing"}`}
                 household={household}
                 editing={editing?.id === household.id}
+                previewOpen={previewingHouseholdId === household.id}
                 busy={isPending}
+                onPreview={(id) => setPreviewingHouseholdId((current) => current === id ? null : id)}
                 onEdit={(item) => { setFeedback(null); setEditing({ id: item.id, name: item.name }); }}
                 onCancelEdit={() => setEditing(null)}
                 onSave={handleEdit}
@@ -346,6 +412,7 @@ export default function AdminPanel({ data, setupIncomplete, error }: AdminPanelP
           </div>
         ) : (
           <div className="admin-user-list">
+            <p className="admin-list-note">Yalnızca hiçbir eve bağlı olmayan ve ev sahibi olmayan hesaplar silinebilir.</p>
             {visibleAccounts.length > 0 ? visibleAccounts.map((account) => (
               <article className="admin-user-row" key={account.id}>
                 <div className="admin-user-primary">
@@ -357,6 +424,17 @@ export default function AdminPanel({ data, setupIncomplete, error }: AdminPanelP
                 </div>
                 <div className="admin-user-homes"><span className="admin-mobile-label">Üye olduğu evler</span><HouseholdNames households={account.households} /></div>
                 <div className="admin-user-seen"><span className="admin-mobile-label">Son giriş</span><span>{formatDate(account.lastSignInAt)}</span></div>
+                <div className="admin-user-actions">
+                  {account.id === data.adminUserId ? (
+                    <span className="admin-user-protected">Bu oturum</span>
+                  ) : account.households.length > 0 || data.households.some((household) => household.ownerUserId === account.id) ? (
+                    <span className="admin-user-protected">Eve bağlı</span>
+                  ) : (
+                    <button type="button" className="admin-row-action admin-row-action--danger" disabled={isPending} onClick={(event) => { deleteTriggerRef.current = event.currentTarget; setFeedback(null); setDeletingAccount(account); setConfirmation(""); }}>
+                      <Trash2 size={16} aria-hidden="true" /> Hesabı sil
+                    </button>
+                  )}
+                </div>
               </article>
             )) : <EmptyState label={query ? "Aramayla eşleşen kullanıcı yok." : "Henüz kullanıcı hesabı yok."} />}
           </div>
@@ -387,6 +465,31 @@ export default function AdminPanel({ data, setupIncomplete, error }: AdminPanelP
               <button type="button" className="admin-secondary-button" ref={cancelRef} onClick={() => { setDeleting(null); setConfirmation(""); }} disabled={isPending}>Vazgeç</button>
               <button type="button" className="admin-delete-button" onClick={handleDelete} disabled={isPending || confirmation.trim() !== deleting.name}>
                 <Trash2 size={17} aria-hidden="true" /> {isPending ? "Siliniyor…" : "Evi ve kayıtları sil"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {deletingAccount && (
+        <div className="admin-dialog-scrim" onMouseDown={(event) => { if (event.target === event.currentTarget && !isPending) { setDeletingAccount(null); setConfirmation(""); } }}>
+          <div className="admin-delete-dialog" role="dialog" aria-modal="true" aria-labelledby="admin-delete-user-title" aria-describedby="admin-delete-user-description" ref={dialogRef}>
+            <div className="admin-delete-mark"><Trash2 size={21} aria-hidden="true" /></div>
+            <h2 id="admin-delete-user-title">Bu kullanıcıyı kalıcı olarak sil?</h2>
+            <p id="admin-delete-user-description"><strong>{deletingAccount.name}</strong> hesabı silinecek. Bu kişi artık bu hesapla giriş yapamayacak. İşlem geri alınamaz.</p>
+            <label htmlFor="admin-delete-user-confirm">Onaylamak için {deletingAccount.email ? "e-posta adresini" : "hesap kimliğini"} yazın</label>
+            {!deletingAccount.email && <p className="admin-confirm-target">{deletingAccount.id}</p>}
+            <input
+              id="admin-delete-user-confirm"
+              autoComplete="off"
+              value={confirmation}
+              onChange={(event) => setConfirmation(event.target.value)}
+              onKeyDown={(event) => { if (event.key === "Enter" && confirmation.trim() === (deletingAccount.email ?? deletingAccount.id)) handleDeleteAccount(); }}
+            />
+            {feedback && !feedback.ok && <p className="admin-dialog-error" role="alert">{feedback.message}</p>}
+            <div className="admin-dialog-actions">
+              <button type="button" className="admin-secondary-button" ref={cancelRef} onClick={() => { setDeletingAccount(null); setConfirmation(""); }} disabled={isPending}>Vazgeç</button>
+              <button type="button" className="admin-delete-button" onClick={handleDeleteAccount} disabled={isPending || confirmation.trim() !== (deletingAccount.email ?? deletingAccount.id)}>
+                <Trash2 size={17} aria-hidden="true" /> {isPending ? "Siliniyor…" : "Kullanıcıyı sil"}
               </button>
             </div>
           </div>

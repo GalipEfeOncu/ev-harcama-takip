@@ -109,8 +109,23 @@
 .admin-row-action:hover { background: var(--surface-soft); color: var(--text); }
 .admin-row-action--danger:hover { background: var(--danger-surface); color: var(--negative); }
 .admin-row-action:disabled { opacity: .55; }
+.admin-row-action .is-open { transform: rotate(180deg); }
 .admin-mobile-label { display: none; color: var(--text-muted); font-size: 12px; }
 .admin-house-owner .admin-mobile-label { display: block; }
+.admin-house-preview { grid-column: 1 / -1; width: 100%; padding: 14px 0 18px; border-top: 1px solid var(--border-subtle); }
+.admin-house-preview[hidden] { display: none; }
+.admin-preview-heading { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 12px; }
+.admin-preview-heading strong { font-size: 14px; }
+.admin-preview-heading > span, .admin-preview-empty { color: var(--text-muted); font-size: 13px; }
+.admin-preview-members { margin: 10px 0 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 24px; list-style: none; }
+.admin-preview-members li { min-width: 0; padding: 10px 0; display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; border-bottom: 1px solid var(--border-subtle); }
+.admin-preview-members li > div { min-width: 120px; flex: 1 1 140px; display: grid; gap: 2px; }
+.admin-preview-members li strong, .admin-preview-members li > div > span { overflow-wrap: anywhere; }
+.admin-preview-members li strong { font-size: 13px; }
+.admin-preview-members li > div > span, .admin-member-role, .admin-member-state { color: var(--text-muted); font-size: 12px; }
+.admin-member-state { color: var(--positive); }
+.admin-member-state.is-inactive { color: var(--text-muted); }
+.admin-preview-empty { margin: 10px 0 0; }
 
 .admin-inline-edit { width: 100%; display: flex; align-items: center; gap: 4px; }
 .admin-inline-edit input { width: 100%; min-width: 0; height: 40px; padding: 0 9px; border: 1px solid var(--border-strong); border-radius: 8px; background: var(--surface-raised); }
@@ -118,7 +133,7 @@
 .admin-icon-action:hover { color: var(--positive); }
 .admin-icon-action:disabled { opacity: .5; }
 
-.admin-user-row { grid-template-columns: minmax(220px, 1fr) minmax(220px, 1.25fr) minmax(130px, .55fr) 17px; }
+.admin-user-row { grid-template-columns: minmax(220px, 1fr) minmax(180px, 1.15fr) minmax(115px, .5fr) auto; }
 .admin-user-mark { border-radius: 50%; color: var(--text); font-size: 15px; font-weight: 700; }
 .admin-user-name { min-width: 0; display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
 .admin-user-name > span { padding: 2px 6px; border-radius: 6px; background: var(--surface-soft); color: var(--text-muted); font-size: 11px; line-height: 1.4; }
@@ -129,6 +144,9 @@
 .admin-household-chips li.is-inactive { color: var(--text-muted); }
 .admin-chip-status { color: var(--text-muted); font-size: 11px; }
 .admin-muted { color: var(--text-muted); font-size: 13px; }
+.admin-list-note { margin: 0; padding: 13px 0; border-bottom: 1px solid var(--border-subtle); color: var(--text-muted); font-size: 13px; }
+.admin-user-actions { display: flex; justify-content: flex-end; }
+.admin-user-protected { color: var(--text-muted); font-size: 12px; white-space: nowrap; }
 .admin-empty-state { min-height: 190px; display: grid; align-content: center; justify-items: center; gap: 10px; color: var(--text-muted); }
 .admin-empty-state p { margin: 0; font-size: 14px; }
 .admin-footer { min-height: 60px; margin-top: 10px; display: flex; align-items: center; justify-content: space-between; gap: 16px; color: var(--text-muted); font-size: 13px; }
@@ -149,6 +167,7 @@
 .admin-delete-dialog > p strong { color: var(--text); }
 .admin-delete-dialog > label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 650; }
 .admin-delete-dialog > input { width: 100%; min-height: 46px; padding: 0 11px; border: 1px solid var(--border-strong); border-radius: 9px; background: var(--surface-raised); }
+.admin-confirm-target { margin: 0 0 8px !important; overflow-wrap: anywhere; color: var(--text) !important; font-size: 13px !important; }
 .admin-dialog-error { margin: 9px 0 0; color: var(--negative); font-size: 13px; }
 .admin-dialog-actions { margin-top: 17px; display: grid; grid-template-columns: .8fr 1.2fr; gap: 8px; }
 .admin-dialog-actions button { min-height: 46px; padding: 0 11px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; border-radius: 9px; font-size: 14px; font-weight: 700; }
@@ -164,7 +183,7 @@
   .admin-house-created { display: none; }
   .admin-house-actions { flex-direction: column; align-items: stretch; }
   .admin-row-action { justify-content: flex-start; }
-  .admin-user-row { grid-template-columns: minmax(185px, .9fr) minmax(180px, 1.1fr) 17px; padding-block: 14px; }
+  .admin-user-row { grid-template-columns: minmax(185px, .9fr) minmax(180px, 1.1fr) auto; padding-block: 14px; }
   .admin-user-seen { display: none; }
 }
 
@@ -198,11 +217,13 @@
   .admin-house-owner > span:last-child, .admin-house-created > span:last-child { font-size: 12px; }
   .admin-house-created { justify-self: end; text-align: right; }
   .admin-mobile-label { display: block; }
-  .admin-house-actions { grid-column: 1 / -1; flex-direction: row; justify-content: flex-start; gap: 5px; }
+  .admin-house-actions { grid-column: 1 / -1; flex-direction: row; flex-wrap: wrap; justify-content: flex-start; gap: 5px; }
   .admin-row-action { min-height: 44px; padding-inline: 8px; font-size: 12px; }
-  .admin-user-row { grid-template-columns: minmax(0, 1fr) 17px; gap: 10px; padding-block: 13px; }
+  .admin-preview-members { grid-template-columns: minmax(0, 1fr); }
+  .admin-user-row { grid-template-columns: minmax(0, 1fr); gap: 10px; padding-block: 13px; }
   .admin-user-primary { grid-column: 1; }
   .admin-user-homes { grid-column: 1 / -1; display: grid; gap: 6px; }
+  .admin-user-actions { grid-column: 1 / -1; justify-content: flex-start; }
   .admin-user-copy h3 { font-size: 14px; }
   .admin-user-copy p { font-size: 12px; }
   .admin-household-chips li { min-height: 28px; font-size: 12px; }
@@ -216,4 +237,9 @@
 
 @media (prefers-reduced-motion: reduce) {
   .admin-shell *, .admin-shell *::before, .admin-shell *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}
+
+@media (max-width: 360px) {
+  .admin-brand-divider, .admin-brand-label { display: none; }
+  .admin-brand, .admin-back-link { white-space: nowrap; }
 }

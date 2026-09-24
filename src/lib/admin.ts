@@ -20,10 +20,11 @@ export type AdminHousehold = {
   ownerName: string;
   ownerEmail: string | null;
   createdAt: string;
-  members: Array<{ name: string; active: boolean; role: string }>;
+  members: Array<{ id: string; name: string; email: string | null; active: boolean; role: string }>;
 };
 
 export type AdminDashboardData = {
+  adminUserId: string;
   adminEmail: string;
   accounts: AdminAccount[];
   households: AdminHousehold[];
@@ -158,7 +159,7 @@ export async function getAdminDashboardData(
       const metadataName = accountName(user);
       return {
         id: user.id,
-        email: user.email ?? null,
+        email: user.email?.trim() || null,
         name: metadataName === "İsimsiz kullanıcı" ? memberName ?? metadataName : metadataName,
         providerLabel: user.is_anonymous ? "Misafir hesabı" : "Google hesabı",
         lastSignInAt: user.last_sign_in_at ?? null,
@@ -186,11 +187,18 @@ export async function getAdminDashboardData(
       createdAt: household.created_at,
       members: members
         .filter((member) => member.household_id === household.id)
-        .map((member) => ({ name: member.name, active: member.active, role: member.role })),
+        .map((member) => ({
+          id: member.id,
+          name: member.name.trim() || accountName(userById.get(member.user_id) ?? {}) || "İsimsiz üye",
+          email: userById.get(member.user_id)?.email?.trim() || null,
+          active: member.active,
+          role: member.role,
+        })),
     };
   });
 
   return {
+    adminUserId,
     adminEmail: adminAccount?.email ?? admin?.email ?? adminEmail,
     accounts,
     households: adminHouseholds,
