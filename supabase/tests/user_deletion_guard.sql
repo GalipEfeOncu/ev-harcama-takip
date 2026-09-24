@@ -11,11 +11,14 @@ declare
   home_id uuid := gen_random_uuid();
   blocked boolean := false;
 begin
-  insert into auth.users (id, instance_id, aud, role, email)
+  insert into auth.users (id, instance_id, aud, role, email, raw_app_meta_data)
   values
-    (owner_id, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'qa-delete-owner@example.invalid'),
-    (member_id, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'qa-delete-member@example.invalid'),
-    (orphan_id, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'qa-delete-orphan@example.invalid');
+    (owner_id, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'qa-delete-owner@example.invalid', '{"providers":["google"]}'::jsonb),
+    (member_id, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'qa-delete-member@example.invalid', '{"providers":["google"]}'::jsonb),
+    (orphan_id, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'qa-delete-orphan@example.invalid', '{"providers":["google"]}'::jsonb);
+
+  perform set_config('request.jwt.claim.sub', owner_id::text, true);
+  perform set_config('request.jwt.claim.role', 'authenticated', true);
 
   insert into public.households (id, name, owner_user_id, join_code_hash)
   values (home_id, 'QA deletion guard', owner_id, gen_random_uuid()::text);
