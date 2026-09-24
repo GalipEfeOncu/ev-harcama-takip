@@ -17,7 +17,7 @@ import GoogleMark from "@/components/google-mark";
 import ThemeControl from "@/components/theme-control";
 import ActivityFeed from "@/components/activity-feed";
 import MemberBalances from "@/components/member-balances";
-import { beginGoogleSignIn } from "@/lib/auth";
+import { beginGoogleSignIn, getAccountSnapshot } from "@/lib/auth";
 import { calculateBalances, formatCurrency, parseAmountToCents, splitAmount } from "@/lib/calculations";
 import { createRemoteDebtPayment, createRemoteExpense, deleteRemoteExpense, loadRemoteHousehold, loadRemoteHouseholdSession, loadRemoteSettlementRuns, rotateRemoteHouseholdJoinCode, updateRemoteExpense } from "@/lib/data-service";
 import {
@@ -112,7 +112,13 @@ export default function DashboardPage() {
           const storedSession = readLocalSession();
           if (isSupabaseConfigured()) {
             const requestedHousehold = new URLSearchParams(window.location.search).get("household");
-            const resolved = await loadRemoteHouseholdSession(requestedHousehold || storedSession?.householdId, storedSession);
+            const account = await getAccountSnapshot();
+            if (!account) {
+              window.localStorage.removeItem("ev-hesap-session");
+              router.replace("/");
+              return;
+            }
+            const resolved = await loadRemoteHouseholdSession(requestedHousehold, storedSession);
             saveLocalSession(resolved.session);
             const [remoteData, runs] = await Promise.all([loadRemoteHousehold(resolved.session), loadRemoteSettlementRuns(resolved.session)]);
             setPayerId(resolved.session.memberId);
@@ -135,7 +141,7 @@ export default function DashboardPage() {
     }, 0);
 
     return () => window.clearTimeout(timer);
-  }, []);
+  }, [router]);
 
   useEffect(() => {
     if (!isExpenseFormOpen) return;
