@@ -110,6 +110,7 @@
 .admin-row-action--danger:hover { background: var(--danger-surface); color: var(--negative); }
 .admin-row-action:disabled { opacity: .55; }
 .admin-mobile-label { display: none; color: var(--text-muted); font-size: 12px; }
+.admin-house-owner .admin-mobile-label { display: block; }
 
 .admin-inline-edit { width: 100%; display: flex; align-items: center; gap: 4px; }
 .admin-inline-edit input { width: 100%; min-width: 0; height: 40px; padding: 0 9px; border: 1px solid var(--border-strong); border-radius: 8px; background: var(--surface-raised); }

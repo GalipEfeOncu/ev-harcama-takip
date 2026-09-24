@@ -87,7 +87,7 @@ function accountName(user: {
   const name = [metadata.full_name, metadata.name, metadata.preferred_username].find(
     (value): value is string => typeof value === "string" && value.trim().length > 0,
   );
-  return name?.trim() ?? user.email ?? "İsimsiz kullanıcı";
+  return name?.trim() || user.email?.trim() || "İsimsiz kullanıcı";
 }
 
 async function listAllAuthUsers(client: NonNullable<ReturnType<typeof createAdminClient>>) {
@@ -182,7 +182,7 @@ export async function getAdminDashboardData(
       name: household.name,
       ownerUserId: household.owner_user_id,
       ownerName: owner ? accountName(owner) : "Hesabı bulunamadı",
-      ownerEmail: owner?.email ?? null,
+      ownerEmail: owner?.email?.trim() || null,
       createdAt: household.created_at,
       members: members
         .filter((member) => member.household_id === household.id)
