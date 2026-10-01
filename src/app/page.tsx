@@ -11,6 +11,7 @@ import {
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import ThemeControl from "@/components/theme-control";
+import RestoreAccount from "@/components/restore-account";
 import { createClient as createServerClient, hasSupabaseConfiguration } from "@/lib/supabase/server";
 
 const sampleMembers = [
@@ -60,6 +61,7 @@ export default async function HomePage() {
 
   return (
     <main className="marketing-shell" id="top">
+      <RestoreAccount />
       <a className="skip-link" href="#main-content">İçeriğe geç</a>
       <header className="public-header">
         <Link className="public-wordmark" href="/" aria-label="Ev Hesap ana sayfa">

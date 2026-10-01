@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/client";
+import { isAuthSessionMissingError } from "@supabase/supabase-js";
 
 export type AccountSnapshot = {
   isAnonymous: boolean;
@@ -10,7 +11,10 @@ export type AccountSnapshot = {
 export async function getAccountSnapshot(): Promise<AccountSnapshot | null> {
   const supabase = createClient();
   const { data, error } = await supabase.auth.getUser();
-  if (error) throw error;
+  if (error) {
+    if (isAuthSessionMissingError(error)) return null;
+    throw error;
+  }
   if (!data.user) return null;
 
   const metadata = data.user.user_metadata;

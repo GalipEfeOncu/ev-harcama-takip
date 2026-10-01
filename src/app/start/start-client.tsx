@@ -50,7 +50,7 @@ export default function StartPage() {
       setAuthState(!account ? "signed-out" : account.hasGoogleIdentity ? "account" : account.isAnonymous ? "anonymous" : "unlinked");
       if (account?.displayName) setMemberName((current) => current || account.displayName);
     }).catch(() => {
-      if (active) setAuthState("signed-out");
+      if (active) setError("Oturum kontrol edilemedi. Bağlantını kontrol edip yeniden dene.");
     });
 
     return () => { active = false; };
@@ -157,7 +157,12 @@ export default function StartPage() {
           {!session ? (
             <>
               {authState === "checking" ? (
-                <p className="form-footnote" role="status">Hesap kontrol ediliyor…</p>
+                error ? (
+                  <div>
+                    <p className="form-error" role="alert">{error}</p>
+                    <button className="secondary-action" onClick={() => window.location.reload()} type="button">Yeniden dene</button>
+                  </div>
+                ) : <p className="form-footnote" role="status">Hesap kontrol ediliyor…</p>
               ) : authState !== "account" ? (
                 <div className="google-sign-in">
                   <div className="form-heading">
