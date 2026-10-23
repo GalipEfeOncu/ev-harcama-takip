@@ -28,6 +28,7 @@
   --scrim: rgb(20 24 21 / 62%);
   --shadow-selection: 0 1px 3px rgb(20 24 21 / 10%);
   --shadow-sheet: 0 20px 64px rgb(20 24 21 / 18%);
+  --font-app: "Mada Variable";
   --font-reading: var(--font-app), "Mada", sans-serif;
   --radius-control: 10px;
   --radius-surface: 18px;
@@ -199,6 +200,30 @@ svg { flex: 0 0 auto; }
 .primary-action:disabled, .secondary-action:disabled { opacity: .62; }
 .icon-button { width: 48px; padding: 0; border: 0; background: transparent; color: var(--text); }
 .icon-button:hover { background: var(--surface-soft); }
+.settings-entry {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 9px 13px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: 15px;
+  font-weight: 650;
+  text-decoration: none;
+}
+.settings-entry:hover { background: var(--surface-soft); color: var(--text); }
+.settings-entry--icon { width: 44px; padding: 0; }
+.settings-entry--full { width: 100%; justify-content: flex-start; }
+@media (max-width: 560px) {
+  .account-tools .settings-entry { width: 44px; padding: 0; }
+  .account-tools .settings-entry > span, .settle-header-tools .settings-entry > span { display: none; }
+  .settle-header-tools .settings-entry { padding: 0; }
+}
+
 .theme-control {
   position: relative;
   flex: 0 0 auto;

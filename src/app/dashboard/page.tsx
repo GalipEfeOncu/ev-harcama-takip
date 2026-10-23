@@ -5,23 +5,20 @@ import { useRouter } from "next/navigation";
 import {
   ArrowRight,
   ArrowUpRight,
-  Copy,
   Home,
-  LogOut,
-  MoreHorizontal,
+  Settings,
   Plus,
   Trash2,
   X,
 } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import GoogleMark from "@/components/google-mark";
-import ThemeControl from "@/components/theme-control";
 import ActivityFeed from "@/components/activity-feed";
 import MemberBalances from "@/components/member-balances";
 import { beginGoogleSignIn, getAccountSnapshot } from "@/lib/auth";
 import { calculateBalances, formatCurrency, parseAmountToCents, splitAmount } from "@/lib/calculations";
 import { localDateInputValue } from "@/lib/local-date";
-import { createRemoteDebtPayment, createRemoteExpense, deleteRemoteExpense, loadRemoteHousehold, loadRemoteHouseholdSession, loadRemoteSettlementRuns, rotateRemoteHouseholdJoinCode, updateRemoteExpense } from "@/lib/data-service";
+import { createRemoteDebtPayment, createRemoteExpense, deleteRemoteExpense, loadRemoteHousehold, loadRemoteHouseholdSession, loadRemoteSettlementRuns, updateRemoteExpense } from "@/lib/data-service";
 import {
   readLocalExpenses,
   readLocalDebtPayments,
@@ -33,7 +30,7 @@ import {
   saveLocalDebtPayments,
   type LocalSession,
 } from "@/lib/local-store";
-import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import { isSupabaseConfigured } from "@/lib/supabase/client";
 import type { DebtPayment, Expense, ExpenseShare, Member, SettlementRun } from "@/lib/types";
 import "./dashboard.css";
 
@@ -88,9 +85,7 @@ export default function DashboardPage() {
   const [paymentNote, setPaymentNote] = useState("");
   const [paymentError, setPaymentError] = useState("");
   const [savingPayment, setSavingPayment] = useState(false);
-  const [copyStatus, setCopyStatus] = useState("");
   const [actionStatus, setActionStatus] = useState("");
-  const [rotatingCode, setRotatingCode] = useState(false);
   const [linkingGoogle, setLinkingGoogle] = useState(false);
   const dialogReturnFocusRef = useRef<HTMLElement | null>(null);
   const cancelDeleteButtonRef = useRef<HTMLButtonElement | null>(null);
@@ -440,39 +435,6 @@ export default function DashboardPage() {
     }
   }
 
-  async function signOut() {
-    if (isSupabaseConfigured()) await createClient().auth.signOut();
-    window.localStorage.removeItem("ev-hesap-session");
-    router.replace("/");
-  }
-
-  async function copyJoinCode() {
-    if (!data?.session.joinCode) return;
-    try {
-      await navigator.clipboard.writeText(data.session.joinCode);
-      setCopyStatus("Ev kodu kopyalandı.");
-    } catch {
-      setCopyStatus("Kod kopyalanamadı. Kodu seçip kopyala.");
-    }
-    window.setTimeout(() => setCopyStatus(""), 1800);
-  }
-
-  async function rotateJoinCode() {
-    if (!data || data.session.role !== "owner") return;
-    setRotatingCode(true);
-    setLoadError("");
-    try {
-      const joinCode = await rotateRemoteHouseholdJoinCode(data.session);
-      const session = { ...data.session, joinCode };
-      saveLocalSession(session);
-      setData({ ...data, session });
-    } catch (rotateFailure) {
-      setLoadError(rotateFailure instanceof Error ? rotateFailure.message : "Yeni davet kodu oluşturulamadı.");
-    } finally {
-      setRotatingCode(false);
-    }
-  }
-
   async function linkGoogleAccount() {
     if (!data || data.account.hasGoogleIdentity) return;
     setLinkingGoogle(true);
@@ -616,35 +578,7 @@ export default function DashboardPage() {
           <span className="account-member-count">{activeMembers.length} kişi</span>
         </div>
         <div className="account-tools">
-          <details className="invite-menu">
-            <summary className="secondary-action"><Copy aria-hidden="true" size={16} /> Davet et</summary>
-            <div className="invite-popover">
-              <strong>Ev arkadaşını davet et</strong>
-              <p>Kodu yalnızca katılmasını istediğin kişilerle paylaş.</p>
-              {data.session.joinCode ? (
-                <div className="invite-code">
-                  <code>{data.session.joinCode}</code>
-                  <button aria-label="Ev kodunu kopyala" onClick={() => void copyJoinCode()} type="button"><Copy aria-hidden="true" size={17} /></button>
-                </div>
-              ) : data.session.role === "owner" ? (
-                <button className="primary-action invite-create" disabled={rotatingCode} onClick={() => void rotateJoinCode()} type="button">
-                  {rotatingCode ? "Hazırlanıyor…" : "Davet kodu oluştur"}
-                </button>
-              ) : <p className="invite-no-code">Davet kodunu ev sahibinden iste.</p>}
-              <span className="visually-hidden" aria-live="polite">{copyStatus}</span>
-            </div>
-          </details>
-          <ThemeControl />
-          <details className="account-menu">
-            <summary aria-label="Hesap seçenekleri"><MoreHorizontal aria-hidden="true" size={21} /></summary>
-            <div className="account-menu-popover">
-              <div className="account-menu-theme">
-                <span>Görünüm teması</span>
-                <ThemeControl full />
-              </div>
-              <button onClick={() => void signOut()} type="button"><LogOut aria-hidden="true" size={16} /> Oturumu kapat</button>
-            </div>
-          </details>
+          <Link className="settings-entry" href={`/settings?household=${encodeURIComponent(data.session.householdId)}`} aria-label="Ayarlar"><Settings aria-hidden="true" size={19} /><span>Ayarlar</span></Link>
         </div>
       </header>
 

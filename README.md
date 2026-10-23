@@ -11,7 +11,28 @@ Aynı evde yaşayan kişilerin ortak harcamalarını kaydetmesini, geçmiş harc
 - Supabase PostgreSQL ve Auth
 - Vercel üzerinde responsive PWA
 
-## Geliştirme
+## Ayarlar ve kişiselleştirme
+
+`/settings` altında Görünüm, Arayüz, Ev ve üyeler, Hesap bölümleri bulunur.
+Pano ve hesap inceleme ekranındaki tek Ayarlar bağlantısı bu alana açılır.
+
+- 24 uyumlu açık/koyu palet; arama, favoriler ve örnek hesap önizlemesi.
+- Birbirinden bağımsız beş yazı tipi seçeneği, üç yazı boyutu ve üç arayüz yoğunluğu.
+- Sistem temasını izleme, hareketleri azaltma, varsayılana dönme ve geri alma.
+- Hesaba bağlı tercihler ve bu cihaz için ayrı görünüm; girişsiz kullanımda tarayıcıda saklama.
+- Ev üyeleri, davet kodunu kopyalama, ev sahibi için kod yenileme ve hesap işlemleri.
+
+Hesap eşitlemesi için `20261023120000_user_appearance_preferences.sql` migration'ı
+23 Ekim 2026'da canlı `ev-harcama-takip` Supabase projesine uygulanmıştır. Her
+kullanıcı yalnızca kendi tercih satırına erişebilir; tablo için RLS politikaları
+ve güncelleme zaman damgası tetikleyicisi doğrulanmıştır. Canlı OAuth ve gerçek
+hesaplar arası tercih eşitlemesi henüz doğrulanmamıştır.
+
+Varsayılan Mada yazı tipi `@fontsource-variable/mada` paketinden uygulamayla
+birlikte sunulur; derleme sırasında Google Fonts bağlantısı gerektirmez. Diğer
+yazı tipi seçenekleri cihazdaki mevcut yazı tiplerini kullanır.
+
+## Yerel çalıştırma
 
 ```bash
 npm install

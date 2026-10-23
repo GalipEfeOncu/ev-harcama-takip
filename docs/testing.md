@@ -4,6 +4,17 @@
 ayrıca **ayrı, geçici yerel Supabase** örneğine tüm migration dosyalarını uygular ve
 `supabase/tests/settlement_history.sql` testini çalıştırır.
 
+Görünüm tercihleri için JavaScript testleri 24 paletin metin, vurgu ve durum
+renklerinin kontrastını; eski tema seçiminin taşınmasını; ilk boyama betiğini;
+hesap/cihaz kapsamını; geç dönen yanıtları; sıraya alınmış kayıtları; hesap
+değişimini ve eşitleme hatası sonrası tekrar denemeyi kapsar.
+
+CI ayrıca `supabase/tests/user_preferences.sql` dosyasını aynı atılabilir
+veritabanında çalıştırır. Test kendi tercihlerini okuma/yazma/silme ve diğer
+hesaplardan erişimi engelleme kurallarını doğrular. Yerelde migration'lardan
+sonra aynı `psql` komutunu bu dosya yolu ile çalıştırabilirsiniz. Bu SQL testi
+de bir transaction sonunda geri alınır; canlı veritabanı testi değildir.
+
 Veritabanı testini kendi bilgisayarınızda çalıştırmak için Docker, Supabase CLI
 ve PostgreSQL `psql` istemcisi gerekir:
 

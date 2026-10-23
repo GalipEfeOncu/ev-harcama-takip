@@ -1,0 +1,83 @@
+/* Root attributes are applied before paint and shared by dashboard, sheets and settings. */
+html[data-font-size] { --font-reading: var(--font-selected, var(--font-app), "Mada", sans-serif); }
+html[data-font-size="small"] { font-size: 93.75%; }
+html[data-font-size="default"] { font-size: 100%; }
+html[data-font-size="large"] { font-size: 112.5%; }
+html[data-font-size] body { font-size: 1rem; }
+
+html[data-density] {
+  --appearance-gap: 1.5rem;
+  --appearance-panel-padding: 1.375rem;
+  --appearance-row-padding: 1.0625rem;
+  --appearance-row-min-height: 3.875rem;
+  --appearance-section-gap: 2rem;
+}
+html[data-density="comfortable"] {
+  --appearance-gap: 2rem;
+  --appearance-panel-padding: 1.75rem;
+  --appearance-row-padding: 1.5rem;
+  --appearance-row-min-height: 4.5rem;
+  --appearance-section-gap: 2.5rem;
+}
+html[data-density="compact"] {
+  --appearance-gap: 1rem;
+  --appearance-panel-padding: 1rem;
+  --appearance-row-padding: .625rem;
+  --appearance-row-min-height: 3rem;
+  --appearance-section-gap: 1.5rem;
+}
+
+html[data-density] :is(.dashboard-sidebar, .dashboard-content) { gap: var(--appearance-gap); }
+html[data-density] :is(.account-overview, .activity-section, .transfer-card, .settlement-history) { padding: var(--appearance-panel-padding); }
+html[data-density] .member-balance-row { min-height: var(--appearance-row-min-height); padding-block: calc(var(--appearance-row-padding) * .5); }
+html[data-density] .activity-item { padding-block: var(--appearance-row-padding); }
+html[data-density] .transfer-list { gap: calc(var(--appearance-gap) * .4); }
+html[data-density] .transfer-row { min-height: calc(var(--appearance-row-min-height) + .75rem); padding-block: calc(var(--appearance-row-padding) * .65); }
+html[data-density] .settlement-history-row { min-height: var(--appearance-row-min-height); padding-block: calc(var(--appearance-row-padding) * .6); }
+html[data-density] :is(.expense-form-group, .expense-form-group + .expense-form-group) { padding-block: calc(var(--appearance-row-padding) * .7); }
+html[data-density] :is(button, summary, .primary-action, .secondary-action, .header-back, .text-action, .text-link, .settings-nav a) { min-height: 44px; }
+html[data-density] :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea) { min-height: 48px; }
+
+/* The incumbent views use fixed px type. Rem values let all preference sizes
+   propagate while preserving the current hierarchy and minimum touch targets. */
+html[data-font-size] :is(.dashboard-wordmark, .account-household__name, .member-balance-copy > strong, .activity-amount, .transfer-row > b, .share-input-wrap input) { font-size: 1rem; }
+html[data-font-size] :is(.account-member-count, .account-period, .account-total > span, .account-net > span, .member-balances-section > header > span, .activity-count, .activity-heading p, .activity-meta, .activity-actions button, .activity-shares summary, .debt-payment-hint, .debt-payment-empty, .modal-header p, .derived-total span, .share-total span, .share-amount-hint, .settle-rule, .transfer-card-head p, .transfer-count, .settle-card-foot > p, .history-heading > span, .settlement-history-row b, .settlement-history-row strong) { font-size: .875rem; }
+html[data-font-size] :is(.account-total small, .member-balance-copy .member-you, .participant-option small, .share-amount-row small, .transfer-person small) { font-size: .8125rem; }
+html[data-font-size] :is(.member-balance-copy > span, .activity-kind, .activity-status) { font-size: .875rem; }
+html[data-font-size] :is(.member-balance-row > b, .share-mode-switch button) { font-size: .9375rem; }
+html[data-font-size] :is(.activity-item h3, .derived-total strong, .share-total strong) { font-size: 1.0625rem; }
+html[data-font-size] :is(.account-heading h1, .transfer-card-head h2) { font-size: 1.4375rem; }
+html[data-font-size] :is(.activity-heading h2, .delete-modal h2) { font-size: 1.5rem; }
+html[data-font-size] :is(.member-balances-section > header h2, .account-net > strong) { font-size: 1.1875rem; }
+html[data-font-size] :is(.modal-header h2, .history-heading h2, .settle-empty h3) { font-size: 1.25rem; }
+html[data-font-size] .expense-form-group h3 { font-size: 1.125rem; }
+html[data-font-size] .share-amount-section h4 { font-size: 1rem; }
+html[data-font-size] .settle-success h2 { font-size: 1.625rem; }
+html[data-font-size] .account-total > strong { font-size: clamp(1.5625rem, 3vw, 2rem); }
+html[data-font-size] .settle-heading h1 { font-size: clamp(1.8125rem, 4vw, 2.625rem); }
+html[data-font-size] :is(.member-balance-row > b, .account-net > strong, .transfer-row > b, .activity-amount) { font-variant-numeric: tabular-nums; }
+
+html[data-reduced-motion="true"], html[data-reduced-motion="true"] * { scroll-behavior: auto !important; }
+html[data-reduced-motion="true"] *, html[data-reduced-motion="true"] *::before, html[data-reduced-motion="true"] *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+
+@media (max-width: 560px) {
+  html[data-density="standard"] { --appearance-panel-padding: 1.0625rem; }
+  html[data-density="comfortable"] { --appearance-panel-padding: 1.25rem; }
+  html[data-density="compact"] { --appearance-panel-padding: .875rem; }
+  html[data-font-size] .dashboard-wordmark { font-size: .9375rem; }
+  html[data-font-size] .account-household__name { font-size: .875rem; }
+  html[data-font-size] .account-member-count { font-size: .8125rem; }
+  html[data-font-size] .account-heading h1 { font-size: 1.3125rem; }
+  html[data-font-size] .activity-heading h2 { font-size: 1.375rem; }
+  html[data-font-size] .activity-filters > button { font-size: .875rem; }
+  html[data-font-size] .account-total > strong { font-size: clamp(1.5rem, 8vw, 1.875rem); }
+  html[data-font-size] .activity-item h3 { font-size: 1rem; }
+  html[data-font-size="large"] .activity-item article { grid-template-columns: minmax(0, 1fr); }
+  html[data-font-size="large"] .activity-amount { padding-top: .25rem; text-align: left; }
+  html[data-font-size="large"] .member-balance-row { align-items: flex-start; flex-wrap: wrap; gap: .375rem 1rem; }
+  html[data-font-size="large"] .member-balance-row > b { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+  html[data-font-size="large"] .activity-item-main { grid-template-columns: minmax(0, 1fr); }
+  html[data-font-size="large"] .activity-status { justify-self: start; }
+  html[data-font-size="large"] .account-net > strong { white-space: normal; overflow-wrap: anywhere; }
+  html[data-font-size="large"] .transfer-row > b { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+}

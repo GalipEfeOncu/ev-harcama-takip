@@ -1,224 +1,543 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-19T16:11:55.090Z",
+  "generatedAt": "2026-10-23T09:13:05.666Z",
   "title": "Design System: Ev Hesap",
   "extensions": {
     "colorMeta": {
-      "graphite-ink": {
-        "role": "neutral",
-        "displayName": "Graphite Ink",
-        "canonical": "#0a1117",
-        "tonalRamp": [
-          "#172735",
-          "#274259",
-          "#365c7c",
-          "#4676a0",
-          "#5f90b9",
-          "#83a8c9",
-          "#a6c1d8",
-          "#edf3f7"
-        ]
-      },
-      "mineral-paper": {
-        "role": "neutral",
-        "displayName": "Mineral Paper",
-        "canonical": "#e9f0e8",
-        "tonalRamp": [
-          "#202e1e",
-          "#364d32",
-          "#4b6c46",
-          "#618b5b",
-          "#7aa474",
-          "#98b993",
-          "#b5cdb2",
-          "#f0f5f0"
-        ]
-      },
-      "mineral-paper-raised": {
-        "role": "neutral",
-        "displayName": "Raised Mineral Paper",
-        "canonical": "#f2f6f0",
-        "tonalRamp": [
-          "#23301d",
-          "#3a5030",
-          "#527043",
-          "#698f56",
-          "#83a970",
-          "#9ebc8f",
-          "#bacfaf",
-          "#f1f5ef"
-        ]
-      },
-      "mineral-paper-shade": {
-        "role": "neutral",
-        "displayName": "Shaded Mineral Paper",
-        "canonical": "#dce8dc",
-        "tonalRamp": [
-          "#1e2e1e",
-          "#334d33",
-          "#476c47",
-          "#5b8a5b",
-          "#75a475",
-          "#93b893",
-          "#b2ccb2",
-          "#f0f5f0"
-        ]
-      },
-      "muted-copy": {
-        "role": "neutral",
-        "displayName": "Muted Copy",
-        "canonical": "#586866",
-        "tonalRamp": [
-          "#232929",
-          "#3a4544",
-          "#52615f",
-          "#697c7a",
-          "#839693",
-          "#9eadab",
-          "#bac5c3",
-          "#f1f3f3"
-        ]
-      },
-      "sage-rule": {
-        "role": "neutral",
-        "displayName": "Sage Rule",
-        "canonical": "#a6b5aa",
-        "tonalRamp": [
-          "#232a25",
-          "#3a463d",
-          "#516155",
-          "#687d6e",
-          "#829787",
-          "#9eaea2",
-          "#b9c5bd",
-          "#f1f3f2"
-        ]
-      },
-      "sage-accent": {
-        "role": "neutral",
-        "displayName": "Sage Accent",
-        "canonical": "#9eafa1",
-        "tonalRamp": [
-          "#232a24",
-          "#3a463c",
-          "#516254",
-          "#687e6c",
-          "#819785",
-          "#9daea0",
-          "#b9c5bb",
-          "#f1f3f1"
-        ]
-      },
-      "signal-orange": {
+      "primary": {
         "role": "primary",
-        "displayName": "Signal Orange",
-        "canonical": "#d86436",
+        "displayName": "Primary",
         "tonalRamp": [
-          "#401b0c",
-          "#6b2d15",
-          "#953f1d",
-          "#c05125",
-          "#da6b3f",
-          "#e28c6a",
-          "#eaad94",
-          "#fbefea"
+          "oklch(15.00% 0.15965 36.83)",
+          "oklch(26.43% 0.15965 36.83)",
+          "oklch(37.86% 0.15965 36.83)",
+          "oklch(49.29% 0.15965 36.83)",
+          "oklch(60.71% 0.15965 36.83)",
+          "oklch(72.14% 0.15965 36.83)",
+          "oklch(83.57% 0.15965 36.83)",
+          "oklch(95.00% 0.15965 36.83)"
         ]
       },
-      "signal-orange-deep": {
-        "role": "secondary",
-        "displayName": "Deep Signal Orange",
-        "canonical": "#b94924",
+      "primary-hover": {
+        "role": "primary",
+        "displayName": "Primary Hover",
         "tonalRamp": [
-          "#40190c",
-          "#6b2a15",
-          "#953b1d",
-          "#c04c25",
-          "#da653f",
-          "#e2876a",
-          "#eaaa94",
-          "#fbeeea"
+          "oklch(15.00% 0.15998 36.16)",
+          "oklch(26.43% 0.15998 36.16)",
+          "oklch(37.86% 0.15998 36.16)",
+          "oklch(49.29% 0.15998 36.16)",
+          "oklch(60.71% 0.15998 36.16)",
+          "oklch(72.14% 0.15998 36.16)",
+          "oklch(83.57% 0.15998 36.16)",
+          "oklch(95.00% 0.15998 36.16)"
         ]
       },
-      "danger": {
+      "accent-text": {
+        "role": "neutral",
+        "displayName": "Accent Text",
+        "tonalRamp": [
+          "oklch(15.00% 0.15119 36.21)",
+          "oklch(26.43% 0.15119 36.21)",
+          "oklch(37.86% 0.15119 36.21)",
+          "oklch(49.29% 0.15119 36.21)",
+          "oklch(60.71% 0.15119 36.21)",
+          "oklch(72.14% 0.15119 36.21)",
+          "oklch(83.57% 0.15119 36.21)",
+          "oklch(95.00% 0.15119 36.21)"
+        ]
+      },
+      "on-primary": {
+        "role": "neutral",
+        "displayName": "On Primary",
+        "tonalRamp": [
+          "oklch(15.00% 0.00591 156.73)",
+          "oklch(26.43% 0.00591 156.73)",
+          "oklch(37.86% 0.00591 156.73)",
+          "oklch(49.29% 0.00591 156.73)",
+          "oklch(60.71% 0.00591 156.73)",
+          "oklch(72.14% 0.00591 156.73)",
+          "oklch(83.57% 0.00591 156.73)",
+          "oklch(95.00% 0.00591 156.73)"
+        ]
+      },
+      "page": {
+        "role": "neutral",
+        "displayName": "Page",
+        "tonalRamp": [
+          "oklch(15.00% 0.00412 91.45)",
+          "oklch(26.43% 0.00412 91.45)",
+          "oklch(37.86% 0.00412 91.45)",
+          "oklch(49.29% 0.00412 91.45)",
+          "oklch(60.71% 0.00412 91.45)",
+          "oklch(72.14% 0.00412 91.45)",
+          "oklch(83.57% 0.00412 91.45)",
+          "oklch(95.00% 0.00412 91.45)"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Surface",
+        "tonalRamp": [
+          "oklch(15.00% 0.00000 89.88)",
+          "oklch(26.43% 0.00000 89.88)",
+          "oklch(37.86% 0.00000 89.88)",
+          "oklch(49.29% 0.00000 89.88)",
+          "oklch(60.71% 0.00000 89.88)",
+          "oklch(72.14% 0.00000 89.88)",
+          "oklch(83.57% 0.00000 89.88)",
+          "oklch(95.00% 0.00000 89.88)"
+        ]
+      },
+      "surface-raised": {
+        "role": "neutral",
+        "displayName": "Surface Raised",
+        "tonalRamp": [
+          "oklch(15.00% 0.00000 89.88)",
+          "oklch(26.43% 0.00000 89.88)",
+          "oklch(37.86% 0.00000 89.88)",
+          "oklch(49.29% 0.00000 89.88)",
+          "oklch(60.71% 0.00000 89.88)",
+          "oklch(72.14% 0.00000 89.88)",
+          "oklch(83.57% 0.00000 89.88)",
+          "oklch(95.00% 0.00000 89.88)"
+        ]
+      },
+      "surface-soft": {
+        "role": "neutral",
+        "displayName": "Surface Soft",
+        "tonalRamp": [
+          "oklch(15.00% 0.00543 95.10)",
+          "oklch(26.43% 0.00543 95.10)",
+          "oklch(37.86% 0.00543 95.10)",
+          "oklch(49.29% 0.00543 95.10)",
+          "oklch(60.71% 0.00543 95.10)",
+          "oklch(72.14% 0.00543 95.10)",
+          "oklch(83.57% 0.00543 95.10)",
+          "oklch(95.00% 0.00543 95.10)"
+        ]
+      },
+      "ledger": {
+        "role": "neutral",
+        "displayName": "Ledger",
+        "tonalRamp": [
+          "oklch(15.00% 0.00543 95.10)",
+          "oklch(26.43% 0.00543 95.10)",
+          "oklch(37.86% 0.00543 95.10)",
+          "oklch(49.29% 0.00543 95.10)",
+          "oklch(60.71% 0.00543 95.10)",
+          "oklch(72.14% 0.00543 95.10)",
+          "oklch(83.57% 0.00543 95.10)",
+          "oklch(95.00% 0.00543 95.10)"
+        ]
+      },
+      "text": {
+        "role": "neutral",
+        "displayName": "Text",
+        "tonalRamp": [
+          "oklch(15.00% 0.00591 156.73)",
+          "oklch(26.43% 0.00591 156.73)",
+          "oklch(37.86% 0.00591 156.73)",
+          "oklch(49.29% 0.00591 156.73)",
+          "oklch(60.71% 0.00591 156.73)",
+          "oklch(72.14% 0.00591 156.73)",
+          "oklch(83.57% 0.00591 156.73)",
+          "oklch(95.00% 0.00591 156.73)"
+        ]
+      },
+      "text-muted": {
+        "role": "neutral",
+        "displayName": "Text Muted",
+        "tonalRamp": [
+          "oklch(15.00% 0.01352 153.42)",
+          "oklch(26.43% 0.01352 153.42)",
+          "oklch(37.86% 0.01352 153.42)",
+          "oklch(49.29% 0.01352 153.42)",
+          "oklch(60.71% 0.01352 153.42)",
+          "oklch(72.14% 0.01352 153.42)",
+          "oklch(83.57% 0.01352 153.42)",
+          "oklch(95.00% 0.01352 153.42)"
+        ]
+      },
+      "positive": {
         "role": "semantic",
-        "displayName": "Danger",
-        "canonical": "#7b2b1d",
+        "displayName": "Positive",
         "tonalRamp": [
-          "#3e160f",
-          "#672418",
-          "#903222",
-          "#ba412c",
-          "#d35a45",
-          "#dd7f6f",
-          "#e7a498",
-          "#faedea"
+          "oklch(15.00% 0.09998 157.23)",
+          "oklch(26.43% 0.09998 157.23)",
+          "oklch(37.86% 0.09998 157.23)",
+          "oklch(49.29% 0.09998 157.23)",
+          "oklch(60.71% 0.09998 157.23)",
+          "oklch(72.14% 0.09998 157.23)",
+          "oklch(83.57% 0.09998 157.23)",
+          "oklch(95.00% 0.09998 157.23)"
+        ]
+      },
+      "negative": {
+        "role": "semantic",
+        "displayName": "Negative",
+        "tonalRamp": [
+          "oklch(15.00% 0.18205 29.51)",
+          "oklch(26.43% 0.18205 29.51)",
+          "oklch(37.86% 0.18205 29.51)",
+          "oklch(49.29% 0.18205 29.51)",
+          "oklch(60.71% 0.18205 29.51)",
+          "oklch(72.14% 0.18205 29.51)",
+          "oklch(83.57% 0.18205 29.51)",
+          "oklch(95.00% 0.18205 29.51)"
+        ]
+      },
+      "focus": {
+        "role": "semantic",
+        "displayName": "Focus",
+        "tonalRamp": [
+          "oklch(15.00% 0.10958 157.45)",
+          "oklch(26.43% 0.10958 157.45)",
+          "oklch(37.86% 0.10958 157.45)",
+          "oklch(49.29% 0.10958 157.45)",
+          "oklch(60.71% 0.10958 157.45)",
+          "oklch(72.14% 0.10958 157.45)",
+          "oklch(83.57% 0.10958 157.45)",
+          "oklch(95.00% 0.10958 157.45)"
+        ]
+      },
+      "border-subtle": {
+        "role": "neutral",
+        "displayName": "Border Subtle",
+        "tonalRamp": [
+          "oklch(15.00% 0.00681 97.36)",
+          "oklch(26.43% 0.00681 97.36)",
+          "oklch(37.86% 0.00681 97.36)",
+          "oklch(49.29% 0.00681 97.36)",
+          "oklch(60.71% 0.00681 97.36)",
+          "oklch(72.14% 0.00681 97.36)",
+          "oklch(83.57% 0.00681 97.36)",
+          "oklch(95.00% 0.00681 97.36)"
+        ]
+      },
+      "border-strong": {
+        "role": "neutral",
+        "displayName": "Border Strong",
+        "tonalRamp": [
+          "oklch(15.00% 0.00986 100.03)",
+          "oklch(26.43% 0.00986 100.03)",
+          "oklch(37.86% 0.00986 100.03)",
+          "oklch(49.29% 0.00986 100.03)",
+          "oklch(60.71% 0.00986 100.03)",
+          "oklch(72.14% 0.00986 100.03)",
+          "oklch(83.57% 0.00986 100.03)",
+          "oklch(95.00% 0.00986 100.03)"
+        ]
+      },
+      "dark-primary": {
+        "role": "primary",
+        "displayName": "Dark Primary",
+        "tonalRamp": [
+          "oklch(15.00% 0.14502 36.94)",
+          "oklch(26.43% 0.14502 36.94)",
+          "oklch(37.86% 0.14502 36.94)",
+          "oklch(49.29% 0.14502 36.94)",
+          "oklch(60.71% 0.14502 36.94)",
+          "oklch(72.14% 0.14502 36.94)",
+          "oklch(83.57% 0.14502 36.94)",
+          "oklch(95.00% 0.14502 36.94)"
+        ]
+      },
+      "dark-primary-hover": {
+        "role": "primary",
+        "displayName": "Dark Primary Hover",
+        "tonalRamp": [
+          "oklch(15.00% 0.15161 35.69)",
+          "oklch(26.43% 0.15161 35.69)",
+          "oklch(37.86% 0.15161 35.69)",
+          "oklch(49.29% 0.15161 35.69)",
+          "oklch(60.71% 0.15161 35.69)",
+          "oklch(72.14% 0.15161 35.69)",
+          "oklch(83.57% 0.15161 35.69)",
+          "oklch(95.00% 0.15161 35.69)"
+        ]
+      },
+      "dark-accent-text": {
+        "role": "neutral",
+        "displayName": "Dark Accent Text",
+        "tonalRamp": [
+          "oklch(15.00% 0.11057 36.17)",
+          "oklch(26.43% 0.11057 36.17)",
+          "oklch(37.86% 0.11057 36.17)",
+          "oklch(49.29% 0.11057 36.17)",
+          "oklch(60.71% 0.11057 36.17)",
+          "oklch(72.14% 0.11057 36.17)",
+          "oklch(83.57% 0.11057 36.17)",
+          "oklch(95.00% 0.11057 36.17)"
+        ]
+      },
+      "dark-on-primary": {
+        "role": "neutral",
+        "displayName": "Dark On Primary",
+        "tonalRamp": [
+          "oklch(15.00% 0.03323 35.54)",
+          "oklch(26.43% 0.03323 35.54)",
+          "oklch(37.86% 0.03323 35.54)",
+          "oklch(49.29% 0.03323 35.54)",
+          "oklch(60.71% 0.03323 35.54)",
+          "oklch(72.14% 0.03323 35.54)",
+          "oklch(83.57% 0.03323 35.54)",
+          "oklch(95.00% 0.03323 35.54)"
+        ]
+      },
+      "dark-page": {
+        "role": "neutral",
+        "displayName": "Dark Page",
+        "tonalRamp": [
+          "oklch(15.00% 0.00508 145.37)",
+          "oklch(26.43% 0.00508 145.37)",
+          "oklch(37.86% 0.00508 145.37)",
+          "oklch(49.29% 0.00508 145.37)",
+          "oklch(60.71% 0.00508 145.37)",
+          "oklch(72.14% 0.00508 145.37)",
+          "oklch(83.57% 0.00508 145.37)",
+          "oklch(95.00% 0.00508 145.37)"
+        ]
+      },
+      "dark-surface": {
+        "role": "neutral",
+        "displayName": "Dark Surface",
+        "tonalRamp": [
+          "oklch(15.00% 0.00490 145.41)",
+          "oklch(26.43% 0.00490 145.41)",
+          "oklch(37.86% 0.00490 145.41)",
+          "oklch(49.29% 0.00490 145.41)",
+          "oklch(60.71% 0.00490 145.41)",
+          "oklch(72.14% 0.00490 145.41)",
+          "oklch(83.57% 0.00490 145.41)",
+          "oklch(95.00% 0.00490 145.41)"
+        ]
+      },
+      "dark-surface-raised": {
+        "role": "neutral",
+        "displayName": "Dark Surface Raised",
+        "tonalRamp": [
+          "oklch(15.00% 0.00709 145.36)",
+          "oklch(26.43% 0.00709 145.36)",
+          "oklch(37.86% 0.00709 145.36)",
+          "oklch(49.29% 0.00709 145.36)",
+          "oklch(60.71% 0.00709 145.36)",
+          "oklch(72.14% 0.00709 145.36)",
+          "oklch(83.57% 0.00709 145.36)",
+          "oklch(95.00% 0.00709 145.36)"
+        ]
+      },
+      "dark-surface-soft": {
+        "role": "neutral",
+        "displayName": "Dark Surface Soft",
+        "tonalRamp": [
+          "oklch(15.00% 0.00695 145.38)",
+          "oklch(26.43% 0.00695 145.38)",
+          "oklch(37.86% 0.00695 145.38)",
+          "oklch(49.29% 0.00695 145.38)",
+          "oklch(60.71% 0.00695 145.38)",
+          "oklch(72.14% 0.00695 145.38)",
+          "oklch(83.57% 0.00695 145.38)",
+          "oklch(95.00% 0.00695 145.38)"
+        ]
+      },
+      "dark-ledger": {
+        "role": "neutral",
+        "displayName": "Dark Ledger",
+        "tonalRamp": [
+          "oklch(15.00% 0.00709 145.36)",
+          "oklch(26.43% 0.00709 145.36)",
+          "oklch(37.86% 0.00709 145.36)",
+          "oklch(49.29% 0.00709 145.36)",
+          "oklch(60.71% 0.00709 145.36)",
+          "oklch(72.14% 0.00709 145.36)",
+          "oklch(83.57% 0.00709 145.36)",
+          "oklch(95.00% 0.00709 145.36)"
+        ]
+      },
+      "dark-text": {
+        "role": "neutral",
+        "displayName": "Dark Text",
+        "tonalRamp": [
+          "oklch(15.00% 0.00450 134.85)",
+          "oklch(26.43% 0.00450 134.85)",
+          "oklch(37.86% 0.00450 134.85)",
+          "oklch(49.29% 0.00450 134.85)",
+          "oklch(60.71% 0.00450 134.85)",
+          "oklch(72.14% 0.00450 134.85)",
+          "oklch(83.57% 0.00450 134.85)",
+          "oklch(95.00% 0.00450 134.85)"
+        ]
+      },
+      "dark-text-muted": {
+        "role": "neutral",
+        "displayName": "Dark Text Muted",
+        "tonalRamp": [
+          "oklch(15.00% 0.01083 145.47)",
+          "oklch(26.43% 0.01083 145.47)",
+          "oklch(37.86% 0.01083 145.47)",
+          "oklch(49.29% 0.01083 145.47)",
+          "oklch(60.71% 0.01083 145.47)",
+          "oklch(72.14% 0.01083 145.47)",
+          "oklch(83.57% 0.01083 145.47)",
+          "oklch(95.00% 0.01083 145.47)"
+        ]
+      },
+      "dark-positive": {
+        "role": "semantic",
+        "displayName": "Dark Positive",
+        "tonalRamp": [
+          "oklch(15.00% 0.10802 157.66)",
+          "oklch(26.43% 0.10802 157.66)",
+          "oklch(37.86% 0.10802 157.66)",
+          "oklch(49.29% 0.10802 157.66)",
+          "oklch(60.71% 0.10802 157.66)",
+          "oklch(72.14% 0.10802 157.66)",
+          "oklch(83.57% 0.10802 157.66)",
+          "oklch(95.00% 0.10802 157.66)"
+        ]
+      },
+      "dark-negative": {
+        "role": "semantic",
+        "displayName": "Dark Negative",
+        "tonalRamp": [
+          "oklch(15.00% 0.14310 26.37)",
+          "oklch(26.43% 0.14310 26.37)",
+          "oklch(37.86% 0.14310 26.37)",
+          "oklch(49.29% 0.14310 26.37)",
+          "oklch(60.71% 0.14310 26.37)",
+          "oklch(72.14% 0.14310 26.37)",
+          "oklch(83.57% 0.14310 26.37)",
+          "oklch(95.00% 0.14310 26.37)"
+        ]
+      },
+      "dark-focus": {
+        "role": "semantic",
+        "displayName": "Dark Focus",
+        "tonalRamp": [
+          "oklch(15.00% 0.09742 158.01)",
+          "oklch(26.43% 0.09742 158.01)",
+          "oklch(37.86% 0.09742 158.01)",
+          "oklch(49.29% 0.09742 158.01)",
+          "oklch(60.71% 0.09742 158.01)",
+          "oklch(72.14% 0.09742 158.01)",
+          "oklch(83.57% 0.09742 158.01)",
+          "oklch(95.00% 0.09742 158.01)"
+        ]
+      },
+      "dark-border-subtle": {
+        "role": "neutral",
+        "displayName": "Dark Border Subtle",
+        "tonalRamp": [
+          "oklch(15.00% 0.00902 145.35)",
+          "oklch(26.43% 0.00902 145.35)",
+          "oklch(37.86% 0.00902 145.35)",
+          "oklch(49.29% 0.00902 145.35)",
+          "oklch(60.71% 0.00902 145.35)",
+          "oklch(72.14% 0.00902 145.35)",
+          "oklch(83.57% 0.00902 145.35)",
+          "oklch(95.00% 0.00902 145.35)"
+        ]
+      },
+      "dark-border-strong": {
+        "role": "neutral",
+        "displayName": "Dark Border Strong",
+        "tonalRamp": [
+          "oklch(15.00% 0.01132 150.44)",
+          "oklch(26.43% 0.01132 150.44)",
+          "oklch(37.86% 0.01132 150.44)",
+          "oklch(49.29% 0.01132 150.44)",
+          "oklch(60.71% 0.01132 150.44)",
+          "oklch(72.14% 0.01132 150.44)",
+          "oklch(83.57% 0.01132 150.44)",
+          "oklch(95.00% 0.01132 150.44)"
         ]
       }
     },
     "typographyMeta": {
       "display": {
-        "displayName": "Yantramanav Display",
-        "purpose": "Large public landing heading."
+        "displayName": "Mada Display",
+        "purpose": "Default public landing heading; follows selected font."
       },
-      "heading": {
-        "displayName": "Yantramanav Heading",
-        "purpose": "Page and household section headings."
+      "title": {
+        "displayName": "Settings Title",
+        "purpose": "Settings section titles."
       },
       "body": {
         "displayName": "Mada Reading",
-        "purpose": "Turkish interface copy and standard controls."
+        "purpose": "Turkish interface copy; selected stack and reading size apply."
       },
-      "action": {
-        "displayName": "Mada Action",
-        "purpose": "Standard action labels."
+      "label": {
+        "displayName": "Control Label",
+        "purpose": "Settings labels and secondary actions."
       },
       "amount": {
-        "displayName": "Yantramanav Amount",
-        "purpose": "Tabular financial amounts on wider layouts."
-      },
-      "phone-balance": {
-        "displayName": "Barrio Phone Balance",
-        "purpose": "Distinctive member amounts on phone-width dashboards."
-      },
-      "code": {
-        "displayName": "System Monospace Code",
-        "purpose": "Household invite codes only."
+        "displayName": "Ledger Total",
+        "purpose": "Comparable money values use tabular numerals."
       }
     },
-    "shadows": [],
+    "shadows": [
+      {
+        "name": "selection-light",
+        "value": "0 1px 3px rgb(20 24 21 / 10%)",
+        "purpose": "Selected segmented controls in light presets."
+      },
+      {
+        "name": "selection-dark",
+        "value": "0 1px 3px rgb(0 0 0 / 28%)",
+        "purpose": "Selected segmented controls in dark presets."
+      },
+      {
+        "name": "sheet-light",
+        "value": "0 20px 64px rgb(20 24 21 / 18%)",
+        "purpose": "Dialogs and established popovers in light presets."
+      },
+      {
+        "name": "sheet-dark",
+        "value": "0 20px 64px rgb(0 0 0 / 50%)",
+        "purpose": "Dialogs and established popovers in dark presets."
+      }
+    ],
     "motion": [
       {
         "name": "control-color",
         "value": "150ms ease",
-        "purpose": "Button and link color transitions."
+        "purpose": "Normal control color transitions."
       },
       {
-        "name": "balance-rail-settle",
-        "value": "420ms cubic-bezier(0.16, 1, 0.3, 1)",
-        "purpose": "The upper member rail settles into place."
+        "name": "settings-preview",
+        "value": "180ms ease-out",
+        "purpose": "Preview color transitions only when motion is permitted."
       },
       {
         "name": "reduced-motion",
-        "value": "0.01ms",
-        "purpose": "Honors prefers-reduced-motion for animations and transitions."
+        "value": ".01ms",
+        "purpose": "Explicit independent motion override; existing OS reduced-motion rules remain."
       }
     ],
     "breakpoints": [
       {
-        "name": "compact",
-        "value": "350px"
+        "name": "settings-medium",
+        "value": "1050px"
       },
       {
-        "name": "phone",
-        "value": "480px"
-      },
-      {
-        "name": "tablet",
+        "name": "settings-section-index",
         "value": "760px"
       },
       {
-        "name": "wide",
-        "value": "980px"
+        "name": "settings-small",
+        "value": "580px"
+      },
+      {
+        "name": "appearance-mobile",
+        "value": "560px"
+      },
+      {
+        "name": "settings-two-columns",
+        "value": "460px"
+      },
+      {
+        "name": "settings-narrow",
+        "value": "360px"
       }
     ]
   },
@@ -227,102 +546,97 @@
       "name": "Primary Action",
       "kind": "button",
       "refersTo": "button-primary",
-      "description": "The filled signal-orange action for the main step on a page.",
-      "html": "<button class=\"ds-btn-primary\" type=\"button\">Harcama ekle</button>",
-      "css": ".ds-btn-primary { min-height: 46px; padding: 0 15px; border: 1px solid var(--ink); border-radius: 4px; background: var(--orange); color: var(--ink); font: 700 15px/1.1 var(--font-body); cursor: pointer; transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease; } .ds-btn-primary:hover { border-color: #c8522a; background: #c8522a; } .ds-btn-primary:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; } .ds-btn-primary:active { background: var(--orange-deep); } .ds-btn-primary:disabled { border-color: #9a8a7e; background: #c7bdb1; color: #39413e; cursor: wait; }"
+      "description": "The selected palette accent marks the primary action.",
+      "html": "<button class=\"ds-primary\" type=\"button\">Harcama ekle</button>",
+      "css": ".ds-primary{min-height:48px;padding:0 18px;border:1px solid var(--accent);border-radius:var(--radius-control);background:var(--accent);color:var(--on-accent);font-family:var(--font-reading);font-size:1rem;font-weight:700;cursor:pointer;transition:background-color 150ms ease,color 150ms ease,border-color 150ms ease}.ds-primary:hover{border-color:var(--accent-hover);background:var(--accent-hover)}.ds-primary:focus-visible{outline:3px solid var(--focus);outline-offset:3px;}.ds-primary:disabled{opacity:.62}"
     },
     {
-      "name": "Quiet Text Action",
-      "kind": "nav",
+      "name": "Secondary Action",
+      "kind": "button",
       "refersTo": "button-secondary",
-      "description": "An underlined text action beside the primary control.",
-      "html": "<a class=\"ds-text-action\" href=\"#settlement\">Borçları hesapla</a>",
-      "css": ".ds-text-action { color: var(--ink); font: 700 15px/1.1 var(--font-body); text-decoration: underline; text-decoration-color: var(--sage); text-underline-offset: 4px; } .ds-text-action:hover { text-decoration-color: var(--ink); } .ds-text-action:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }"
+      "description": "A quiet working-surface action.",
+      "html": "<button class=\"ds-secondary\" type=\"button\">Ödeme ekle</button>",
+      "css": ".ds-secondary{min-height:48px;padding:0 16px;border:1px solid var(--border-subtle);border-radius:var(--radius-control);background:var(--surface);color:var(--text);font-family:var(--font-reading);font-size:1rem;font-weight:700;cursor:pointer;transition:background-color 150ms ease,border-color 150ms ease}.ds-secondary:hover{border-color:var(--border-strong);background:var(--surface-soft)}.ds-secondary:focus-visible{outline:3px solid var(--focus);outline-offset:3px;}"
     },
     {
       "name": "Text Field",
       "kind": "input",
       "refersTo": "input-field",
-      "description": "A compact field for household names, codes, and member names.",
+      "description": "A labeled editable control using raised surface and strong border.",
       "html": "<label class=\"ds-field\">Ev adı<input type=\"text\" placeholder=\"Örn. Çamlık Ev\"></label>",
-      "css": ".ds-field { display: grid; gap: 8px; color: var(--ink); font: 700 14px/1.2 var(--font-body); } .ds-field input { width: 100%; min-height: 48px; padding: 0 12px; border: 1px solid #87978c; border-radius: 3px; background: var(--paper-raised); color: var(--ink); font: 400 16px/1.45 var(--font-body); } .ds-field input::placeholder { color: #53645c; opacity: 1; } .ds-field input:focus-visible { border-color: var(--ink); outline: 2px solid var(--ink); outline-offset: 1px; }"
+      "css": ".ds-field{display:flex;flex-direction:column;gap:7px;color:var(--text);font-family:var(--font-reading);font-size:15px;font-weight:700}.ds-field input{min-height:50px;padding:10px 13px;border:1px solid var(--border-strong);border-radius:var(--radius-control);background:var(--surface-raised);color:var(--text);font-family:var(--font-reading);font-size:1rem}.ds-field input::placeholder{color:var(--text-muted);opacity:1}.ds-field input:hover{border-color:var(--text-muted)}.ds-field input:focus-visible{outline:3px solid var(--focus);outline-offset:3px;}"
     },
     {
-      "name": "Household Header",
+      "name": "Settings Navigation",
       "kind": "nav",
-      "refersTo": "household-header",
-      "description": "Keeps the product wordmark, household name, and short invite code together.",
-      "html": "<nav class=\"ds-household-nav\"><a class=\"ds-wordmark\" href=\"#home\">EV HESAP</a><div class=\"ds-household\"><span>Örnek Ev</span><code>EV-4K6P2R9D</code></div></nav>",
-      "css": ".ds-household-nav { min-height: 64px; padding: 8px 20px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; gap: 16px; color: var(--ink); } .ds-wordmark { font: 700 19px/1.1 var(--font-head); letter-spacing: .04em; text-decoration: none; } .ds-household { min-width: 0; display: flex; align-items: center; gap: 12px; } .ds-household span { overflow: hidden; color: var(--muted); font: 300 18px/1.1 var(--font-head); text-overflow: ellipsis; white-space: nowrap; } .ds-household code { color: var(--ink); font: 400 12px/1 ui-monospace, SFMono-Regular, Menlo, monospace; white-space: nowrap; } .ds-household-nav a:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }"
+      "refersTo": "settings-navigation",
+      "description": "Selected desktop section uses a quiet soft surface.",
+      "html": "<nav aria-label=\"Ayarlar\"><button class=\"ds-settings-nav\" aria-current=\"page\" type=\"button\">Görünüm</button></nav>",
+      "css": ".ds-settings-nav{width:100%;min-height:52px;padding:12px 14px;border:0;border-radius:10px;background:var(--surface-soft);color:var(--text);text-align:left;font-family:var(--font-reading);font-size:.9375rem;font-weight:650;cursor:pointer}.ds-settings-nav:hover{background:var(--surface-soft);color:var(--text)}.ds-settings-nav:focus-visible{outline:3px solid var(--focus);outline-offset:3px;}"
     },
     {
-      "name": "Household Balance Rail",
-      "kind": "custom",
-      "refersTo": "balance-rail",
-      "description": "A connected, two-level ledger diagram for up to five members; names and amounts are illustrative.",
-      "html": "<div class=\"ds-rail\"><div class=\"ds-rail-upper\"><div class=\"ds-terminal\"><i></i><strong>Ece</strong><b>+₺1.100</b><small>alacaklı</small></div><div class=\"ds-terminal\"><i></i><strong>Mert</strong><b>−₺25</b><small>borçlu</small></div><div class=\"ds-terminal\"><i></i><strong>Deniz</strong><b>−₺150</b><small>borçlu</small></div></div><div class=\"ds-rail-lower\"><div class=\"ds-terminal\"><i></i><strong>Ayşe</strong><b>−₺525</b><small>borçlu</small></div><div class=\"ds-terminal\"><i></i><strong>Can</strong><b>−₺400</b><small>borçlu</small></div></div></div>",
-      "css": ".ds-rail { color: var(--ink); } .ds-rail-upper { position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); padding-top: 8px; text-align: center; } .ds-rail-upper::before { position: absolute; top: 4px; right: 12%; left: 12%; border-top: 1px solid var(--ink); content: \"\"; } .ds-terminal { position: relative; min-width: 0; display: grid; justify-items: center; } .ds-terminal i { width: 9px; height: 9px; border: 1px solid var(--paper); border-radius: 50%; background: var(--orange); } .ds-terminal strong { margin-top: 12px; font: 400 17px/1.2 var(--font-body); } .ds-terminal b { margin-top: 2px; font: 700 20px/1.1 var(--font-head); font-variant-numeric: tabular-nums; white-space: nowrap; } .ds-terminal small { color: var(--muted); font: 700 14px/1.3 var(--font-head); } .ds-rail-lower { position: relative; width: 76%; max-width: 580px; margin: 9px auto 0; padding-top: 21px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); text-align: center; } .ds-rail-lower::before { position: absolute; top: 0; right: 25%; left: 25%; border-top: 1px solid var(--ink); content: \"\"; } .ds-rail-lower::after { position: absolute; top: -18px; left: 50%; height: 18px; border-left: 1px solid var(--ink); content: \"\"; }"
+      "name": "Working Surface",
+      "kind": "card",
+      "refersTo": "working-surface",
+      "description": "Flat working region with an inset tonal ledger total.",
+      "html": "<section class=\"ds-surface\"><h2>Açık hesap</h2><div><span>Toplam harcama</span><strong>₺2.400,00</strong></div></section>",
+      "css": ".ds-surface{padding:var(--appearance-panel-padding,1.375rem);border-radius:var(--radius-surface);background:var(--surface);color:var(--text);font-family:var(--font-reading);}.ds-surface h2{margin:0;font-size:1.4375rem;letter-spacing:-.03em}.ds-surface>div{display:grid;gap:2px;margin-top:18px;padding:16px;border-radius:13px;background:var(--ledger-surface);color:var(--ledger-text)}.ds-surface span{color:var(--ledger-muted);font-size:.875rem}.ds-surface strong{font-size:clamp(1.5625rem,3vw,2rem);font-variant-numeric:tabular-nums;line-height:1.2;letter-spacing:-.035em}"
     },
     {
-      "name": "Open Expense Row",
-      "kind": "custom",
-      "refersTo": "expense-row",
-      "description": "A full-width ledger line with description, payer context, and aligned amount.",
-      "html": "<div class=\"ds-expense-row\"><div><strong>Pazar alışverişi</strong><span>Ece ödedi · 3 kişi</span></div><b>₺900</b></div>",
-      "css": ".ds-expense-row { min-height: 68px; padding: 10px 0; border-bottom: 1px solid var(--line); display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 16px; color: var(--ink); } .ds-expense-row div { min-width: 0; display: grid; gap: 3px; } .ds-expense-row strong { font: 500 16px/1.2 var(--font-body); } .ds-expense-row span { color: var(--muted); font: 400 13px/1.25 var(--font-body); } .ds-expense-row > b { font: 700 18px/1.1 var(--font-head); font-variant-numeric: tabular-nums; white-space: nowrap; }"
+      "name": "Activity Filter",
+      "kind": "chip",
+      "refersTo": "activity-filter",
+      "description": "Selected filter keeps a raised control inside a soft segmented group.",
+      "html": "<div class=\"ds-filters\" role=\"group\" aria-label=\"Hareketler\"><button aria-pressed=\"true\" type=\"button\">Tümü</button><button aria-pressed=\"false\" type=\"button\">Harcamalar</button></div>",
+      "css": ".ds-filters{display:flex;gap:4px;padding:4px;border-radius:12px;background:var(--surface-soft)}.ds-filters button{min-width:76px;min-height:44px;padding:6px 12px;border:0;border-radius:9px;background:transparent;color:var(--text-muted);font-family:var(--font-reading);font-size:1rem;font-weight:650;cursor:pointer}.ds-filters button[aria-pressed=true]{background:var(--surface-raised);color:var(--text);box-shadow:var(--shadow-selection)}.ds-filters button:hover{color:var(--text);background:var(--surface-raised)}.ds-filters button:focus-visible{outline:3px solid var(--focus);outline-offset:3px;}"
     },
     {
-      "name": "Suggested Transfer Row",
+      "name": "Member Balance Row",
       "kind": "custom",
-      "refersTo": "transfer-row",
-      "description": "A proposed person-to-person transfer that remains a suggestion until the household closes the period.",
-      "html": "<div class=\"ds-transfer-row\"><div><strong>Ayşe</strong><small>ödeyecek</small></div><span aria-hidden=\"true\">→</span><div><strong>Ece</strong><small>alacak</small></div><b>₺525</b></div>",
-      "css": ".ds-transfer-row { min-height: 75px; padding: 11px 3px; border-bottom: 1px solid var(--line); display: grid; grid-template-columns: minmax(0, 1fr) 40px minmax(0, 1fr) minmax(90px, auto); align-items: center; gap: 13px; color: var(--ink); } .ds-transfer-row div { display: grid; gap: 2px; } .ds-transfer-row strong { font: 700 15px/1.2 var(--font-body); } .ds-transfer-row small { color: var(--muted); font: 400 12px/1.2 var(--font-body); } .ds-transfer-row > span { color: var(--orange-deep); text-align: center; } .ds-transfer-row > b { font: 700 20px/1.1 var(--font-head); font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }"
+      "description": "A stacked identity and written balance state with aligned amount.",
+      "html": "<div class=\"ds-member\"><div><strong>Ece</strong><span>alacaklı</span></div><b>+₺1.100,00</b></div>",
+      "css": ".ds-member{min-height:var(--appearance-row-min-height,3.875rem);padding-block:calc(var(--appearance-row-padding,1.0625rem)*.5);display:flex;align-items:center;justify-content:space-between;gap:12px;color:var(--text);font-family:var(--font-reading);}.ds-member>div{min-width:0;display:flex;flex-direction:column;gap:1px}.ds-member strong{font-size:1rem;font-weight:650;overflow-wrap:anywhere}.ds-member span{color:var(--text-muted);font-size:.875rem}.ds-member b{color:var(--positive);font-size:.9375rem;font-variant-numeric:tabular-nums;text-align:right}"
     }
   ],
   "narrative": {
-    "northStar": "Daire Dağıtım Panosu",
-    "overview": "Ev Hesap presents the household open account as a readable distribution panel. Matte mineral paper, graphite ink, sage rules, and a restrained signal-orange accent keep totals, people, and expenses connected without interchangeable dashboard cards.\n\nThe mobile dashboard is the signature surface: three upper balance terminals and up to two centered lower terminals, each with a name, signed amount, and written balance state. The four-person household keeps breathing room; five members fit without clipping. Expense rows remain a plain ledger and the period closes only by household choice.",
+    "northStar": "Sade Ortak Ev Defteri",
+    "overview": "Ev Hesap should feel like a clear, shared household record: welcoming, dependable, and easy to scan while several people coordinate everyday expenses. Use familiar household language and precise money labels. Keep ledger clarity in aligned amounts, explicit alacaklı/borçlu states, and traceable expense details.\n\nThe incumbent neutral surfaces and coral default action remain the starting point. Personal appearance is an approved extension of that direction: curated palettes and independent reading preferences preserve the same semantic hierarchy and household flows. Build hierarchy with three quiet layers: room/page, working surface, and focal ledger. Avoid industrial panel motifs, rails, dense borders, decorative gradients, glass, fake testimonials, and unsupported claims.",
     "keyCharacteristics": [
-      "Mineral green-gray surfaces, graphite ink, muted sage, and signal orange.",
-      "A connected two-level member rail with explicit names, signed balances, and text states.",
-      "Tabular financial figures and readable Turkish copy.",
-      "Flat, rule-led surfaces with compact rectangular controls."
+      "Quiet neutral surfaces and a restrained primary accent.",
+      "Aligned money values, explicit balance states, and readable Turkish copy.",
+      "Rounded controls and working surfaces with spacing rather than pervasive outlines.",
+      "Curated appearance choices that preserve ledger clarity."
     ],
     "rules": [
       {
-        "name": "The One Signal Rule",
-        "body": "Orange marks the primary action or a meaningful balance node; deep orange stays a small supporting accent.",
+        "name": "The Complete Palette Rule",
+        "body": "Apply the selected preset's full semantic token map so previous theme values cannot leak into the next palette.",
         "section": "colors"
       },
       {
-        "name": "The Readable Panel Rule",
-        "body": "A member name, signed amount, and alacaklı/borçlu state remain understandable without color.",
-        "section": "components"
-      },
-      {
-        "name": "The Flat-By-Default Rule",
-        "body": "Surfaces stay flat at rest; labels, borders, and fills show control state.",
-        "section": "elevation"
-      },
-      {
         "name": "The Aligned Amount Rule",
-        "body": "Amounts compared in a row share a right edge and use tabular numerals wherever established.",
+        "body": "Align comparable money values and use tabular numerals without hiding names or amounts at larger reading sizes.",
         "section": "typography"
+      },
+      {
+        "name": "The Quiet Surface Rule",
+        "body": "Keep the page, working surface, and ledger hierarchy tonal; reserve elevation for selection and overlaid controls.",
+        "section": "elevation"
       }
     ],
     "dos": [
-      "Do preserve the household identity, total, connected balance rail, actions, and open ledger in that reading order.",
+      "Do preserve the Sade Ortak Ev Defteri direction while applying the user's complete selected palette.",
       "Do keep each name, signed amount, and written balance state readable without color.",
       "Do align comparable currency figures and use tabular numerals.",
-      "Do keep surfaces flat and let spacing, mineral tone, and rules establish their hierarchy."
+      "Do keep appearance choices independent and identify account or device scope explicitly.",
+      "Do retain keyboard focus, readable contrast, safe areas, and reduced-motion support."
     ],
     "donts": [
-      "Don’t turn the interface into interchangeable pastel cards, glass panels, gradient glow, or decorative blobs.",
-      "Don’t make the interface look like an electrical repair console or an error alarm.",
-      "Don’t encode owing, owed, selected, or error states with color alone.",
-      "Don’t promote amber into an active token without a shipped use.",
-      "Don’t decorate every section with switch labels, wiring, or equipment marks."
+      "Don't turn the interface into industrial panels, rails, glass, decorative gradients, or dense outlined regions.",
+      "Don't encode owing, owed, selected, or error states with color alone.",
+      "Don't mix individual colors from different curated theme presets.",
+      "Don't shrink touch targets to achieve compact density or hide amounts to fit larger type.",
+      "Don't present illustrative household figures as verified customer evidence or claim account synchronization succeeded when it failed.\r"
     ]
   }
 }

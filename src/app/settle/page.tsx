@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, CheckCircle2, Home, LockKeyhole, MoreHorizontal } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle2, Home, LockKeyhole, Settings } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { calculateBalances, formatCurrency, simplifyDebts } from "@/lib/calculations";
 import { closeRemoteSettlement, loadRemoteHousehold, loadRemoteHouseholdSession, loadRemoteSettlementRuns } from "@/lib/data-service";
@@ -19,7 +19,6 @@ import {
 } from "@/lib/local-store";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
 import type { DebtPayment, Expense, Member, SettlementRun } from "@/lib/types";
-import ThemeControl from "@/components/theme-control";
 import "./settle.css";
 
 type SettlementData = {
@@ -135,13 +134,7 @@ export default function SettlePage() {
           <span className="account-member-count">{data.members.filter((member) => member.active).length} kişi</span>
         </div>
         <div className="settle-header-tools">
-          <div className="desktop-theme-control"><ThemeControl /></div>
-          <details className="account-menu settle-theme-menu">
-            <summary aria-label="Görünüm seçenekleri"><MoreHorizontal aria-hidden="true" size={21} /></summary>
-            <div className="account-menu-popover">
-              <div className="account-menu-theme"><span>Görünüm teması</span><ThemeControl full /></div>
-            </div>
-          </details>
+          <Link className="settings-entry" href={`/settings?household=${encodeURIComponent(data.session.householdId)}`} aria-label="Ayarlar"><Settings aria-hidden="true" size={19} /><span>Ayarlar</span></Link>
           <Link className="header-back" href="/dashboard" aria-label="Ev hesabına dön"><ArrowLeft aria-hidden="true" size={16} /> Ev hesabı</Link>
         </div>
       </header>
