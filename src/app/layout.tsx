@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { Viewport } from "next";
+import { Analytics } from "@vercel/analytics/next";
 import "@fontsource-variable/mada";
 import "./globals.css";
 import "./appearance.css";
@@ -37,7 +38,10 @@ export default function RootLayout({
       <head>
         <script dangerouslySetInnerHTML={{ __html: getPreferencesBootstrapScript() }} />
       </head>
-      <body><PreferencesProvider><FocusMode /><PwaRegistration />{children}</PreferencesProvider></body>
+      <body>
+        <PreferencesProvider><FocusMode /><PwaRegistration />{children}</PreferencesProvider>
+        <Analytics />
+      </body>
     </html>
   );
 }
