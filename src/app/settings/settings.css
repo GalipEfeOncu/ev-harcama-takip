@@ -269,4 +269,8 @@ html[data-density] .settings-page .settings-nav-item { min-height: max(44px, var
 .telegram-settings summary { cursor: pointer; padding-block: 10px; font-weight: 600; }
 .telegram-settings ol { padding-inline-start: 1.4rem; list-style: decimal; }
 .telegram-settings li + li { margin-top: .5rem; }
+.telegram-web-setup { display: grid; gap: .75rem; justify-items: start; width: 100%; min-width: 0; }
+.telegram-web-setup h4 { margin: .5rem 0 0; }
+.telegram-web-setup a { color: var(--accent-text); text-decoration: underline; }
+.telegram-web-setup input[readonly] { width: min(100%, 38rem); }
 .telegram-settings input { width: min(100%, 16rem); min-height: 44px; padding: 8px 12px; border: 1px solid var(--border-subtle); border-radius: 8px; color: var(--text); background: var(--surface); font: inherit; }

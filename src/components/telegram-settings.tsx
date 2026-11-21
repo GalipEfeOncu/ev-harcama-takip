@@ -4,6 +4,36 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 type Group = { state: "off" | "pending" | "confirm" | "active"; title?: string; id?: string; link?: string; command?: string; failed?: boolean };
 
+function TelegramWebSetup({ command }: { command: string }) {
+  const field = useRef<HTMLInputElement>(null);
+  const [notice, setNotice] = useState("");
+  const bot = command.split(" ")[0].slice("/start".length);
+
+  async function copyCommand() {
+    try {
+      await navigator.clipboard.writeText(command);
+      setNotice("Komut kopyalandı. Özel ev grubunun sohbetine yapıştırıp gönder.");
+    } catch {
+      field.current?.focus();
+      field.current?.select();
+      setNotice("Komut seçildi. Cihazının kopyalama seçeneğini kullan.");
+    }
+  }
+
+  return <div className="telegram-web-setup">
+    <h4>Telegram Web ile bağla</h4>
+    <ol>
+      <li><a href="https://web.telegram.org/a/" target="_blank" rel="noreferrer">Telegram Web’i aç</a> ve özel ev grubuna gir.</li>
+      <li>Grup adına dokun. <strong>{bot}</strong> hesabını gruba ekle. Grup ayarlarından botu yönetici yap ve <strong>Kullanıcı davet et</strong> iznini aç.</li>
+      <li>Aşağıdaki komutu kopyala, kendi hesabından <strong>ev grubunun sohbetine</strong> gönder. Botun gruba yazdığı onay kodunu Ev Hesap’a gir.</li>
+    </ol>
+    <label htmlFor="telegram-group-command">Gruba gönderilecek komut</label>
+    <input ref={field} id="telegram-group-command" readOnly value={command} onFocus={event => event.target.select()} />
+    <button className="settings-button" onClick={() => void copyCommand()}>Komutu kopyala</button>
+    {notice && <p role="status">{notice}</p>}
+  </div>;
+}
+
 export function TelegramSettings({ household, owner }: { household: string; owner: boolean }) {
   const [group, setGroup] = useState<Group>();
   const [error, setError] = useState("");
@@ -74,12 +104,9 @@ export function TelegramSettings({ household, owner }: { household: string; owne
     </> : <p>Ev sahibi bir grup bağladığında katılım bağlantını burada alabilirsin.</p>)}
     {group?.state === "pending" && <>
       <p>Özel ev grubunu seç ve botun kullanıcı davet etme iznini onayla. Bot gruba bir kod gönderecek. Kurulumu 10 dakika içinde tamamla.</p>
-      <a className="settings-button settings-button--primary" href={group.link} rel="noreferrer" target="_blank">Telegram’da grup seç</a>
+      <a className="settings-button settings-button--primary" href={group.link} rel="noreferrer" target="_blank">Telegram uygulamasında grup seç</a>
+      {group.command && <TelegramWebSetup key={group.command} command={group.command} />}
       <p className="settings-footnote">Yönetici olan bot grup mesajlarını alabilir. Kurulumu bitirmek için bu ekrana dön.</p>
-      {group.command && <details><summary>Gruba kod gelmedi mi?</summary>
-        <p>Gruptaki yönetici listesinde botun kullanıcı davet etme iznini kontrol et. Ardından şu komutu kopyalayıp bağlamak istediğin özel gruba kendi hesabından gönder.</p>
-        <code>{group.command}</code>
-      </details>}
     </>}
     {group?.state === "confirm" && <form onSubmit={event => { event.preventDefault(); void act("confirm"); }}>
       <label htmlFor="telegram-code"><strong>{group.title}</strong> grubuna gelen onay kodu</label>
