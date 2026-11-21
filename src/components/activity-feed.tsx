@@ -5,14 +5,18 @@ import { useMemo, useState } from "react";
 import { formatCurrency, splitAmount } from "@/lib/calculations";
 import type { DebtPayment, Expense, SettlementRun } from "@/lib/types";
 
-type ActivityFilter = "open" | "month" | "all" | string;
+type ActivityHistory = { expenses: Expense[]; payments: DebtPayment[]; runs: SettlementRun[] };
+type HistoryState = "idle" | "loading" | "error" | ActivityHistory;
+
+const activityDate = new Intl.DateTimeFormat("tr-TR", { day: "numeric", month: "long" });
+const settlementDate = new Intl.DateTimeFormat("tr-TR", { day: "numeric", month: "long", year: "numeric" });
 
 function dateLabel(date: string) {
-  return new Intl.DateTimeFormat("tr-TR", { day: "numeric", month: "long" }).format(new Date(`${date}T12:00:00`));
+  return activityDate.format(new Date(`${date}T12:00:00`));
 }
 
 function dateTimeLabel(date: string) {
-  return new Intl.DateTimeFormat("tr-TR", { day: "numeric", month: "long", year: "numeric" }).format(new Date(date));
+  return settlementDate.format(new Date(date));
 }
 
 function sharesForExpense(expense: Expense) {
@@ -20,10 +24,17 @@ function sharesForExpense(expense: Expense) {
     ?? [...splitAmount(expense.amountCents, expense.participantIds)].map(([memberId, amountCents]) => ({ memberId, amountCents }));
 }
 
+function includeArchived<T extends { id: string }>(current: T[], archived: T[]) {
+  // An item may have moved to history since the dashboard loaded.
+  const archivedIds = new Set(archived.map((item) => item.id));
+  return [...current.filter((item) => !archivedIds.has(item.id)), ...archived];
+}
+
 export default function ActivityFeed({
   expenses,
   payments,
   runs,
+  loadHistory,
   memberNames,
   canEdit,
   onEditExpense,
@@ -32,32 +43,57 @@ export default function ActivityFeed({
   expenses: Expense[];
   payments: DebtPayment[];
   runs: SettlementRun[];
+  loadHistory?: () => Promise<ActivityHistory>;
   memberNames: Record<string, string>;
   canEdit: boolean;
   onEditExpense: (expense: Expense) => void;
   onDeleteExpense: (expense: Expense) => void;
 }) {
-  const [filter, setFilter] = useState<ActivityFilter>("open");
+  const [filter, setFilter] = useState("open");
+  const [historyState, setHistoryState] = useState<HistoryState>("idle");
+  const history = typeof historyState === "string" ? null : historyState;
+  const showStatus = filter !== "open";
+  const showItems = !showStatus || !loadHistory || history !== null;
+
+  async function requestHistory() {
+    if (!loadHistory || history || historyState === "loading") return;
+    setHistoryState("loading");
+    try {
+      setHistoryState(await loadHistory());
+    } catch {
+      setHistoryState("error");
+    }
+  }
+
+  function selectFilter(value: string) {
+    setFilter(value);
+    if (value !== "open") void requestHistory();
+  }
+
   const availableYears = useMemo(() => [...new Set([
     ...expenses.map((expense) => expense.expenseDate.slice(0, 4)),
     ...payments.map((payment) => payment.paidAt.slice(0, 4)),
-  ])].sort((a, b) => b.localeCompare(a)), [expenses, payments]);
+    ...history?.expenses.map((expense) => expense.expenseDate.slice(0, 4)) ?? [],
+    ...history?.payments.map((payment) => payment.paidAt.slice(0, 4)) ?? [],
+  ])].sort((a, b) => b.localeCompare(a)), [expenses, payments, history]);
   const now = new Date();
   const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 
-  const expenseItems = expenses
+  const visibleExpenses = showStatus && history ? includeArchived(expenses, history.expenses) : expenses;
+  const visiblePayments = showStatus && history ? includeArchived(payments, history.payments) : payments;
+  const expenseItems = visibleExpenses
     .filter((expense) => filter === "all"
       || (filter === "open" ? !expense.settlementRunId : filter === "month"
         ? expense.expenseDate.startsWith(monthKey)
         : expense.expenseDate.startsWith(filter)))
     .map((expense) => ({ kind: "expense" as const, date: expense.expenseDate, createdAt: expense.createdAt, expense }));
-  const paymentItems = payments
+  const paymentItems = visiblePayments
     .filter((payment) => filter === "all"
       || (filter === "open" ? !payment.settlementRunId : filter === "month"
         ? payment.paidAt.startsWith(monthKey)
         : payment.paidAt.startsWith(filter)))
     .map((payment) => ({ kind: "payment" as const, date: payment.paidAt, createdAt: payment.createdAt, payment }));
-  const settlementItems = filter === "open" ? [] : runs
+  const settlementItems = !showStatus ? [] : (history?.runs ?? runs)
     .filter((run) => filter === "all" || (filter === "month" ? run.createdAt.startsWith(monthKey) : run.createdAt.startsWith(filter)))
     .map((run) => ({ kind: "settlement" as const, date: run.createdAt, createdAt: run.createdAt, run }));
   const items = [...expenseItems, ...paymentItems, ...settlementItems].sort((a, b) =>
@@ -69,8 +105,6 @@ export default function ActivityFeed({
     : filter === "month"
       ? "Bu ay henüz hareket yok. Yeni bir kayıt eklediğinde burada görünür."
       : "Bu dönemde kayıtlı hareket yok.";
-  const showStatus = filter !== "open";
-
   return (
     <section className="activity-section" aria-labelledby="activity-title">
       <header className="activity-heading">
@@ -78,7 +112,7 @@ export default function ActivityFeed({
         <h2 id="activity-title" tabIndex={-1}>Hareketler</h2>
           <p>Harcamalar ve yapılan ödemeler aynı ev hesabında.</p>
         </div>
-        <span className="activity-count">{items.length} hareket</span>
+        {showItems && <span className="activity-count">{items.length} hareket</span>}
       </header>
 
       <div className="activity-filters" role="group" aria-label="Hareketleri filtrele">
@@ -91,24 +125,36 @@ export default function ActivityFeed({
             aria-pressed={filter === value}
             className={filter === value ? "is-selected" : ""}
             key={value}
-            onClick={() => setFilter(value)}
+            onClick={() => selectFilter(value)}
             type="button"
           >
             {label}
           </button>
         ))}
-        {availableYears.length > 0 && (
+        {(availableYears.length > 0 || (loadHistory && !history)) && (
           <label className="activity-year-filter">
             <span className="visually-hidden">Yıla göre filtrele</span>
-            <select aria-label="Yıla göre filtrele" onChange={(event) => setFilter(event.target.value || "month")} value={availableYears.includes(filter) ? filter : ""}>
+            <select aria-label="Yıla göre filtrele" onChange={(event) => {
+              const value = event.target.value;
+              if (value === "years") void requestHistory();
+              else selectFilter(value || "month");
+            }} value={availableYears.includes(filter) ? filter : ""}>
               <option value="">Yıl seç</option>
               {availableYears.map((year) => <option key={year} value={year}>{year}</option>)}
+              {loadHistory && !history && <option value="years" disabled={historyState === "loading"}>Geçmiş yılları yükle</option>}
             </select>
           </label>
         )}
       </div>
 
-      {items.length === 0 ? (
+      {historyState === "loading" && <p className="activity-history-status" role="status">Geçmiş yükleniyor…</p>}
+      {historyState === "error" && (
+        <div className="activity-history-status">
+          <p role="alert">Hareket geçmişi yüklenemedi.</p>
+          <button className="secondary-action" onClick={() => void requestHistory()} type="button">Tekrar dene</button>
+        </div>
+      )}
+      {showItems && (items.length === 0 ? (
         <div className="activity-empty">
           <ReceiptText aria-hidden="true" size={21} />
           <p>{emptyText}</p>
@@ -180,7 +226,7 @@ export default function ActivityFeed({
             </li>
           ))}
         </ul>
-      )}
+      ))}
     </section>
   );
 }

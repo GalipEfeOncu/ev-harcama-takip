@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { isAuthSessionMissingError } from "@supabase/supabase-js";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -15,11 +16,11 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import GoogleMark from "@/components/google-mark";
 import ActivityFeed from "@/components/activity-feed";
 import MemberBalances from "@/components/member-balances";
-import { beginGoogleSignIn, getAccountSnapshot } from "@/lib/auth";
+import { beginGoogleSignIn } from "@/lib/auth";
 import { calculateBalances, formatCurrency, parseAmountToCents, splitAmount } from "@/lib/calculations";
 import { allocateExpenseShares } from "@/lib/expense-shares";
 import { localDateInputValue } from "@/lib/local-date";
-import { createRemoteDebtPayment, createRemoteExpense, deleteRemoteExpense, loadRemoteHousehold, loadRemoteHouseholdSession, loadRemoteSettlementRuns, updateRemoteExpense } from "@/lib/data-service";
+import { createRemoteDebtPayment, createRemoteExpense, deleteRemoteExpense, loadRemoteActivityHistory, loadRemoteHouseholdSession, loadRemoteOpenHousehold, updateRemoteExpense } from "@/lib/data-service";
 import {
   readLocalExpenses,
   readLocalDebtPayments,
@@ -116,19 +117,13 @@ export default function DashboardPage() {
           const storedSession = readLocalSession();
           if (isSupabaseConfigured()) {
             const requestedHousehold = new URLSearchParams(window.location.search).get("household");
-            const account = await getAccountSnapshot();
-            if (!account) {
-              window.localStorage.removeItem("ev-hesap-session");
-              router.replace("/");
-              return;
-            }
             const resolved = await loadRemoteHouseholdSession(requestedHousehold, storedSession);
             saveLocalSession(resolved.session);
-            const [remoteData, runs] = await Promise.all([loadRemoteHousehold(resolved.session), loadRemoteSettlementRuns(resolved.session)]);
+            const remoteData = await loadRemoteOpenHousehold(resolved.session);
             setPayerId(resolved.session.memberId);
             setParticipantIds(remoteData.members.filter((member) => member.active).map((member) => member.id));
             setPaymentFromId(resolved.session.memberId);
-            setData({ session: resolved.session, account: resolved.account, ...remoteData, runs });
+            setData({ session: resolved.session, account: resolved.account, ...remoteData, runs: [] });
           } else if (storedSession) {
             const localData = { members: readLocalMembers(storedSession), expenses: readLocalExpenses(storedSession), debtPayments: readLocalDebtPayments(storedSession), runs: readLocalSettlementRuns(storedSession) };
             setPayerId(storedSession.memberId);
@@ -137,6 +132,11 @@ export default function DashboardPage() {
             setData({ session: storedSession, account: { isAnonymous: false, hasGoogleIdentity: false, email: null }, ...localData });
           }
         } catch (loadFailure) {
+          if (isAuthSessionMissingError(loadFailure)) {
+            window.localStorage.removeItem("ev-hesap-session");
+            router.replace("/");
+            return;
+          }
           setLoadError(loadFailure instanceof Error ? loadFailure.message : "Ev verileri yüklenemedi.");
         } finally {
           setLoading(false);
@@ -628,8 +628,10 @@ export default function DashboardPage() {
         <div className="dashboard-content">
 
         <ActivityFeed
+          key={data.session.householdId}
           canEdit={canWrite}
           expenses={data.expenses}
+          loadHistory={isSupabaseConfigured() ? () => loadRemoteActivityHistory(data.session) : undefined}
           memberNames={memberNames}
           onDeleteExpense={requestDeleteExpense}
           onEditExpense={openEditExpense}

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ArrowLeft, ArrowRight, CheckCircle2, Home, LockKeyhole, Settings } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { calculateBalances, formatCurrency, simplifyDebts } from "@/lib/calculations";
-import { closeRemoteSettlement, loadRemoteHousehold, loadRemoteHouseholdSession, loadRemoteSettlementRuns } from "@/lib/data-service";
+import { closeRemoteSettlement, loadRemoteHouseholdSession, loadRemoteOpenHousehold, loadRemoteSettlementRuns } from "@/lib/data-service";
 import {
   readLocalExpenses,
   readLocalDebtPayments,
@@ -56,7 +56,7 @@ export default function SettlePage() {
             const requestedHousehold = new URLSearchParams(window.location.search).get("household");
             const resolved = await loadRemoteHouseholdSession(requestedHousehold || storedSession?.householdId, storedSession);
             saveLocalSession(resolved.session);
-            const [remoteData, runs] = await Promise.all([loadRemoteHousehold(resolved.session), loadRemoteSettlementRuns(resolved.session)]);
+            const [remoteData, runs] = await Promise.all([loadRemoteOpenHousehold(resolved.session), loadRemoteSettlementRuns(resolved.session)]);
             setData({ session: resolved.session, account: resolved.account, ...remoteData, runs });
           } else if (storedSession) {
             setData({ session: storedSession, account: { isAnonymous: false, hasGoogleIdentity: false, email: null }, members: readLocalMembers(storedSession), expenses: readLocalExpenses(storedSession), debtPayments: readLocalDebtPayments(storedSession), runs: readLocalSettlementRuns(storedSession) });

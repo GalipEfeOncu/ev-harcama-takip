@@ -218,13 +218,14 @@ export async function loadRemoteMembers(session: LocalSession, supabase = create
   return rows.map(toMember);
 }
 
-export async function loadRemoteHousehold(session: LocalSession) {
-  const { supabase } = await getAuthenticatedClient();
-  const [members, expenses, payments] = await Promise.all([
-    loadRemoteMembers(session, supabase),
-    readAllPages<RemoteExpense>((from, to) => supabase.from("expenses").select("id, household_id, payer_member_id, amount_cents, description, category, expense_date, settlement_run_id, created_at, updated_at").eq("household_id", session.householdId).order("expense_date", { ascending: false }).order("id").range(from, to)),
-    readAllPages<RemoteDebtPayment>((from, to) => supabase.from("debt_payments").select("id, household_id, from_member_id, to_member_id, amount_cents, paid_at, description, settlement_run_id, created_at").eq("household_id", session.householdId).order("paid_at", { ascending: false }).order("id").range(from, to)),
-  ]);
+async function loadRemoteExpenses(session: LocalSession, settled: boolean, supabase: ReturnType<typeof createClient>) {
+  const expenses = await readAllPages<RemoteExpense>((from, to) => {
+    const query = supabase.from("expenses")
+      .select("id, household_id, payer_member_id, amount_cents, description, category, expense_date, settlement_run_id, created_at, updated_at")
+      .eq("household_id", session.householdId)
+      .order("expense_date", { ascending: false }).order("id").range(from, to);
+    return settled ? query.not("settlement_run_id", "is", null) : query.is("settlement_run_id", null);
+  });
   const participants = await readAllByIds<RemoteParticipant>(expenses.map((expense) => expense.id), (ids, from, to) =>
     supabase.from("expense_participants").select("expense_id, member_id, share_cents").in("expense_id", ids).order("expense_id").order("member_id").range(from, to));
   const participantsByExpense = new Map<string, RemoteParticipant[]>();
@@ -234,11 +235,37 @@ export async function loadRemoteHousehold(session: LocalSession) {
     participantsByExpense.set(participant.expense_id, shares);
   }
 
-  return {
-    members,
-    expenses: expenses.map((expense) => toExpense(expense, participantsByExpense.get(expense.id) ?? [])),
-    debtPayments: payments.map(toDebtPayment),
-  };
+  return expenses.map((expense) => toExpense(expense, participantsByExpense.get(expense.id) ?? []));
+}
+
+async function loadRemoteDebtPayments(session: LocalSession, settled: boolean, supabase: ReturnType<typeof createClient>) {
+  const payments = await readAllPages<RemoteDebtPayment>((from, to) => {
+    const query = supabase.from("debt_payments")
+      .select("id, household_id, from_member_id, to_member_id, amount_cents, paid_at, description, settlement_run_id, created_at")
+      .eq("household_id", session.householdId)
+      .order("paid_at", { ascending: false }).order("id").range(from, to);
+    return settled ? query.not("settlement_run_id", "is", null) : query.is("settlement_run_id", null);
+  });
+  return payments.map(toDebtPayment);
+}
+
+export async function loadRemoteOpenHousehold(session: LocalSession, supabase = createClient()) {
+  const [members, expenses, debtPayments] = await Promise.all([
+    loadRemoteMembers(session, supabase),
+    loadRemoteExpenses(session, false, supabase),
+    loadRemoteDebtPayments(session, false, supabase),
+  ]);
+  return { members, expenses, debtPayments };
+}
+
+export async function loadRemoteActivityHistory(session: LocalSession) {
+  const supabase = createClient();
+  const [expenses, payments, runs] = await Promise.all([
+    loadRemoteExpenses(session, true, supabase),
+    loadRemoteDebtPayments(session, true, supabase),
+    loadRemoteSettlementRuns(session, supabase),
+  ]);
+  return { expenses, payments, runs };
 }
 
 export async function createRemoteDebtPayment(
@@ -255,7 +282,7 @@ export async function createRemoteDebtPayment(
     p_description: input.note,
   });
   if (error) throw error;
-  return loadRemoteHousehold(session);
+  return loadRemoteOpenHousehold(session, supabase);
 }
 
 export async function createRemoteExpense(session: LocalSession, input: ExpenseInput) {
@@ -270,7 +297,7 @@ export async function createRemoteExpense(session: LocalSession, input: ExpenseI
     p_participant_shares: input.participantShares.map((share) => ({ member_id: share.memberId, share_cents: share.amountCents })),
   });
   if (error) throw error;
-  return loadRemoteHousehold(session);
+  return loadRemoteOpenHousehold(session, supabase);
 }
 
 export async function updateRemoteExpense(session: LocalSession, expenseId: string, input: ExpenseInput) {
@@ -286,7 +313,7 @@ export async function updateRemoteExpense(session: LocalSession, expenseId: stri
     p_participant_shares: input.participantShares.map((share) => ({ member_id: share.memberId, share_cents: share.amountCents })),
   });
   if (error) throw error;
-  return loadRemoteHousehold(session);
+  return loadRemoteOpenHousehold(session, supabase);
 }
 
 export async function deleteRemoteExpense(session: LocalSession, expenseId: string) {
@@ -294,11 +321,10 @@ export async function deleteRemoteExpense(session: LocalSession, expenseId: stri
   const { data, error } = await supabase.from("expenses").delete().eq("id", expenseId).eq("household_id", session.householdId).is("settlement_run_id", null).select("id");
   if (error) throw error;
   if (!data?.length) throw new Error("Harcama bulunamadı veya dönem kapatıldığı için silinemez.");
-  return loadRemoteHousehold(session);
+  return loadRemoteOpenHousehold(session, supabase);
 }
 
-export async function loadRemoteSettlementRuns(session: LocalSession) {
-  const { supabase } = await getAuthenticatedClient();
+export async function loadRemoteSettlementRuns(session: LocalSession, supabase = createClient()) {
   const runRows = await readAllPages<{ id: string; household_id: string; created_at: string }>((from, to) =>
     supabase.from("settlement_runs").select("id, household_id, created_at").eq("household_id", session.householdId).order("created_at", { ascending: false }).order("id").range(from, to));
   if (runRows.length === 0) return [];
@@ -326,7 +352,7 @@ export async function closeRemoteSettlement(session: LocalSession, expenseIds: s
     p_expense_ids: expenseIds,
   });
   if (error) throw error;
-  return loadRemoteHousehold(session);
+  return loadRemoteOpenHousehold(session, supabase);
 }
 
 export async function rotateRemoteHouseholdJoinCode(session: LocalSession) {
