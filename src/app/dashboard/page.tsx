@@ -17,6 +17,7 @@ import ActivityFeed from "@/components/activity-feed";
 import MemberBalances from "@/components/member-balances";
 import { beginGoogleSignIn, getAccountSnapshot } from "@/lib/auth";
 import { calculateBalances, formatCurrency, parseAmountToCents, splitAmount } from "@/lib/calculations";
+import { allocateExpenseShares } from "@/lib/expense-shares";
 import { localDateInputValue } from "@/lib/local-date";
 import { createRemoteDebtPayment, createRemoteExpense, deleteRemoteExpense, loadRemoteHousehold, loadRemoteHouseholdSession, loadRemoteSettlementRuns, updateRemoteExpense } from "@/lib/data-service";
 import {
@@ -43,6 +44,12 @@ type DashboardData = {
   runs: SettlementRun[];
 };
 
+const shareErrors = {
+  "invalid-share": "Geçerli bir kişi payı gir. Payı olmayan kişiye 0 yazabilirsin.",
+  "over-total": "Sabit paylar toplam tutarı aşıyor. Bir veya daha fazla payı azalt.",
+  unallocated: "Tüm paylar sabit ve toplam tutarın altında. Kalan tutarı sabit paylara ekle.",
+};
+
 function createId(prefix: string) {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) return `${prefix}-${crypto.randomUUID()}`;
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -67,7 +74,7 @@ export default function DashboardPage() {
   const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
   const [amount, setAmount] = useState("");
   const [splitMode, setSplitMode] = useState<"equal" | "custom">("equal");
-  const [shareAmounts, setShareAmounts] = useState<Record<string, string>>({});
+  const [manualShareAmounts, setManualShareAmounts] = useState<Record<string, string>>({});
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("Genel");
   const [expenseDate, setExpenseDate] = useState("");
@@ -249,14 +256,20 @@ export default function DashboardPage() {
   }, [pendingDeleteExpense]);
 
   const activeMembers = data?.members.filter((member) => member.active) ?? [];
-  const parsedShares = participantIds.map((memberId) => ({
-    memberId,
-    amountCents: parseAmountToCents(shareAmounts[memberId] ?? "", true),
-  }));
-  const customSharesComplete = parsedShares.length > 0 && parsedShares.every((share) => share.amountCents !== null);
-  const customAmountCents = customSharesComplete
-    ? parsedShares.reduce((sum, share) => sum + (share.amountCents ?? 0), 0)
-    : 0;
+  const amountCents = parseAmountToCents(amount);
+  const editingExpense = data?.expenses.find((expense) => expense.id === editingExpenseId);
+  const savedShares = splitMode === "custom"
+    && editingExpense?.amountCents === amountCents
+    && Object.keys(manualShareAmounts).length === 0
+    && editingExpense.participantShares?.length === participantIds.length
+    && editingExpense.participantShares.every(({ memberId }) => participantIds.includes(memberId))
+    ? new Map(editingExpense.participantShares.map(({ memberId, amountCents }) => [memberId, amountCents]))
+    : null;
+  const shareAllocation = splitMode === "custom" && !savedShares && amountCents && participantIds.length > 0
+    ? allocateExpenseShares(amountCents, participantIds, manualShareAmounts)
+    : null;
+  const customShares = savedShares ?? (shareAllocation?.status === "ready" ? shareAllocation.shares : null);
+  const shareError = shareAllocation && shareAllocation.status !== "ready" ? shareErrors[shareAllocation.status] : "";
   const openExpenses = (data?.expenses.filter((expense) => !expense.settlementRunId) ?? [])
     .sort((a, b) => b.expenseDate.localeCompare(a.expenseDate));
   const openPayments = (data?.debtPayments.filter((payment) => !payment.settlementRunId) ?? [])
@@ -287,7 +300,7 @@ export default function DashboardPage() {
     setEditingExpenseId(null);
     setAmount("");
     setSplitMode("equal");
-    setShareAmounts({});
+    setManualShareAmounts({});
     setDescription("");
     setCategory("Genel");
     setExpenseDate(localDateInputValue());
@@ -309,12 +322,10 @@ export default function DashboardPage() {
     setExpenseDate(expense.expenseDate);
     setPayerId(expense.payerId);
     setParticipantIds(expense.participantIds);
-    const shares = expense.participantShares ?? [...splitAmount(expense.amountCents, expense.participantIds)].map(([memberId, amountCents]) => ({ memberId, amountCents }));
-    const sharesByMember = new Map(shares.map((share) => [share.memberId, share.amountCents]));
     const equalShares = splitAmount(expense.amountCents, expense.participantIds);
-    const wasEqualSplit = equalShares.size === sharesByMember.size
-      && [...equalShares].every(([memberId, amountCents]) => sharesByMember.get(memberId) === amountCents);
-    setShareAmounts(Object.fromEntries(shares.map((share) => [share.memberId, formatAmountInput(share.amountCents)])));
+    const wasEqualSplit = !expense.participantShares
+      || expense.participantShares.every(({ memberId, amountCents }) => equalShares.get(memberId) === amountCents);
+    setManualShareAmounts({});
     setSplitMode(wasEqualSplit ? "equal" : "custom");
     setFormError("");
     setExpenseFormOpen(true);
@@ -344,34 +355,24 @@ export default function DashboardPage() {
   function toggleParticipant(memberId: string) {
     if (participantIds.includes(memberId)) {
       setParticipantIds((current) => current.filter((id) => id !== memberId));
-      setShareAmounts((current) => {
+      setManualShareAmounts((current) => {
         const next = { ...current };
         delete next[memberId];
         return next;
       });
     } else {
       setParticipantIds((current) => [...current, memberId]);
-      setShareAmounts((current) => ({ ...current, [memberId]: "" }));
     }
     setFormError("");
   }
 
   function formatAmountInput(amountCents: number) {
-    return (amountCents / 100).toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const fraction = amountCents % 100;
+    const whole = (amountCents - fraction) / 100;
+    return `${whole.toLocaleString("tr-TR")},${String(fraction).padStart(2, "0")}`;
   }
 
   function changeSplitMode(nextMode: "equal" | "custom") {
-    if (nextMode === splitMode) return;
-    if (nextMode === "custom") {
-      const totalCents = parseAmountToCents(amount);
-      const hasExistingShares = participantIds.some((memberId) => Object.hasOwn(shareAmounts, memberId));
-      if (!hasExistingShares && totalCents && participantIds.length > 0) {
-        const initialShares = splitAmount(totalCents, participantIds);
-        setShareAmounts(Object.fromEntries([...initialShares].map(([memberId, shareCents]) => [memberId, formatAmountInput(shareCents)])));
-      }
-    } else if (customSharesComplete) {
-      setAmount(formatAmountInput(customAmountCents));
-    }
     setSplitMode(nextMode);
     setFormError("");
   }
@@ -379,7 +380,7 @@ export default function DashboardPage() {
   async function handleExpenseSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!data) return;
-    if (editingExpenseId && data.expenses.find((expense) => expense.id === editingExpenseId)?.settlementRunId) {
+    if (editingExpense?.settlementRunId) {
       setFormError("Kapanmış dönemdeki harcamalar düzenlenemez.");
       return;
     }
@@ -392,18 +393,15 @@ export default function DashboardPage() {
       setFormError("Harcamaya kısa bir açıklama ekle.");
       return;
     }
-    if (splitMode === "custom" && !customSharesComplete) {
-      setFormError("Seçili her kişi için payı gir. Pay almayacak kişiye 0 yazabilirsin.");
-      return;
-    }
-    const amountCents = splitMode === "equal" ? parseAmountToCents(amount) : customAmountCents;
     if (!amountCents) {
-      setFormError(splitMode === "equal" ? "Geçerli bir toplam tutar gir." : "Kişi paylarının toplamı sıfırdan büyük olmalı.");
+      setFormError("Geçerli bir toplam tutar gir.");
       return;
     }
-    const participantShares: ExpenseShare[] = splitMode === "equal"
-      ? [...splitAmount(amountCents, participantIds)].map(([memberId, shareCents]) => ({ memberId, amountCents: shareCents }))
-      : parsedShares.map((share) => ({ memberId: share.memberId, amountCents: share.amountCents ?? 0 }));
+    const shares = splitMode === "equal" ? splitAmount(amountCents, participantIds) : customShares;
+    if (!shares) {
+      return;
+    }
+    const participantShares: ExpenseShare[] = [...shares].map(([memberId, amountCents]) => ({ memberId, amountCents }));
     setSavingExpense(true);
     try {
       const input = { payerId, amountCents, description: description.trim(), category, expenseDate, participantIds, participantShares };
@@ -422,7 +420,7 @@ export default function DashboardPage() {
       setData({ ...data, ...nextData });
       setActionStatus(editingExpenseId ? "Harcama güncellendi." : "Harcama eklendi.");
       setAmount("");
-      setShareAmounts({});
+      setManualShareAmounts({});
       setSplitMode("equal");
       setDescription("");
       setCategory("Genel");
@@ -720,16 +718,19 @@ export default function DashboardPage() {
             <form id="expense-form" className="expense-modal__body" onSubmit={handleExpenseSubmit}>
               <section className="expense-form-group" aria-labelledby="expense-group-title">
                 <h3 id="expense-group-title">Harcama</h3>
-                {splitMode === "equal" ? (
-                  <label className="field-label">Toplam tutar
-                    <input autoComplete="off" inputMode="decimal" onChange={(event) => setAmount(event.target.value)} placeholder="1.000,00" required value={amount} />
-                  </label>
-                ) : (
-                  <div className="derived-total" aria-live="polite">
-                    <span>Payların toplamı</span>
-                    <strong>{customSharesComplete ? formatCurrency(customAmountCents) : "Payları tamamla"}</strong>
-                  </div>
-                )}
+                <label className="field-label">Toplam tutar
+                  <input
+                    autoComplete="off"
+                    inputMode="decimal"
+                    onChange={(event) => {
+                      setAmount(event.target.value);
+                      setFormError("");
+                    }}
+                    placeholder="1.000,00"
+                    required
+                    value={amount}
+                  />
+                </label>
                 <label className="field-label">Açıklama
                   <input onChange={(event) => setDescription(event.target.value)} placeholder="Örn. Market alışverişi" required value={description} />
                 </label>
@@ -770,29 +771,48 @@ export default function DashboardPage() {
                       <p className="share-amount-hint">Önce harcamaya katılacak kişileri seç.</p>
                     ) : (
                       <div className="share-amount-list">
-                        {activeMembers.filter((member) => participantIds.includes(member.id)).map((member) => (
-                          <label className="share-amount-row" key={member.id}>
-                            <span>{member.name}<small>kişisel payı</small></span>
-                            <span className="share-input-wrap">
-                              <input
-                                aria-label={`${member.name} kişinin payı`}
-                                inputMode="decimal"
-                                onChange={(event) => setShareAmounts((current) => ({ ...current, [member.id]: event.target.value }))}
-                                placeholder="0,00"
-                                required
-                                value={shareAmounts[member.id] ?? ""}
-                              />
-                              <span aria-hidden="true">₺</span>
-                            </span>
-                          </label>
-                        ))}
+                        {activeMembers.filter((member) => participantIds.includes(member.id)).map((member) => {
+                          const isManual = Object.hasOwn(manualShareAmounts, member.id);
+                          const shareCents = customShares?.get(member.id);
+                          return (
+                            <label className="share-amount-row" key={member.id}>
+                              <span>{member.name}<small>{isManual ? "Sabit pay" : savedShares ? "Kayıtlı pay" : "Otomatik pay"}</small></span>
+                              <span className="share-input-wrap">
+                                <input
+                                  aria-label={`${member.name} payı`}
+                                  inputMode="decimal"
+                                  onChange={(event) => {
+                                    const value = event.target.value;
+                                    setManualShareAmounts((current) => ({ ...current, [member.id]: value }));
+                                    setFormError("");
+                                  }}
+                                  value={isManual ? manualShareAmounts[member.id] : shareCents === undefined ? "" : formatAmountInput(shareCents)}
+                                />
+                                <span aria-hidden="true">₺</span>
+                              </span>
+                            </label>
+                          );
+                        })}
                       </div>
                     )}
-                    <div className="share-total" aria-live="polite">
-                      <span>Harcama toplamı</span>
-                      <strong>{customSharesComplete ? formatCurrency(customAmountCents) : "Payları tamamla"}</strong>
+                    {participantIds.length > 0 && (
+                      <>
+                        {amountCents && (
+                          <div className="share-total">
+                            <span>Harcama toplamı</span>
+                            <strong>₺{formatAmountInput(amountCents)}</strong>
+                          </div>
+                        )}
+                        <p className="share-amount-hint">
+                          {amountCents
+                            ? "Elle girdiğin paylar sabit kalır. Kalan tutar diğer katılımcılara eşit dağılır."
+                            : "Payları hesaplamak için toplam tutarı gir."}
+                        </p>
+                      </>
+                    )}
+                    <div aria-live="polite">
+                      {shareError && <p className="form-error">{shareError}</p>}
                     </div>
-                    <p className="share-amount-hint">Toplam, seçili kişilerin paylarından oluşur. Ödeyen kişinin kendi payını da ekleyebilirsin; pay almıyorsa 0 yaz.</p>
                   </section>
                 )}
               </section>
@@ -802,7 +822,7 @@ export default function DashboardPage() {
               {formError && <p className="form-error" id="expense-form-error" role="alert">{formError}</p>}
               <div className="expense-modal__actions">
                 <button className="secondary-action" disabled={savingExpense} onClick={closeExpenseForm} type="button">Vazgeç</button>
-                <button className="primary-action" disabled={savingExpense} form="expense-form" type="submit" aria-busy={savingExpense}>
+                <button className="primary-action" disabled={savingExpense || Boolean(shareError)} form="expense-form" type="submit" aria-busy={savingExpense}>
                   {savingExpense ? "Kaydediliyor…" : editingExpenseId ? "Değişiklikleri kaydet" : "Harcamayı kaydet"}
                 </button>
               </div>
