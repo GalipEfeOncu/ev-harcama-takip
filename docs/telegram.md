@@ -6,7 +6,7 @@
 2. Google hesabıyla oturum açmış aktif ev sahibi süreli bir kurulum bağlantısı alır. Telegram grup yöneticisi grubu seçer. Webhook grubu ve yetkileri doğrulayıp gruba bir onay kodu gönderir. Ev sahibi on dakika içinde kodu uygulamaya girerek gönderimi başlatır.
 3. Aktif ev üyeleri Ayarlar üzerinden beş dakikalık tek kişilik Telegram daveti alır. Daveti kullanan Telegram hesabı bağlantıyı elinde tutan kişidir. Uygulama telefon numarası toplamaz.
 4. Harcama, doğrudan ödeme ve dönem kapanışı için INSERT tetikleyicileri, ana kayıtla aynı işlemde bağlı gruba bir gönderim işi ekler. Kuyruk kaydı bağlantının kimliğini taşır. Bağlantı silindiğinde bekleyen işler de silinir.
-5. Supabase Cron dakikada bir yetkilendirilmiş Next.js gönderim uç noktasını çağırır. İşçi kısa süreli kilit alır, Telegram sonucunu kaydeder ve geçici hataları artan aralıklarla tekrar dener. Sunucu mesajı gönderdikten hemen sonra kapanırsa aynı mesaj ikinci kez gelebilir.
+5. Kuyruğa kayıt eklendiğinde pg_net işlem tamamlanır tamamlanmaz gönderim uç noktasını çağırır. Supabase Cron dakikada bir bekleyen işleri ve tekrar denemelerini alır. İşçi kısa süreli kilit alır, Telegram sonucunu kaydeder ve geçici hataları artan aralıklarla tekrar dener. Sunucu mesajı gönderdikten hemen sonra kapanırsa aynı mesaj ikinci kez gelebilir.
 6. Kabul kontrolü iki ayrı ev, yetkisiz üye, süresi dolmuş eşleme, gönderim hatası, bağlantıyı kaldırma ve mobil kullanım akışlarını kapsar.
 
 ## Ev sahibi için kurulum
@@ -14,7 +14,7 @@
 - Telegram’da sohbetler ekranındaki yeni mesaj simgesine dokun ve **Yeni Grup** seç. Ev arkadaşını ekle, gruba tanıyacağın bir ad ver ve grup türünü **Özel** bırak. Zaten kullandığınız özel bir ev grubu varsa onu seçebilirsin.
 - Ev Hesap’ta **Ayarlar → Telegram bildirimleri** bölümünü aç. Kurulumu başlat ve Telegram bağlantısını aç. Doğru grubu seç, botu yönetici olarak eklerken **Kullanıcı davet et** iznini aç. Bu adımı Telegram grubunda yönetici ekleyebilen kişi tamamlar.
 - Botun gruba gönderdiği onay kodunu Ev Hesap’a gir. Bağlantı etkinleşince yeni kayıtların bildirimleri bu gruba gelir. Daha önceki kayıtlar için toplu mesaj gönderilmez.
-- Gruba yönetici olarak eklenen bot grup mesajlarını alabilir. Ev Hesap kurulum komutu ve grup geçişi dışındaki sohbet metinlerini işlemeden geçer. Harcama bildiriminde kaydı giren kişi, tutar, açıklama ve kategori gösterilir. Ödemeyi başka bir üye yaptıysa adı ayrıca belirtilir.
+- Gruba yönetici olarak eklenen bot grup mesajlarını alabilir. Ev Hesap kurulum komutu ve grup geçişi dışındaki sohbet metinlerini işlemeden geçer. Harcama bildiriminde kaydı giren kişi, tutar, açıklama ve kategori gösterilir. Paya dahil edilen üyeler ayrıca listelenir.
 
 ## Üye için kullanım
 

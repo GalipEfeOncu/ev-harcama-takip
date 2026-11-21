@@ -12,4 +12,8 @@ describe("Telegram delivery", () => {
     expect(retryDelay(99)).toBe(3600);
     expect(retryDelay(1, 403)).toBe(3600);
   });
+  it("shows selected participants even when the recorder is the payer", () => {
+    expect(expenseMessage({ creator: "Ece", payer: null, participants: ["Ada", "Can"], amount: 10000, description: "Market", category: "Gıda" }))
+      .toContain("Paya dahil olanlar: Ada, Can");
+  });
 });

@@ -1,14 +1,27 @@
 import { formatCurrency } from "./calculations";
 
-export type ExpenseDetails = { creator: string; amount: number; description: string; category: string; payer: string | null };
+export type ExpenseDetails = { creator: string; amount: number; description: string; category: string; payer: string | null; participants?: string[] };
 
 export function expenseMessage(expense: ExpenseDetails) {
-  return [
+  const lines = [
     expense.creator + " bir harcama ekledi.",
     expense.description + " · " + formatCurrency(expense.amount),
     "Kategori: " + expense.category.slice(0, 120),
-    expense.payer && "Ödeyen: " + expense.payer,
-  ].filter(Boolean).join("\n");
+  ];
+  if (expense.payer) lines.push("Ödeyen: " + expense.payer);
+  const names = expense.participants ?? [];
+  if (names.length) {
+    let list = "Paya dahil olanlar: ";
+    for (const [index, name] of names.entries()) {
+      if (list.length + name.length > 3100) {
+        list += "… (+" + (names.length - index) + " kişi)";
+        break;
+      }
+      list += (index ? ", " : "") + name;
+    }
+    lines.push(list);
+  }
+  return lines.join("\n");
 }
 
 export function retryDelay(attempt: number, status?: number, retryAfter = 0) {
