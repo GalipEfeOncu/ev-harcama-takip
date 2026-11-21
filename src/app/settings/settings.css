@@ -264,3 +264,9 @@ html[data-density] .settings-page .settings-nav-item { min-height: max(44px, var
 @media (prefers-reduced-motion: no-preference) {
   html:not([data-reduced-motion="true"]) .settings-preview { transition: background-color 180ms ease-out, color 180ms ease-out; }
 }
+.telegram-settings, .telegram-settings form { display: grid; justify-items: start; gap: 12px; overflow-wrap: anywhere; }
+.telegram-settings p { margin: 0; }
+.telegram-settings summary { cursor: pointer; padding-block: 10px; font-weight: 600; }
+.telegram-settings ol { padding-inline-start: 1.4rem; list-style: decimal; }
+.telegram-settings li + li { margin-top: .5rem; }
+.telegram-settings input { width: min(100%, 16rem); min-height: 44px; padding: 8px 12px; border: 1px solid var(--border-subtle); border-radius: 8px; color: var(--text); background: var(--surface); font: inherit; }

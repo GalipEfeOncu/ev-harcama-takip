@@ -11,6 +11,7 @@ import { loadRemoteHousehold, loadRemoteHouseholdSession, rotateRemoteHouseholdJ
 import { readLocalSession, readLocalMembers, saveLocalSession, SESSION_KEY, type LocalSession } from "@/lib/local-store";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import type { Member } from "@/lib/types";
+import { TelegramSettings } from "@/components/telegram-settings";
 import "./settings.css";
 
 const SECTIONS = [
@@ -318,6 +319,8 @@ export default function SettingsPage() {
               {session.role === "owner" && remote && !account?.hasGoogleIdentity && <p className="settings-footnote">Kod oluşturmak için Hesap bölümünden Google hesabını bağla.</p>}
               {!remote && <p className="settings-footnote">Bu yerel oturumdan ortak ev oluşturulamaz veya davet kodu yenilenemez.</p>}
               {session.role !== "owner" && <p className="settings-footnote">Davet kodunu yalnızca ev sahibi yenileyebilir.</p>}</section>
+              {remote && account?.hasGoogleIdentity && <TelegramSettings key={session.householdId + session.memberId} household={session.householdId} owner={session.role === "owner"} />}
+              {(!remote || !account?.hasGoogleIdentity) && <section className="settings-block"><h3>Telegram bildirimleri</h3><p className="settings-muted">{remote ? "Grup bildirimlerini kullanmak için Hesap bölümünden Google hesabını bağla." : "Telegram bildirimleri çevrimiçi ev hesaplarında kullanılabilir."}</p></section>}
             </>}
           </>}
 

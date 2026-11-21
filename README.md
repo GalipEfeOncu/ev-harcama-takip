@@ -13,6 +13,8 @@ Aynı evde yaşayan kişilerin ortak harcamalarını kaydetmesini, geçmiş harc
 
 ## Ayarlar ve kişiselleştirme
 
+Ev başına özel Telegram grubu bağlamak, botu kurmak ve bildirim gönderimini etkinleştirmek için [Telegram bildirim rehberini](./docs/telegram.md) izleyin.
+
 `/settings` altında Görünüm, Arayüz, Ev ve üyeler, Hesap bölümleri bulunur.
 Pano ve hesap inceleme ekranındaki tek Ayarlar bağlantısı bu alana açılır.
 

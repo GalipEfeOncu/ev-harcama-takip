@@ -34,6 +34,10 @@ jobs:
         env:
           PGPASSWORD: postgres
         run: psql -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p 54322 -U postgres -d postgres -f supabase/tests/settlement_history.sql
+      - name: Verify Telegram queue isolation and retries
+        env:
+          PGPASSWORD: postgres
+        run: psql -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p 54322 -U postgres -d postgres -f supabase/tests/telegram_notifications.sql
       - name: Verify user deletion guards
         env:
           PGPASSWORD: postgres
