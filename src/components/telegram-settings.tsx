@@ -61,7 +61,7 @@ export function TelegramSettings({ household, owner }: { household: string; owne
   }
 
   return <section className="settings-block telegram-settings" aria-labelledby="telegram-heading">
-    <h3 id="telegram-heading">Telegram bildirimleri</h3>
+    <h3 id="telegram-heading">Ev grubu</h3>
     <p className="settings-muted">Yeni harcamalar, ödemeler ve kapanan dönemler evin özel Telegram grubuna bildirilir. Tutarları ve kişi bilgilerini ev panosunda görebilirsin.</p>
     {!group && !error && <p role="status">Bağlantı kontrol ediliyor…</p>}
     {group?.state === "off" && (owner ? <>

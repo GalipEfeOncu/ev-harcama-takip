@@ -12,13 +12,13 @@
 ## Ev sahibi için kurulum
 
 - Telegram’da sohbetler ekranındaki yeni mesaj simgesine dokun ve **Yeni Grup** seç. Ev arkadaşını ekle, gruba tanıyacağın bir ad ver ve grup türünü **Özel** bırak. Zaten kullandığınız özel bir ev grubu varsa onu seçebilirsin.
-- Ev Hesap’ta **Ayarlar → Ev ve üyeler → Telegram bildirimleri** bölümünü aç. Kurulumu başlat ve Telegram bağlantısını aç. Doğru grubu seç, botu yönetici olarak eklerken **Kullanıcı davet et** iznini aç. Bu adımı Telegram grubunda yönetici ekleyebilen kişi tamamlar.
+- Ev Hesap’ta **Ayarlar → Telegram bildirimleri** bölümünü aç. Kurulumu başlat ve Telegram bağlantısını aç. Doğru grubu seç, botu yönetici olarak eklerken **Kullanıcı davet et** iznini aç. Bu adımı Telegram grubunda yönetici ekleyebilen kişi tamamlar.
 - Botun gruba gönderdiği onay kodunu Ev Hesap’a gir. Bağlantı etkinleşince yeni kayıtların bildirimleri bu gruba gelir. Daha önceki kayıtlar için toplu mesaj gönderilmez.
 - Gruba yönetici olarak eklenen bot grup mesajlarını alabilir. Ev Hesap kurulum komutu ve grup geçişi dışındaki sohbet metinlerini işlemeden geçer. Grup bildiriminde kişi, borç tutarı veya harcama açıklaması paylaşılmaz.
 
 ## Üye için kullanım
 
-Google hesabınla Ev Hesap’a girip doğru evi aç. **Ayarlar → Ev ve üyeler → Telegram bildirimleri** altında davet oluştur. **Telegram grubuna katıl** bağlantısını açıp Telegram’da **Katıl** seç. Bağlantıyı kendin kullan. Süresi dolarsa uygulamadan yenisini alabilirsin. Gruptaysanız tekrar katılmanız gerekmez. Bildirimin altındaki düğme ilgili evin panosunu açar ve uygulamanın üyelik denetimleri geçerlidir.
+Google hesabınla Ev Hesap’a girip doğru evi aç. **Ayarlar → Telegram bildirimleri** altında davet oluştur. **Telegram grubuna katıl** bağlantısını açıp Telegram’da **Katıl** seç. Bağlantıyı kendin kullan. Süresi dolarsa uygulamadan yenisini alabilirsin. Gruptaysanız tekrar katılmanız gerekmez. Bildirimin altındaki düğme ilgili evin panosunu açar ve uygulamanın üyelik denetimleri geçerlidir.
 
 Tek bir telefonda bildirimleri sessize almak için Telegram’da grup adına dokunup bildirim ayarını değiştir. Ev sahibi uygulamada bağlantıyı kaldırarak tüm ev için gönderimi durdurabilir. Grup ve geçmiş mesajlar Telegram’da kalır. Evden ayrılan üyeleri grup yöneticisi Telegram’dan ayrıca çıkarır. Daha önce açılmış davetler en geç beş dakika içinde sona erer.
 

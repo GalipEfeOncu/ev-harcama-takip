@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type CSSProperties } from "react";
-import { ArrowLeft, ArrowRight, Check, ChevronRight, Copy, Home, LayoutList, LogOut, Monitor, Palette, RefreshCw, RotateCcw, Search, SlidersHorizontal, Star, UserRound, Users, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Bell, Check, ChevronRight, Copy, Home, LayoutList, LogOut, Monitor, Palette, RefreshCw, RotateCcw, Search, SlidersHorizontal, Star, UserRound, Users, X } from "lucide-react";
 import { THEMES, getTheme, FONT_OPTIONS, FONT_SIZES, DENSITIES } from "@/lib/appearance-catalog";
 import { usePreferences } from "@/components/preferences-provider";
 import { beginGoogleSignIn, getAccountSnapshot, type AccountSnapshot } from "@/lib/auth";
-import { loadRemoteHousehold, loadRemoteHouseholdSession, rotateRemoteHouseholdJoinCode } from "@/lib/data-service";
+import { loadRemoteMembers, loadRemoteHouseholdSession, rotateRemoteHouseholdJoinCode } from "@/lib/data-service";
 import { readLocalSession, readLocalMembers, saveLocalSession, SESSION_KEY, type LocalSession } from "@/lib/local-store";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import type { Member } from "@/lib/types";
@@ -18,6 +18,7 @@ const SECTIONS = [
   { id: "appearance", label: "Görünüm", description: "Tema, yazı tipi ve yazı boyutu", icon: Palette },
   { id: "interface", label: "Arayüz", description: "Yoğunluk ve hareket tercihleri", icon: SlidersHorizontal },
   { id: "household", label: "Ev ve üyeler", description: "Ev arkadaşların ve davet kodu", icon: Users },
+  { id: "telegram", label: "Telegram bildirimleri", description: "Ev grubunu bağla veya gruba katıl", icon: Bell },
   { id: "account", label: "Hesap", description: "Google hesabın ve oturumun", icon: UserRound },
 ] as const;
 type SectionId = typeof SECTIONS[number]["id"];
@@ -68,6 +69,7 @@ export default function SettingsPage() {
 
   const loadAccountAndHome = useCallback(async () => {
     setHomeStatus("loading");
+    setSession(null);
     setHomeError("");
     setAccountStatus("loading");
     setAccountError("");
@@ -101,10 +103,9 @@ export default function SettingsPage() {
       }
       const requested = new URLSearchParams(window.location.search).get("household");
       const resolved = await loadRemoteHouseholdSession(requested || stored?.householdId, stored);
-      const data = await loadRemoteHousehold(resolved.session);
       saveLocalSession(resolved.session);
       setSession(resolved.session);
-      setMembers(data.members);
+      setMembers(await loadRemoteMembers(resolved.session));
       setHomeStatus("ready");
     } catch (homeFailure) {
       if (homeFailure instanceof Error && homeFailure.message === "Bu hesapla açılmış bir ev üyeliği bulunamadı.") {
@@ -184,7 +185,7 @@ export default function SettingsPage() {
     setAccountError("");
     try {
       const next = new URL("/settings", window.location.origin);
-      next.searchParams.set("section", "account");
+      next.searchParams.set("section", activeSection === "telegram" ? "telegram" : "account");
       if (session) next.searchParams.set("household", session.householdId);
       await beginGoogleSignIn(`${next.pathname}${next.search}`, account?.isAnonymous === true);
     } catch (signInFailure) {
@@ -246,7 +247,7 @@ export default function SettingsPage() {
         <div className="settings-content">
           <button className="settings-mobile-back" type="button" onClick={() => navigateSection(null)}><ArrowLeft size={18} aria-hidden="true" />Tüm ayarlar</button>
           <div className="settings-content-heading">
-            <div><h2 ref={titleRef} tabIndex={-1}>{SECTIONS.find((item) => item.id === activeSection)?.label}</h2><p>{activeSection === "appearance" ? "Bir palet seç. Ev hesabın senin renginde olsun." : activeSection === "interface" ? "Sana rahat gelen düzeni ve hareketi seç." : activeSection === "household" ? "Aynı evi, aynı hesabı paylaştığın kişiler." : "Hesabın, bağlantın ve oturum bilgilerin."}</p></div>
+            <div><h2 ref={titleRef} tabIndex={-1}>{SECTIONS.find((item) => item.id === activeSection)?.label}</h2><p>{activeSection === "appearance" ? "Bir palet seç. Ev hesabın senin renginde olsun." : activeSection === "interface" ? "Sana rahat gelen düzeni ve hareketi seç." : activeSection === "household" ? "Aynı evi, aynı hesabı paylaştığın kişiler." : activeSection === "telegram" ? "Ev hesabındaki hareketleri özel Telegram grubunda takip et." : "Hesabın, bağlantın ve oturum bilgilerin."}</p></div>
             {(activeSection === "appearance" || activeSection === "interface") && <span className={`settings-save-status${status === "error" ? " is-error" : ""}`} role="status">{status === "saved" || status === "local" ? <Check size={15} aria-hidden="true" /> : <RefreshCw size={15} aria-hidden="true" />}{statusText}</span>}
           </div>
 
@@ -308,6 +309,7 @@ export default function SettingsPage() {
           </>}
 
           {activeSection === "household" && <>
+            <button className="settings-text-button" type="button" onClick={() => navigateSection("telegram")}><Bell size={16} aria-hidden="true" />Telegram bildirimlerini aç</button>
             {homeStatus === "loading" && <div className="settings-loading" role="status">Ev bilgileri yükleniyor…</div>}
             {homeStatus === "error" && <div className="settings-error" role="alert"><div><strong>Ev bilgileri yüklenemedi.</strong><p>{homeError}</p></div><button type="button" className="settings-button" onClick={() => void loadAccountAndHome()}><RefreshCw size={16} aria-hidden="true" />Tekrar dene</button></div>}
             {homeStatus === "empty" && <div className="settings-empty"><Home size={28} aria-hidden="true" /><h3>Henüz açık bir ev hesabın yok.</h3><p>Evini oluşturduğunda veya bir eve katıldığında üyeleri ve davet kodunu burada görebilirsin.</p><Link className="settings-button settings-button--primary" href="/start">Ev hesabına git<ArrowRight size={17} aria-hidden="true" /></Link></div>}
@@ -319,9 +321,16 @@ export default function SettingsPage() {
               {session.role === "owner" && remote && !account?.hasGoogleIdentity && <p className="settings-footnote">Kod oluşturmak için Hesap bölümünden Google hesabını bağla.</p>}
               {!remote && <p className="settings-footnote">Bu yerel oturumdan ortak ev oluşturulamaz veya davet kodu yenilenemez.</p>}
               {session.role !== "owner" && <p className="settings-footnote">Davet kodunu yalnızca ev sahibi yenileyebilir.</p>}</section>
-              {remote && account?.hasGoogleIdentity && <TelegramSettings key={session.householdId + session.memberId} household={session.householdId} owner={session.role === "owner"} />}
-              {(!remote || !account?.hasGoogleIdentity) && <section className="settings-block"><h3>Telegram bildirimleri</h3><p className="settings-muted">{remote ? "Grup bildirimlerini kullanmak için Hesap bölümünden Google hesabını bağla." : "Telegram bildirimleri çevrimiçi ev hesaplarında kullanılabilir."}</p></section>}
             </>}
+          </>}
+
+          {activeSection === "telegram" && <>
+            {!remote ? <p>Telegram bildirimleri çevrimiçi ev hesaplarında kullanılabilir.</p>
+              : session && account?.hasGoogleIdentity ? <TelegramSettings key={session.householdId + session.memberId} household={session.householdId} owner={session.role === "owner"} />
+              : homeStatus === "loading" ? <p role="status">Ev üyeliğin kontrol ediliyor…</p>
+              : homeStatus === "error" ? <div className="settings-error" role="alert"><p>{homeError}</p><button className="settings-button" onClick={() => void loadAccountAndHome()}>Tekrar dene</button></div>
+              : !account?.hasGoogleIdentity ? <section className="settings-block"><p>Ev grubuna erişmek için Google hesabınla giriş yap.</p><button className="settings-button settings-button--primary" disabled={accountBusy} onClick={() => void googleSignIn()}>{accountBusy ? "Google’a yönlendiriliyor…" : "Google hesabıyla devam et"}</button>{accountError && <p role="alert">{accountError}</p>}</section>
+              : <section className="settings-block"><p>Telegram grubunu kullanabilmek için önce bir ev oluştur veya mevcut evine katıl.</p><Link className="settings-button" href="/start">Ev hesabına git</Link></section>}
           </>}
 
           {activeSection === "account" && <>

@@ -50,7 +50,7 @@ export async function POST(request: Request) {
       if (error) throw error;
       if (!data) return new Response(null);
     }
-    await reply("Ev sahibi, Ev Hesap’ta Ayarlar → Ev ve üyeler bölümünü açıp bu grubu onaylamak için şu kodu girsin: " + confirmationCode(id, chat));
+    await reply("Ev sahibi, Ev Hesap’ta Ayarlar → Telegram bildirimleri bölümünü açıp bu grubu onaylamak için şu kodu girsin: " + confirmationCode(id, chat));
     return new Response(null);
   } catch (error) {
     // Telegram retries temporary webhook failures. An inaccessible chat cannot receive a reply.

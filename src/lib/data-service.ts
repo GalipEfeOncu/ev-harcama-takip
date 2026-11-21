@@ -211,10 +211,17 @@ export async function joinRemoteHousehold(joinCode: string, memberName: string) 
   return sessionFromRpc(toRpcResult(data), memberName);
 }
 
+export async function loadRemoteMembers(session: LocalSession, supabase = createClient()) {
+  const rows = await readAllPages<RemoteMember>((from, to) => supabase.from("members")
+    .select("id, household_id, user_id, name, role, active, joined_at").eq("household_id", session.householdId)
+    .order("joined_at").order("id").range(from, to));
+  return rows.map(toMember);
+}
+
 export async function loadRemoteHousehold(session: LocalSession) {
   const { supabase } = await getAuthenticatedClient();
   const [members, expenses, payments] = await Promise.all([
-    readAllPages<RemoteMember>((from, to) => supabase.from("members").select("id, household_id, user_id, name, role, active, joined_at").eq("household_id", session.householdId).order("joined_at").order("id").range(from, to)),
+    loadRemoteMembers(session, supabase),
     readAllPages<RemoteExpense>((from, to) => supabase.from("expenses").select("id, household_id, payer_member_id, amount_cents, description, category, expense_date, settlement_run_id, created_at, updated_at").eq("household_id", session.householdId).order("expense_date", { ascending: false }).order("id").range(from, to)),
     readAllPages<RemoteDebtPayment>((from, to) => supabase.from("debt_payments").select("id, household_id, from_member_id, to_member_id, amount_cents, paid_at, description, settlement_run_id, created_at").eq("household_id", session.householdId).order("paid_at", { ascending: false }).order("id").range(from, to)),
   ]);
@@ -228,7 +235,7 @@ export async function loadRemoteHousehold(session: LocalSession) {
   }
 
   return {
-    members: members.map(toMember),
+    members,
     expenses: expenses.map((expense) => toExpense(expense, participantsByExpense.get(expense.id) ?? [])),
     debtPayments: payments.map(toDebtPayment),
   };
