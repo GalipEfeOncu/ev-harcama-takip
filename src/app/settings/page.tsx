@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type CSSProperties } from "react";
-import { ArrowLeft, ArrowRight, Bell, Check, ChevronRight, Copy, Home, LayoutList, LogOut, Monitor, Palette, RefreshCw, RotateCcw, Search, SlidersHorizontal, Star, UserRound, Users, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Bell, Check, ChevronRight, Copy, History, Home, LayoutList, LogOut, Monitor, Palette, RefreshCw, RotateCcw, Search, SlidersHorizontal, Star, UserRound, Users, X } from "lucide-react";
 import { THEMES, getTheme, FONT_OPTIONS, FONT_SIZES, DENSITIES } from "@/lib/appearance-catalog";
 import { usePreferences } from "@/components/preferences-provider";
 import { beginGoogleSignIn, getAccountSnapshot, type AccountSnapshot } from "@/lib/auth";
@@ -11,15 +11,17 @@ import { loadRemoteMembers, loadRemoteHouseholdSession, rotateRemoteHouseholdJoi
 import { readLocalSession, readLocalMembers, saveLocalSession, SESSION_KEY, type LocalSession } from "@/lib/local-store";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import type { Member } from "@/lib/types";
+import { HouseholdHistory } from "@/components/household-history";
 import { TelegramSettings } from "@/components/telegram-settings";
 import "./settings.css";
 
 const SECTIONS = [
-  { id: "appearance", label: "Görünüm", description: "Tema, yazı tipi ve yazı boyutu", icon: Palette },
-  { id: "interface", label: "Arayüz", description: "Yoğunluk ve hareket tercihleri", icon: SlidersHorizontal },
-  { id: "household", label: "Ev ve üyeler", description: "Ev arkadaşların ve davet kodu", icon: Users },
-  { id: "telegram", label: "Telegram bildirimleri", description: "Ev grubunu bağla veya gruba katıl", icon: Bell },
-  { id: "account", label: "Hesap", description: "Google hesabın ve oturumun", icon: UserRound },
+  { id: "appearance", label: "Görünüm", description: "Tema, yazı tipi ve yazı boyutu", intro: "Bir palet seç. Ev hesabın senin renginde olsun.", icon: Palette },
+  { id: "interface", label: "Arayüz", description: "Yoğunluk ve hareket tercihleri", intro: "Sana rahat gelen düzeni ve hareketi seç.", icon: SlidersHorizontal },
+  { id: "household", label: "Ev ve üyeler", description: "Ev arkadaşların ve davet kodu", intro: "Aynı evi, aynı hesabı paylaştığın kişiler.", icon: Users },
+  { id: "history", label: "İşlem geçmişi", description: "Kim neyi değiştirdi?", intro: "Evdeki değişiklikleri yapan kişiyi, zamanı ve değişen değerleri gör.", icon: History },
+  { id: "telegram", label: "Telegram bildirimleri", description: "Ev grubunu bağla veya gruba katıl", intro: "Ev hesabındaki hareketleri özel Telegram grubunda takip et.", icon: Bell },
+  { id: "account", label: "Hesap", description: "Google hesabın ve oturumun", intro: "Hesabın, bağlantın ve oturum bilgilerin.", icon: UserRound },
 ] as const;
 type SectionId = typeof SECTIONS[number]["id"];
 type ThemeFilter = "all" | "light" | "dark" | "favorites";
@@ -62,6 +64,7 @@ export default function SettingsPage() {
   const rotateDialog = useRef<HTMLDialogElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const activeSection = section ?? "appearance";
+  const currentSection = SECTIONS.find((item) => item.id === activeSection);
   const remote = isSupabaseConfigured();
   const systemDark = useSyncExternalStore(subscribeSystemTheme, getSystemDark, () => false);
   const selectedTheme = getTheme(preferences.themeId, systemDark);
@@ -247,7 +250,7 @@ export default function SettingsPage() {
         <div className="settings-content">
           <button className="settings-mobile-back" type="button" onClick={() => navigateSection(null)}><ArrowLeft size={18} aria-hidden="true" />Tüm ayarlar</button>
           <div className="settings-content-heading">
-            <div><h2 ref={titleRef} tabIndex={-1}>{SECTIONS.find((item) => item.id === activeSection)?.label}</h2><p>{activeSection === "appearance" ? "Bir palet seç. Ev hesabın senin renginde olsun." : activeSection === "interface" ? "Sana rahat gelen düzeni ve hareketi seç." : activeSection === "household" ? "Aynı evi, aynı hesabı paylaştığın kişiler." : activeSection === "telegram" ? "Ev hesabındaki hareketleri özel Telegram grubunda takip et." : "Hesabın, bağlantın ve oturum bilgilerin."}</p></div>
+            <div><h2 ref={titleRef} tabIndex={-1}>{currentSection?.label}</h2><p>{currentSection?.intro}</p></div>
             {(activeSection === "appearance" || activeSection === "interface") && <span className={`settings-save-status${status === "error" ? " is-error" : ""}`} role="status">{status === "saved" || status === "local" ? <Check size={15} aria-hidden="true" /> : <RefreshCw size={15} aria-hidden="true" />}{statusText}</span>}
           </div>
 
@@ -322,6 +325,14 @@ export default function SettingsPage() {
               {!remote && <p className="settings-footnote">Bu yerel oturumdan ortak ev oluşturulamaz veya davet kodu yenilenemez.</p>}
               {session.role !== "owner" && <p className="settings-footnote">Davet kodunu yalnızca ev sahibi yenileyebilir.</p>}</section>
             </>}
+          </>}
+
+          {activeSection === "history" && <>
+            {homeStatus === "loading" && <p className="settings-loading" role="status">Ev üyeliğin kontrol ediliyor…</p>}
+            {homeStatus === "error" && <div className="settings-error" role="alert"><p>{homeError}</p><button type="button" className="settings-button" onClick={() => void loadAccountAndHome()}>Tekrar dene</button></div>}
+            {!remote && homeStatus !== "loading" && <div className="settings-empty"><h3>İşlem geçmişi ortak ev hesaplarında kullanılabilir.</h3></div>}
+            {remote && homeStatus === "empty" && <div className="settings-empty"><h3>Henüz açık bir ev hesabın yok.</h3><Link className="settings-button" href="/start">Ev hesabına git</Link></div>}
+            {remote && homeStatus === "ready" && session && <HouseholdHistory key={session.householdId + session.memberId} householdId={session.householdId} householdName={session.householdName} />}
           </>}
 
           {activeSection === "telegram" && <>

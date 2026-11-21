@@ -78,7 +78,7 @@ export async function deleteHousehold(formData: FormData): Promise<AdminActionRe
   }
 
   revalidatePath("/admin");
-  return { ok: true, message: "Ev ve bu eve bağlı kayıtlar silindi." };
+  return { ok: true, message: "Ev silindi. İşlem geçmişi saklandı." };
 }
 
 export async function deleteUser(formData: FormData): Promise<AdminActionResult> {

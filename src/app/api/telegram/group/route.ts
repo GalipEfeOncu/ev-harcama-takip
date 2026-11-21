@@ -45,28 +45,23 @@ export async function POST(request: Request) {
         return problem("Davet oluşturulamadı. Ev sahibi botun grupta yönetici olduğunu ve kullanıcı davet etme iznini kontrol edebilir.", 502);
       }
     }
-    if (input.action === "begin") {
-      if (row && !current) {
-        await groups().delete().eq("id", row.id).eq("active", false).throwOnError();
-      }
-      if (!current) {
-        const { error } = await groups().insert({ household_id: input.household, owner_id: user.id });
-        if (error && error.code !== "23505") throw error;
-      }
-      return Response.json({ ok: true });
+    if (!["begin", "confirm", "disconnect"].includes(input.action)) return problem("İşlem tanınmadı.");
+    if (input.action !== "begin" && (!current || input.id !== current.id)) {
+      return problem("Bağlantı değişti veya süresi doldu. Durumu yenile.", 409);
     }
-    if (!current || input.id !== current.id) return problem("Bağlantı değişti veya süresi doldu. Durumu yenile.", 409);
-    if (input.action === "disconnect") {
-      await groups().delete().eq("id", current.id).throwOnError();
-    } else if (input.action === "confirm") {
+    if (input.action === "confirm" && current) {
       if (!current.chat_id || current.active || typeof input.code !== "string" ||
         !secretMatches(input.code.trim().toUpperCase(), confirmationCode(current.id, current.chat_id))) {
         return problem("Kod eşleşmedi. Seçtiğin gruptaki son kodu kontrol et.");
       }
-      const { data } = await groups().update({ active: true }).eq("id", current.id).eq("active", false)
-        .eq("owner_id", user.id).gt("expires_at", now).select("id").maybeSingle().throwOnError();
-      if (!data) return problem("Kurulum süresi doldu. Durumu yenileyip tekrar başla.", 409);
-    } else return problem("İşlem tanınmadı.");
+    }
+    const { data: changed } = await db.rpc("change_telegram_binding_as_owner", {
+      p_household_id: input.household,
+      p_actor_user_id: user.id,
+      p_action: input.action,
+      p_binding_id: current?.id ?? null,
+    }).throwOnError();
+    if (!changed) return problem("Bağlantı değişti veya süresi doldu. Durumu yenile.", 409);
     return Response.json({ ok: true });
   } catch {
     return problem("Ev bağlantısına ulaşılamadı. Biraz sonra tekrar dene.", 503);

@@ -451,7 +451,7 @@ export default function AdminPanel({ data, setupIncomplete, error }: AdminPanelP
           <div className="admin-delete-dialog" role="dialog" aria-modal="true" aria-labelledby="admin-delete-title" aria-describedby="admin-delete-description" ref={dialogRef}>
             <div className="admin-delete-mark"><Trash2 size={21} aria-hidden="true" /></div>
             <h2 id="admin-delete-title">Bu evi kalıcı olarak sil?</h2>
-            <p id="admin-delete-description"><strong>{deleting.name}</strong> evi, tüm üyelikleri, harcamaları ve ödeme kayıtlarıyla birlikte silinecek. Bu işlem geri alınamaz.</p>
+            <p id="admin-delete-description"><strong>{deleting.name}</strong> evi, üyelikleri, harcamaları ve ödeme kayıtlarıyla birlikte silinecek. İşlem geçmişi veritabanında saklanacak. Ev silme işlemi geri alınamaz.</p>
             <label htmlFor="admin-delete-confirm">Onaylamak için ev adını yazın</label>
             <input
               id="admin-delete-confirm"

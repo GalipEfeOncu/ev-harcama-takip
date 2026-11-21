@@ -41,6 +41,22 @@ type RemoteExpense = {
 
 type RemoteParticipant = { expense_id: string; member_id: string; share_cents: number | string };
 
+export type HouseholdAuditAction = "insert" | "update" | "delete";
+
+export type HouseholdAuditEntry = {
+  id: number;
+  occurred_at: string;
+  actor_name: string;
+  action: HouseholdAuditAction;
+  entity: string;
+  entity_label: string | null;
+  before_values: Record<string, unknown> | null;
+  after_values: Record<string, unknown> | null;
+  member_names: Record<string, string>;
+};
+
+const AUDIT_PAGE_SIZE = 25;
+
 type RemoteDebtPayment = {
   id: string;
   household_id: string;
@@ -216,6 +232,26 @@ export async function loadRemoteMembers(session: LocalSession, supabase = create
     .select("id, household_id, user_id, name, role, active, joined_at").eq("household_id", session.householdId)
     .order("joined_at").order("id").range(from, to));
   return rows.map(toMember);
+}
+
+export async function loadHouseholdAuditPage(
+  householdId: string,
+  action: HouseholdAuditAction | "",
+  beforeId?: number,
+  signal?: AbortSignal,
+) {
+  let query = createClient().from("household_audit_log")
+    .select("id, occurred_at, actor_name, action, entity, entity_label, before_values, after_values, member_names")
+    .eq("household_id", householdId)
+    .order("id", { ascending: false })
+    .limit(AUDIT_PAGE_SIZE + 1);
+  if (action) query = query.eq("action", action);
+  if (beforeId !== undefined) query = query.lt("id", beforeId);
+  if (signal) query = query.abortSignal(signal);
+
+  const { data, error } = await query.returns<HouseholdAuditEntry[]>();
+  if (error) throw error;
+  return { entries: data.slice(0, AUDIT_PAGE_SIZE), hasMore: data.length > AUDIT_PAGE_SIZE };
 }
 
 async function loadRemoteExpenses(session: LocalSession, settled: boolean, supabase: ReturnType<typeof createClient>) {
