@@ -1,4 +1,5 @@
 import { secretMatches, telegram, telegramDb, TelegramError } from "@/lib/telegram";
+import { expenseMessage, retryDelay, type ExpenseDetails } from "@/lib/telegram-delivery";
 
 export const maxDuration = 60;
 
@@ -17,14 +18,16 @@ export async function POST(request: Request) {
   try {
     await db.from("telegram_groups").delete().eq("active", false).lt("expires_at", new Date().toISOString()).throwOnError();
     for (let count = 0; count < 12 && Date.now() < deadline; count++) {
-      const { data: job } = await db.rpc("claim_telegram_job").maybeSingle<{
+      const { data: job } = await db.rpc("claim_telegram_delivery").maybeSingle<{
+        details: ExpenseDetails | null;
         job_id: number; lease_id: string; attempt: number; group_id: string; chat_id: string; household_id: string; kind: string;
       }>().throwOnError();
       if (!job) break;
       try {
         const url = new URL("/dashboard", process.env.TELEGRAM_APP_URL);
         url.searchParams.set("household", job.household_id);
-        await telegram("sendMessage", { chat_id: job.chat_id, text: messages[job.kind],
+        const text = job.kind === "expenses" && job.details ? expenseMessage(job.details) : messages[job.kind];
+        await telegram("sendMessage", { chat_id: job.chat_id, text, link_preview_options: { is_disabled: true },
           reply_markup: { inline_keyboard: [[{ text: "Ev panosunu aç", url: url.href }]] } });
       } catch (error) {
         const api = error instanceof TelegramError ? error : null;
@@ -33,7 +36,7 @@ export async function POST(request: Request) {
             .eq("id", job.group_id).eq("chat_id", job.chat_id).throwOnError();
         }
         const permanent = !api?.migrateTo && (api?.status === 403 || api?.status === 400);
-        const delay = Math.max(api?.retryAfter || 0, Math.min(3600, 30 * 2 ** Math.min(job.attempt, 7)));
+        const delay = retryDelay(job.attempt, api?.migrateTo ? undefined : api?.status, api?.retryAfter);
         await db.from("telegram_outbox").update({ failed: permanent || job.attempt >= 12,
           lease: null, available_at: new Date(Date.now() + delay * 1000).toISOString() })
           .eq("id", job.job_id).eq("lease", job.lease_id).throwOnError();

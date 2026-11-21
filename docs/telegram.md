@@ -14,7 +14,7 @@
 - Telegram’da sohbetler ekranındaki yeni mesaj simgesine dokun ve **Yeni Grup** seç. Ev arkadaşını ekle, gruba tanıyacağın bir ad ver ve grup türünü **Özel** bırak. Zaten kullandığınız özel bir ev grubu varsa onu seçebilirsin.
 - Ev Hesap’ta **Ayarlar → Telegram bildirimleri** bölümünü aç. Kurulumu başlat ve Telegram bağlantısını aç. Doğru grubu seç, botu yönetici olarak eklerken **Kullanıcı davet et** iznini aç. Bu adımı Telegram grubunda yönetici ekleyebilen kişi tamamlar.
 - Botun gruba gönderdiği onay kodunu Ev Hesap’a gir. Bağlantı etkinleşince yeni kayıtların bildirimleri bu gruba gelir. Daha önceki kayıtlar için toplu mesaj gönderilmez.
-- Gruba yönetici olarak eklenen bot grup mesajlarını alabilir. Ev Hesap kurulum komutu ve grup geçişi dışındaki sohbet metinlerini işlemeden geçer. Grup bildiriminde kişi, borç tutarı veya harcama açıklaması paylaşılmaz.
+- Gruba yönetici olarak eklenen bot grup mesajlarını alabilir. Ev Hesap kurulum komutu ve grup geçişi dışındaki sohbet metinlerini işlemeden geçer. Harcama bildiriminde kaydı giren kişi, tutar, açıklama ve kategori gösterilir. Ödemeyi başka bir üye yaptıysa adı ayrıca belirtilir.
 
 ## Üye için kullanım
 
@@ -48,7 +48,7 @@ $job$);
 - **Kod gelmediğinde** botun grupta yönetici ve kullanıcı davet etme iznine sahip olduğunu kontrol et. Özel grupta kendi yönetici kimliğini kullan. Uygulamada durumu yenile. On dakika geçtiyse kurulumu yeniden başlat. Webhook adresinin dışarıdan erişilebilir olması gerekir.
 - **Davet açılmıyorsa** yeni bir bağlantı oluştur. Botun davet iznini kontrol et. Davet bağlantısı beş dakika boyunca taşınabilir. Bağlantıyı alan başka biri de kullanabileceği için paylaşma.
 - **Bildirim gelmiyorsa** önce grup sohbetini aç. Mesaj sohbette varsa telefonun sessiz modunu ve Telegram bildirim ayarlarını kontrol et. Mesaj yoksa Cron geçmişini ve `net._http_response` içindeki HTTP durumunu incele. 403 gönderim anahtarını, 503 kuyruk veya veritabanı bağlantısını kontrol etmen gerektiğini gösterir.
-- Geçici hatalarda gönderim en çok 12 kez denenir. Kalıcı hatalar veya tükenen denemeler `telegram_outbox.failed` alanına işlenir ve ev sahibi ayarlarda uyarı görür. İzin sorununu giderdikten sonra ilgili evin belirli işi için SQL Editor’da `update public.telegram_outbox set failed=false, attempts=0, available_at=now() where id=<iş_numarası> and failed;` çalıştırabilirsin.
+- Geçici hatadan beş saniye sonra iş yeniden gönderime hazır olur. Cron uygun işleri her dakika alır. Tekrarlanan hatalarda bekleme bir saate kadar artar. Telegram daha uzun bir bekleme isterse bu süreye uyulur. Bot izinleri düzeltildiğinde bekleyen gönderimler otomatik devam eder. Kalıcı hatalar veya art arda 12 başarısız deneme ev sahibine uyarı olarak gösterilir.
 - Hizmeti durdurmak için Cron görevini duraklat. Tek ev için uygulamadaki bağlantıyı kaldır. Bot token’ı yenilendiğinde Vercel ortamını güncelle, tekrar dağıt ve webhook betiğini yeniden çalıştır.
 - Başarılı teslimden sonra kuyruk kaydı silinir. Bağlantı kaldırılırken Telegram’a ulaşmış veya gönderimi başlamış bir mesaj grupta görünebilir.
 - Tarayıcıdaki **Start Bot** düğmesi grup seçimini açmazsa Ev Hesap’a dön. **Telegram Web ile bağla** bölümünü kullan. Botu özel grubuna ekleyip kullanıcı davet etme izni olan yönetici yap. **Komutu kopyala** düğmesiyle aldığın komutu özel grubunun sohbetine gönder. Kurulum süresi dolmuşsa yeni kurulum başlat.

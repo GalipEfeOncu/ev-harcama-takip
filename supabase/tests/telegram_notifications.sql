@@ -40,6 +40,13 @@ begin
   insert into public.debt_payments(household_id, from_member_id, to_member_id, created_by_user_id, amount_cents)
     values ((house->>'household_id')::uuid, (other->>'member_id')::uuid, (house->>'member_id')::uuid, owner_id, 200);
   assert (select count(distinct event_kind) = 3 from public.telegram_outbox where group_id = binding);
+  insert into public.expenses(household_id, payer_member_id, created_by_user_id, amount_cents, description)
+    values ((house->>'household_id')::uuid, (house->>'member_id')::uuid, owner_id, 12990, 'Market');
+  update public.telegram_outbox set failed = true, attempts = 12, available_at = now() - interval '1 hour'
+    where group_id = binding and expense_details->>'description' = 'Market';
+  select * into strict retry from public.claim_telegram_delivery();
+  assert retry.attempt = 13 and retry.details @> '{"creator":"Second member","payer":"Owner","amount":12990,"description":"Market"}';
+  assert not has_function_privilege('authenticated', 'public.claim_telegram_delivery()', 'EXECUTE');
   delete from public.telegram_groups where id = binding;
   assert not exists (select from public.telegram_outbox where group_id = binding);
 end;

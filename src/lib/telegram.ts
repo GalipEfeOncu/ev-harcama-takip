@@ -34,7 +34,7 @@ export class TelegramError extends Error {
 export async function telegram<T>(method: string, body: object): Promise<T> {
   const response = await fetch("https://api.telegram.org/bot" + process.env.TELEGRAM_BOT_TOKEN + "/" + method, {
     method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
-    signal: AbortSignal.timeout(6500), cache: "no-store",
+    signal: AbortSignal.timeout(method === "sendMessage" ? 12000 : 6500), cache: "no-store",
   });
   const data = await response.json();
   if (!data.ok) throw new TelegramError(data.error_code || response.status, data.parameters?.retry_after, data.parameters?.migrate_to_chat_id);

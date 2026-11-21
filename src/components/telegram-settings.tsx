@@ -92,7 +92,7 @@ export function TelegramSettings({ household, owner }: { household: string; owne
 
   return <section className="settings-block telegram-settings" aria-labelledby="telegram-heading">
     <h3 id="telegram-heading">Ev grubu</h3>
-    <p className="settings-muted">Yeni harcamalar, ödemeler ve kapanan dönemler evin özel Telegram grubuna bildirilir. Tutarları ve kişi bilgilerini ev panosunda görebilirsin.</p>
+    <p className="settings-muted">Gruptaki herkes harcamayı ekleyen kişiyi, tutarı, açıklamayı, kategoriyi ve ödeyeni görebilir. Ödemeler ve kapanan dönemler de gruba bildirilir.</p>
     {!group && !error && <p role="status">Bağlantı kontrol ediliyor…</p>}
     {group?.state === "off" && (owner ? <>
       <details><summary>Telegram’da nasıl grup açarım?</summary>
