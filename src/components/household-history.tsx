@@ -59,6 +59,8 @@ const TIMESTAMP = new Intl.DateTimeFormat("tr-TR", { dateStyle: "medium", timeSt
 const CALENDAR_DATE = new Intl.DateTimeFormat("tr-TR", { dateStyle: "medium", timeZone: "UTC" });
 const SNAPSHOT_METADATA = new Set(["id", "household_id", "owner_id", "owner_user_id", "user_id", "created_by_user_id", "expense_id"]);
 
+type ShareSnapshot = { member_id: string; name: string; share_cents: number };
+
 function displayValue(field: string, value: unknown, entry: HouseholdAuditEntry) {
   if (field === "settlement_run_id" && value === null) return "Açık";
   if (value === null || value === undefined || value === "") return "—";
@@ -66,7 +68,7 @@ function displayValue(field: string, value: unknown, entry: HouseholdAuditEntry)
   if (field === "participants" && Array.isArray(value)) {
     return value.length ? (
       <ul className="household-history-shares">
-        {value.map((share: { member_id: string; name: string; share_cents: number }) => (
+        {value.map((share: ShareSnapshot) => (
           <li key={share.member_id}>{share.name} · {formatCurrency(share.share_cents)}</li>
         ))}
       </ul>
@@ -90,6 +92,9 @@ function entryTitle(entry: HouseholdAuditEntry) {
   if (entry.entity === "households" && entry.after_values?.join_code_changed) return "Davet kodu yenilendi";
   if (entry.entity === "settlement_runs" && entry.action === "insert") return "Hesaplaşma dönemi kapatıldı";
   if (entry.entity === "members" && entry.action === "insert") return "Eve yeni üye katıldı";
+  if (entry.entity === "expense_participants" && Array.isArray(entry.after_values?.participants)) {
+    return entry.action === "insert" ? "Harcama payları eklendi" : "Harcama payı güncellendi";
+  }
   if (entry.entity === "telegram_groups") {
     if (entry.action === "insert") return "Telegram kurulumu başlatıldı";
     if (entry.action === "delete") return entry.before_values?.active ? "Telegram bağlantısı kaldırıldı" : "Telegram kurulumu kaldırıldı";
@@ -99,9 +104,41 @@ function entryTitle(entry: HouseholdAuditEntry) {
   return `${ENTITIES[entry.entity] ?? "Kayıt"} ${ACTIONS[entry.action]}`;
 }
 
+function ShareDetails({ before, after }: { before: ShareSnapshot[] | null; after: ShareSnapshot[] }) {
+  const previous = new Map(before?.map((share) => [share.member_id, share.share_cents]));
+  const current = new Map(after.map((share) => [share.member_id, share.share_cents]));
+  const names = new Map([...(before ?? []), ...after].map((share) => [share.member_id, share.name]));
+  const members = [...names].sort(([, left], [, right]) => left.localeCompare(right, "tr"));
+  const showShare = (cents: number | undefined) => cents === undefined ? "Pay yok" : formatCurrency(cents);
+
+  return (
+    <table className="household-history-values household-history-share-values">
+      <thead>
+        <tr>
+          <th scope="col">Ev üyesi</th>
+          {before && <th scope="col">Önceki pay</th>}
+          <th scope="col">{before ? "Yeni pay" : "Pay"}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {members.map(([id, name]) => (
+          <tr key={id}>
+            <th scope="row">{name}</th>
+            {before && <td>{showShare(previous.get(id))}</td>}
+            <td>{showShare(current.get(id))}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
 function AuditDetails({ entry }: { entry: HouseholdAuditEntry }) {
   const before = entry.before_values;
   const after = entry.after_values;
+  if (entry.entity === "expense_participants" && Array.isArray(after?.participants)) {
+    return <ShareDetails before={Array.isArray(before?.participants) ? before.participants : null} after={after.participants} />;
+  }
   const fields = Object.keys({ ...before, ...after }).filter(
     (field) => entry.action === "update" || !SNAPSHOT_METADATA.has(field),
   );

@@ -231,6 +231,7 @@ html[data-density] .settings-page .settings-nav-item { min-height: max(44px, var
 .household-history-values thead th { color: var(--text-muted); }
 .household-history-values tbody tr { border-top: 1px solid var(--border-subtle); }
 .household-history-values td { white-space: pre-wrap; font-variant-numeric: tabular-nums; }
+.household-history-share-values thead th + th, .household-history-share-values td { text-align: right; }
 .household-history-shares { margin: 0; padding: 0; list-style: none; }
 .household-history-shares li + li { margin-top: 4px; }
 .household-history-more, .household-history-list + .settings-error { margin-top: 16px; }
